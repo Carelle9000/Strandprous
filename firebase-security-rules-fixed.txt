@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isStaff() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff'];
+    }
+    
+    function isReceptionist() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff', 'receptionist'];
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Collection Users - Seuls les admins peuvent lire tous les utilisateurs
+    match /users/{userId} {
+      allow read, write: if isAdmin() || isOwner(userId);
+      allow create: if isAuthenticated(); // Tout utilisateur authentifié peut créer son profil
+    }
+    
+    // Collection Appointments - Staff et réceptionnistes peuvent gérer
+    match /appointments/{appointmentId} {
+      allow read, write: if isStaff() || isReceptionist();
+      allow create: if isReceptionist();
+      allow update: if isStaff() || isReceptionist();
+      allow delete: if isStaff();
+    }
+    
+    // Collection Customers - Staff et réceptionnistes peuvent gérer
+    match /customers/{customerId} {
+      allow read: if isReceptionist();
+      allow write: if isStaff() || isReceptionist();
+      allow create: if isReceptionist();
+      allow update: if isStaff() || isReceptionist();
+      allow delete: if isStaff();
+    }
+    
+    // Collection Services - Staff peut lire, admin peut gérer
+    match /services/{serviceId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Collection Staff - Admin uniquement
+    match /staff/{staffId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Collection Inventory - Staff peut lire, admin peut gérer
+    match /inventory/{itemId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Collection Settings - Admin uniquement
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Règles par défaut - refuser tout accès non autorisé
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

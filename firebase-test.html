@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase - StrandPro</title>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0D0B09;
+            color: #f0e8d8;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            background: #1c1914;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+            border: 1px solid #2a2419;
+        }
+        .btn {
+            background: #C9922A;
+            color: #0D0B09;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 600;
+        }
+        .btn:hover {
+            background: #E5B84A;
+        }
+        .btn.danger {
+            background: #c0392b;
+            color: white;
+        }
+        .btn.success {
+            background: #27ae60;
+            color: white;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #231f1a;
+            border: 1px solid #3a3228;
+            color: #f0e8d8;
+            border-radius: 6px;
+        }
+        .log {
+            background: #111009;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #2a2419;
+        }
+        .success { color: #27ae60; }
+        .error { color: #c0392b; }
+        .info { color: #3498db; }
+        .warning { color: #f39c12; }
+        h2 {
+            color: #C9922A;
+            border-bottom: 2px solid #C9922A;
+            padding-bottom: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Test Firebase - StrandPro Salon Management</h1>
+        
+        <!-- Section Authentification -->
+        <div class="section">
+            <h2>🔐 Authentification</h2>
+            <div class="grid">
+                <div>
+                    <h3>Inscription</h3>
+                    <input type="email" id="signupEmail" placeholder="Email">
+                    <input type="password" id="signupPassword" placeholder="Mot de passe">
+                    <input type="text" id="signupName" placeholder="Nom complet">
+                    <select id="signupRole">
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
+                        <option value="receptionist">Réceptionniste</option>
+                    </select>
+                    <button class="btn success" onclick="testSignUp()">S'inscrire</button>
+                </div>
+                <div>
+                    <h3>Connexion</h3>
+                    <input type="email" id="loginEmail" placeholder="Email">
+                    <input type="password" id="loginPassword" placeholder="Mot de passe">
+                    <button class="btn" onclick="testSignIn()">Se connecter</button>
+                    <button class="btn danger" onclick="testSignOut()">Se déconnecter</button>
+                </div>
+            </div>
+            <div id="authStatus" class="log">Statut: Non connecté</div>
+        </div>
+
+        <!-- Section CRUD Tests -->
+        <div class="section">
+            <h2>📊 Tests CRUD Firestore</h2>
+            
+            <!-- Test Clients -->
+            <div class="grid">
+                <div>
+                    <h3>👥 Clients</h3>
+                    <input type="text" id="customerName" placeholder="Nom du client">
+                    <input type="tel" id="customerPhone" placeholder="Téléphone">
+                    <input type="email" id="customerEmail" placeholder="Email">
+                    <button class="btn success" onclick="testAddCustomer()">Ajouter client</button>
+                    <button class="btn" onclick="testGetCustomers">Voir clients</button>
+                </div>
+                
+                <!-- Test Services -->
+                <div>
+                    <h3>💇 Services</h3>
+                    <input type="text" id="serviceName" placeholder="Nom du service">
+                    <input type="number" id="servicePrice" placeholder="Prix">
+                    <input type="number" id="serviceDuration" placeholder="Durée (minutes)">
+                    <button class="btn success" onclick="testAddService()">Ajouter service</button>
+                    <button class="btn" onclick="testGetServices()">Voir services</button>
+                </div>
+            </div>
+
+            <!-- Test Rendez-vous -->
+            <div class="grid">
+                <div>
+                    <h3>📅 Rendez-vous</h3>
+                    <input type="datetime-local" id="appointmentDate">
+                    <input type="text" id="appointmentCustomer" placeholder="ID Client">
+                    <input type="text" id="appointmentService" placeholder="ID Service">
+                    <button class="btn success" onclick="testAddAppointment()">Ajouter RDV</button>
+                    <button class="btn" onclick="testGetAppointments()">Voir RDV</button>
+                </div>
+                
+                <!-- Test Inventaire -->
+                <div>
+                    <h3>📦 Inventaire</h3>
+                    <input type="text" id="itemName" placeholder="Nom produit">
+                    <input type="number" id="itemQuantity" placeholder="Quantité">
+                    <input type="text" id="itemCategory" placeholder="Catégorie">
+                    <button class="btn success" onclick="testAddInventory()">Ajouter produit</button>
+                    <button class="btn" onclick="testGetInventory()">Voir inventaire</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Logs -->
+        <div class="section">
+            <h2>📋 Logs des tests</h2>
+            <button class="btn" onclick="clearLogs()">Effacer logs</button>
+            <div id="testLogs" class="log">Les résultats des tests apparaîtront ici...</div>
+        </div>
+    </div>
+
+    <!-- Scripts Firebase -->
+    <script src="./firebase-config.js" type="module"></script>
+    <script src="./firestore-crud.js" type="module"></script>
+    <script src="./firebase-auth.js" type="module"></script>
+
+    <script type="module">
+        // Importer les fonctions Firebase nécessaires
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        
+        // Variables globales
+        let currentUser = null;
+        const auth = window.firebaseAuth;
+
+        // Écouter les changements d'authentification
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            updateAuthStatus(user);
+            log(`Auth state changed: ${user ? user.email : 'déconnecté'}`, 'info');
+        });
+
+        // Fonctions de logging
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('testLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function updateAuthStatus(user) {
+            const statusDiv = document.getElementById('authStatus');
+            if (user) {
+                statusDiv.innerHTML = `<span class="success">✅ Connecté: ${user.email}</span>`;
+            } else {
+                statusDiv.innerHTML = `<span class="error">❌ Non connecté</span>`;
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('testLogs').innerHTML = 'Logs effacés...';
+        }
+
+        // Fonctions de test - Rendre globales
+        window.testSignUp = async function() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const name = document.getElementById('signupName').value;
+            const role = document.getElementById('signupRole').value;
+
+            if (!email || !password || !name) {
+                log('❌ Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            log(`🔐 Tentative d'inscription: ${email}`, 'info');
+            const result = await window.firebaseAuthManager.signUp(email, password, { name, role });
+            
+            if (result.success) {
+                log(`✅ Inscription réussie: ${result.user.email}`, 'success');
+            } else {
+                log(`❌ Erreur inscription: ${result.error}`, 'error');
+            }
+        };
+
+        window.testSignIn = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                log('❌ Veuillez remplir email et mot de passe', 'error');
+                return;
+            }
+
+            log(`🔐 Tentative de connexion: ${email}`, 'info');
+            const result = await window.firebaseAuthManager.signIn(email, password);
+            
+            if (result.success) {
+                log(`✅ Connexion réussie: ${result.user.email}`, 'success');
+            } else {
+                log(`❌ Erreur connexion: ${result.error}`, 'error');
+            }
+        };
+
+        window.testSignOut = async function() {
+            log('🔐 Tentative de déconnexion...', 'info');
+            const result = await window.firebaseAuthManager.signOut();
+            
+            if (result.success) {
+                log('✅ Déconnexion réussie', 'success');
+            } else {
+                log(`❌ Erreur déconnexion: ${result.error}`, 'error');
+            }
+        };
+
+        window.testAddCustomer = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const email = document.getElementById('customerEmail').value;
+
+            if (!name) {
+                log('❌ Le nom du client est requis', 'error');
+                return;
+            }
+
+            const customerData = {
+                name,
+                phone: phone || '',
+                email: email || '',
+                createdAt: new Date()
+            };
+
+            log(`👥 Ajout du client: ${name}`, 'info');
+            const result = await window.strandProFirestore.addCustomer(customerData);
+            
+            if (result.success) {
+                log(`✅ Client ajouté avec ID: ${result.id}`, 'success');
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerPhone').value = '';
+                document.getElementById('customerEmail').value = '';
+            } else {
+                log(`❌ Erreur ajout client: ${result.error}`, 'error');
+            }
+        };
+
+        window.testGetCustomers = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            log('👥 Récupération des clients...', 'info');
+            const result = await window.strandProFirestore.getCustomers();
+            
+            if (result.success) {
+                log(`✅ ${result.data.length} clients trouvés`, 'success');
+                result.data.forEach(customer => {
+                    log(`   - ${customer.name} (${customer.email || 'no email'})`, 'info');
+                });
+            } else {
+                log(`❌ Erreur récupération clients: ${result.error}`, 'error');
+            }
+        };
+
+        window.testAddService = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            const name = document.getElementById('serviceName').value;
+            const price = parseFloat(document.getElementById('servicePrice').value);
+            const duration = parseInt(document.getElementById('serviceDuration').value);
+
+            if (!name || isNaN(price) || isNaN(duration)) {
+                log('❌ Veuillez remplir tous les champs du service', 'error');
+                return;
+            }
+
+            const serviceData = {
+                name,
+                price,
+                duration,
+                category: 'general',
+                active: true
+            };
+
+            log(`💇 Ajout du service: ${name}`, 'info');
+            const result = await window.strandProFirestore.addService(serviceData);
+            
+            if (result.success) {
+                log(`✅ Service ajouté avec ID: ${result.id}`, 'success');
+                document.getElementById('serviceName').value = '';
+                document.getElementById('servicePrice').value = '';
+                document.getElementById('serviceDuration').value = '';
+            } else {
+                log(`❌ Erreur ajout service: ${result.error}`, 'error');
+            }
+        };
+
+        window.testGetServices = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            log('💇 Récupération des services...', 'info');
+            const result = await window.strandProFirestore.getServices();
+            
+            if (result.success) {
+                log(`✅ ${result.data.length} services trouvés`, 'success');
+                result.data.forEach(service => {
+                    log(`   - ${service.name}: ${service.price}€ (${service.duration}min)`, 'info');
+                });
+            } else {
+                log(`❌ Erreur récupération services: ${result.error}`, 'error');
+            }
+        };
+
+        window.testAddAppointment = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            const date = document.getElementById('appointmentDate').value;
+            const customerId = document.getElementById('appointmentCustomer').value;
+            const serviceId = document.getElementById('appointmentService').value;
+
+            if (!date || !customerId || !serviceId) {
+                log('❌ Veuillez remplir tous les champs du rendez-vous', 'error');
+                return;
+            }
+
+            const appointmentData = {
+                date: new Date(date),
+                customerId,
+                serviceId,
+                staffId: currentUser.uid,
+                status: 'confirmed',
+                createdAt: new Date()
+            };
+
+            log(`📅 Ajout du rendez-vous pour ${date}`, 'info');
+            const result = await window.strandProFirestore.addAppointment(appointmentData);
+            
+            if (result.success) {
+                log(`✅ Rendez-vous ajouté avec ID: ${result.id}`, 'success');
+                document.getElementById('appointmentDate').value = '';
+                document.getElementById('appointmentCustomer').value = '';
+                document.getElementById('appointmentService').value = '';
+            } else {
+                log(`❌ Erreur ajout rendez-vous: ${result.error}`, 'error');
+            }
+        };
+
+        window.testGetAppointments = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            log('📅 Récupération des rendez-vous...', 'info');
+            const result = await window.strandProFirestore.getUpcomingAppointments(10);
+            
+            if (result.success) {
+                log(`✅ ${result.data.length} rendez-vous trouvés`, 'success');
+                result.data.forEach(appointment => {
+                    const date = new Date(appointment.date).toLocaleString();
+                    log(`   - ${date} (Client: ${appointment.customerId})`, 'info');
+                });
+            } else {
+                log(`❌ Erreur récupération rendez-vous: ${result.error}`, 'error');
+            }
+        };
+
+        window.testAddInventory = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            const name = document.getElementById('itemName').value;
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const category = document.getElementById('itemCategory').value;
+
+            if (!name || isNaN(quantity)) {
+                log('❌ Veuillez remplir nom et quantité', 'error');
+                return;
+            }
+
+            const itemData = {
+                name,
+                quantity,
+                category: category || 'general',
+                minStock: 10,
+                lastUpdated: new Date()
+            };
+
+            log(`📦 Ajout du produit: ${name}`, 'info');
+            const result = await window.strandProFirestore.addInventoryItem(itemData);
+            
+            if (result.success) {
+                log(`✅ Produit ajouté avec ID: ${result.id}`, 'success');
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemQuantity').value = '';
+                document.getElementById('itemCategory').value = '';
+            } else {
+                log(`❌ Erreur ajout produit: ${result.error}`, 'error');
+            }
+        };
+
+        window.testGetInventory = async function() {
+            if (!currentUser) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+
+            log('📦 Récupération de l\'inventaire...', 'info');
+            const result = await window.strandProFirestore.getInventory();
+            
+            if (result.success) {
+                log(`✅ ${result.data.length} produits trouvés`, 'success');
+                result.data.forEach(item => {
+                    log(`   - ${item.name}: ${item.quantity} unités (${item.category})`, 'info');
+                });
+            } else {
+                log(`❌ Erreur récupération inventaire: ${result.error}`, 'error');
+            }
+        };
+
+        // Initialisation
+        log('🚥 Page de test Firebase chargée', 'success');
+        log('ℹ️ Configurez Firebase Console avec les règles de sécurité avant de tester', 'warning');
+    </script>
+</body>
+</html>

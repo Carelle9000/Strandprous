@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="StrandPro — Salon management software for beauty salons, braiders, and stylists. Appointments, inventory, staff, payments, and revenue tracking. Operated by Kamel Tech Solutions LLC.">
+<meta name="keywords" content="salon management software, braiding salon software, appointment booking, staff management, inventory tracking, hair salon software">
+<title>StrandPro — Salon Management Software | Kamel Tech Solutions LLC</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Primary landing page - redirect from root if needed -->
+<script>
+// If this is accessed directly from root, ensure it's the main entry
+if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
+  // This is already the main page, no redirect needed
+}
+</script>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN DIRECTION: Luxury Editorial
+   Dark gold on near-black, editorial spacing,
+   Cormorant for drama, Outfit for clarity.
+   Feels like a premium beauty brand.
+═══════════════════════════════════════════ */
+:root {
+  --gold: #C9922A;
+  --gold-light: #E5B84A;
+  --gold-pale: #f2d98a;
+  --gold-dim: #7a5a18;
+  --gold-glow: rgba(201,146,42,0.12);
+  --bg: #0a0907;
+  --bg2: #111009;
+  --bg3: #181510;
+  --bg4: #201c16;
+  --surface: #1c1914;
+  --surface2: #252018;
+  --border: #2a2419;
+  --border2: #3a3228;
+  --text: #f0e8d8;
+  --text2: #c8b896;
+  --text3: #8a7a60;
+  --text4: #5a4e3a;
+  --danger: #c0392b;
+  --success: #27ae60;
+  --radius: 12px;
+  --radius-lg: 20px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding: 0 48px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10,9,7,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all .3s;
+}
+.nav-logo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.nav-logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: .04em;
+}
+.nav-logo-sub {
+  font-size: .58rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: .82rem;
+  font-weight: 500;
+  letter-spacing: .04em;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--gold-light); }
+.nav-cta {
+  background: var(--gold);
+  color: #0a0907 !important;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-weight: 600 !important;
+  transition: background .2s !important;
+}
+.nav-cta:hover { background: var(--gold-light) !important; }
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px;
+}
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 72px; left: 0; right: 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border2);
+  padding: 20px 24px 28px;
+  z-index: 999;
+  flex-direction: column;
+  gap: 20px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a { color: var(--text2); text-decoration: none; font-size: .9rem; font-weight: 500; padding: 8px 0; border-bottom: 1px solid var(--border); }
+
+/* ── SECTIONS ── */
+section { position: relative; z-index: 1; }
+.section-inner { max-width: 1120px; margin: 0 auto; padding: 0 40px; }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 72px;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #1f1508 0%, var(--bg) 70%);
+  overflow: hidden;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  padding: 80px 0 100px;
+}
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(201,146,42,0.1);
+  border: 1px solid var(--gold-dim);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 24px;
+}
+.hero-tag::before { content: '✦'; font-size: .6rem; }
+.hero-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+.hero-headline em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.hero-sub {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.8;
+  margin-bottom: 40px;
+  max-width: 480px;
+}
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold);
+  color: #0a0907;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .2s;
+  border: none;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,146,42,0.3); }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text2);
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid var(--border2);
+  transition: all .2s;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+.btn-secondary:hover { border-color: var(--gold-dim); color: var(--gold-light); }
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.hero-mockup {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,146,42,0.08);
+  animation: floatUpDown 4s ease-in-out infinite;
+}
+@keyframes floatUpDown {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.mockup-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.mockup-title { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--text); font-weight: 600; }
+.mockup-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
+.mockup-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.mockup-stat {
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.mockup-stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold); }
+.mockup-stat-label { font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.mockup-stat-val { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold-light); }
+.mockup-list { display: flex; flex-direction: column; gap: 8px; }
+.mockup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg4);
+  border-radius: 6px;
+  font-size: .73rem;
+}
+.mockup-row-name { color: var(--text2); font-weight: 500; }
+.mockup-badge { padding: 2px 8px; border-radius: 10px; font-size: .62rem; font-weight: 600; }
+.mb-confirmed { background: #1a3a5e; color: #5dade2; }
+.mb-completed { background: #1a5e38; color: #2ecc71; }
+.mb-pending   { background: #7a4010; color: #e67e22; }
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 40px;
+}
+.hero-stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--gold-light); line-height: 1; }
+.hero-stat-label { font-size: .72rem; color: var(--text3); margin-top: 3px; letter-spacing: .05em; }
+
+/* ── SECTION SHARED ── */
+.section-pad { padding: 100px 0; }
+.section-label {
+  font-size: .65rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::before, .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+.section-label.left::before { display: none; }
+.section-label.left { justify-content: flex-start; }
+.section-label.left::after { display: none; }
+.section-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: .95rem;
+  color: var(--text2);
+  line-height: 1.8;
+  max-width: 560px;
+}
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border2) 30%, var(--border2) 70%, transparent); margin: 0 40px; }
+
+/* ── FEATURES ── */
+#features { background: var(--bg2); }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .25s, transform .25s;
+}
+.feature-card:hover { border-color: var(--gold-dim); transform: translateY(-4px); }
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0;
+  transition: opacity .25s;
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-icon { font-size: 2rem; margin-bottom: 18px; display: block; }
+.feature-name { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.feature-desc { font-size: .84rem; color: var(--text2); line-height: 1.7; }
+.feature-list { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.feature-list li { font-size: .78rem; color: var(--text3); display: flex; align-items: center; gap: 7px; }
+.feature-list li::before { content: '✓'; color: var(--gold); font-weight: 700; font-size: .75rem; }
+
+/* ── PRICING ── */
+#pricing { background: var(--bg); }
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 60px;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  position: relative;
+  transition: all .25s;
+}
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0,0,0,0.4); }
+.plan-card.featured {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--surface), #1e1608);
+  box-shadow: 0 0 40px rgba(201,146,42,0.1);
+}
+.plan-badge {
+  position: absolute;
+  top: -1px;
+  right: 28px;
+  background: var(--gold);
+  color: #0a0907;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  padding: 4px 12px;
+  border-radius: 0 0 8px 8px;
+}
+.plan-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.plan-tagline { font-size: .78rem; color: var(--text3); margin-bottom: 24px; }
+.plan-price-wrap { margin-bottom: 28px; }
+.plan-price { font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 700; color: var(--gold-light); line-height: 1; }
+.plan-price sub { font-size: 1rem; color: var(--text3); font-family: 'Outfit', sans-serif; font-weight: 400; vertical-align: super; }
+.plan-billing { font-size: .72rem; color: var(--text3); margin-top: 6px; }
+.plan-savings { display: inline-block; background: rgba(39,174,96,0.15); color: #2ecc71; border: 1px solid rgba(39,174,96,0.3); border-radius: 4px; font-size: .68rem; font-weight: 600; padding: 2px 8px; margin-top: 4px; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.plan-features li { display: flex; align-items: flex-start; gap: 10px; font-size: .84rem; color: var(--text2); line-height: 1.5; }
+.plan-features li::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.plan-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: .88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .2s;
+  font-family: 'Outfit', sans-serif;
+}
+.plan-btn-gold { background: var(--gold); color: #0a0907; }
+.plan-btn-gold:hover { background: var(--gold-light); }
+.plan-btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.plan-btn-outline:hover { border-color: var(--gold-dim); color: var(--gold-light); }
+.trial-note { text-align: center; font-size: .8rem; color: var(--text3); margin-top: 24px; }
+.trial-note strong { color: var(--gold-light); }
+
+/* ── ABOUT ── */
+#about { background: var(--bg3); }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.about-highlight {
+  background: var(--bg4);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 20px 24px;
+  margin: 24px 0;
+  font-size: .88rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.about-highlight strong { color: var(--gold-light); }
+.about-detail { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+.about-detail-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.about-detail-text { font-size: .85rem; color: var(--text2); line-height: 1.7; }
+.about-detail-text strong { color: var(--text); display: block; font-size: .88rem; margin-bottom: 2px; }
+
+/* ── CONTACT ── */
+#contact { background: var(--bg2); }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; margin-top: 60px; }
+.contact-info-item { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 28px; }
+.contact-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--bg4); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+.contact-info-label { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.contact-info-val { font-size: .9rem; color: var(--text); font-weight: 500; }
+.contact-info-val a { color: var(--gold-light); text-decoration: none; }
+.contact-info-val a:hover { text-decoration: underline; }
+.contact-form { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 36px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-group label { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); }
+.form-group input, .form-group select, .form-group textarea {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: .88rem;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold-dim); }
+.form-group select option { background: var(--bg4); }
+.form-group textarea { resize: vertical; min-height: 120px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-success { display: none; background: rgba(39,174,96,0.1); border: 1px solid var(--success); border-radius: 8px; padding: 14px 18px; font-size: .84rem; color: #2ecc71; margin-bottom: 16px; }
+.form-success.show { display: block; }
+
+/* ── POLICIES SECTIONS ── */
+.policy-section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+.policy-section:last-child { border-bottom: none; }
+#policies { background: var(--bg); }
+.policy-toc {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.toc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: .78rem;
+  color: var(--text3);
+  text-decoration: none;
+  transition: all .2s;
+}
+.toc-pill:hover { border-color: var(--gold-dim); color: var(--gold-light); }
+.policy-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  scroll-margin-top: 90px;
+}
+.policy-updated { font-size: .72rem; color: var(--text4); margin-bottom: 28px; }
+.policy-body { max-width: 760px; }
+.policy-body h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 28px 0 10px;
+}
+.policy-body p { font-size: .88rem; color: var(--text2); line-height: 1.85; margin-bottom: 14px; }
+.policy-body ul { padding-left: 20px; margin-bottom: 14px; }
+.policy-body ul li { font-size: .88rem; color: var(--text2); line-height: 1.85; margin-bottom: 6px; }
+.policy-body a { color: var(--gold-light); text-decoration: none; }
+.policy-body a:hover { text-decoration: underline; }
+.policy-highlight {
+  background: rgba(201,146,42,0.06);
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: .85rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.policy-highlight strong { color: var(--gold-light); }
+.policy-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: .82rem; }
+.policy-table th { text-align: left; padding: 10px 14px; background: var(--bg4); color: var(--text3); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid var(--border2); }
+.policy-table td { padding: 10px 14px; color: var(--text2); border-bottom: 1px solid var(--border); }
+.policy-table tr:last-child td { border-bottom: none; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 60px 0 32px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+.footer-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold-light); margin-bottom: 6px; }
+.footer-brand-legal { font-size: .72rem; color: var(--text4); margin-bottom: 14px; line-height: 1.6; }
+.footer-brand-desc { font-size: .8rem; color: var(--text3); line-height: 1.7; }
+.footer-col-title { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; font-weight: 600; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-links a { font-size: .82rem; color: var(--text3); text-decoration: none; transition: color .2s; }
+.footer-links a:hover { color: var(--gold-light); }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 28px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-size: .75rem; color: var(--text4); }
+.footer-legal-links { display: flex; gap: 20px; }
+.footer-legal-links a { font-size: .73rem; color: var(--text4); text-decoration: none; transition: color .2s; }
+.footer-legal-links a:hover { color: var(--text3); }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--surface2);
+  border: 1px solid var(--gold-dim);
+  color: var(--text);
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: .84rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all .3s;
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── BACK TO TOP ── */
+#backToTop {
+  position: fixed;
+  bottom: 32px;
+  left: 32px;
+  width: 42px;
+  height: 42px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text3);
+  z-index: 500;
+  opacity: 0;
+  transition: all .3s;
+}
+#backToTop.show { opacity: 1; }
+#backToTop:hover { border-color: var(--gold-dim); color: var(--gold-light); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fadeUp .6s ease forwards; }
+.fade-up-d1 { animation-delay: .1s; opacity: 0; }
+.fade-up-d2 { animation-delay: .2s; opacity: 0; }
+.fade-up-d3 { animation-delay: .3s; opacity: 0; }
+.fade-up-d4 { animation-delay: .4s; opacity: 0; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 48px; padding: 60px 0 80px; }
+  .hero-visual { order: -1; }
+  .hero-mockup { max-width: 360px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .about-grid { grid-template-columns: 1fr; gap: 40px; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+}
+@media (max-width: 680px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hamburger { display: block; }
+  .section-inner { padding: 0 20px; }
+  .section-pad { padding: 70px 0; }
+  .features-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .hero-stats { gap: 24px; }
+  .hero-headline { font-size: 2.2rem; }
+  .contact-form { padding: 24px 20px; }
+  .plan-card { padding: 28px 24px; }
+  .policy-toc { gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav id="mainNav">
+ 
+  <div class="nav-logo" style="display: flex; flex-direction: row;  gap: 1px; height: 72px; padding-top: 6px;">
+    <img src="./icons/stradpro-logo.jpeg" alt="StrandPro Logo" style="width: 30px; height: 30px; border-radius: 8px; object-fit: contain; flex-shrink: 0; margin-top: 8px; margin-right: 7px;">
+    <div style="display: flex; flex-direction: column;  line-height: 1.2;">
+      <span class="nav-logo-name" >StrandPro</span>
+      <span class="nav-logo-sub">by Kamel Tech Solutions LLC</span>
+    </div>
+  
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features" data-translate="Features">Features</a></li>
+    <li><a href="#pricing" data-translate="Pricing">Pricing</a></li>
+    <li><a href="#about" data-translate="About">About</a></li>
+    <li><a href="#contact" data-translate="Contact">Contact</a></li>
+    <li><a href="#policies" data-translate="Policies">Policies</a></li>
+    <li><a href="strandpro.html" class="nav-cta" data-translate="Launch Application →">Launch Application →</a></li>
+  </ul>
+  <div id="language-switcher"></div>
+  <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="toggleMobileMenu()" data-translate="Features">Features</a>
+  <a href="#pricing" onclick="toggleMobileMenu()" data-translate="Pricing">Pricing</a>
+  <a href="#about" onclick="toggleMobileMenu()" data-translate="About">About</a>
+  <a href="#contact" onclick="toggleMobileMenu()" data-translate="Contact">Contact</a>
+  <a href="#policies" onclick="toggleMobileMenu()" data-translate="Policies">Policies</a>
+  <a href="strandpro.html" style="color:var(--gold-light);font-weight:600" data-translate="Launch Application →">Launch Application →</a>
+</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="section-inner">
+    <div class="hero-grid">
+      <div class="fade-up">
+        <img src="./icons/stradpro-logo.jpeg" alt="StrandPro Logo" style="width: 120px; height: 120px; border-radius: 16px; margin-bottom: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+        <div class="hero-tag" data-translate="Salon Management Software">Salon Management Software</div>
+        <h1 class="hero-headline" data-translate="Manage Your Salon Smarter<br><em> Grow Your Beauty Business Faster.</em>">Manage Your Salon Smarter<br><em> Grow Your Beauty Business Faster.</em></h1>
+        <p class="hero-sub" data-translate="StrandPro is the all-in-one management platform built for braiders, stylists, and beauty salon owners. Appointments, staff, inventory, payments — all in one place.">StrandPro is the all-in-one management platform built for braiders, stylists, and beauty salon owners. Appointments, staff, inventory, payments — all in one place.</p>
+        <div class="hero-actions">
+          <a href="strandpro.html" class="btn-primary" data-translate="Launch Application →">Launch Application →</a>
+          <a href="#features" class="btn-secondary" data-translate="Explore Features">Explore Features</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-num">7</div>
+            <div class="hero-stat-label" data-translate="7-Day Free Trial">7-Day Free Trial</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">6+</div>
+            <div class="hero-stat-label" data-translate="Core Modules">Core Modules</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">3×</div>
+            <div class="hero-stat-label" data-translate="Languages">Languages</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual fade-up fade-up-d2">
+        <div class="hero-mockup">
+          <div class="mockup-topbar">
+            <span class="mockup-title" data-translate="Dashboard">📊 Dashboard</span>
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:.7rem;color:var(--text3)" data-translate="Live">Live</span><div class="mockup-dot"></div></div>
+          </div>
+          <div class="mockup-stats">
+            <div class="mockup-stat"><div class="mockup-stat-label" data-translate="Today's Appts">Today's Appts</div><div class="mockup-stat-val">8</div></div>
+            <div class="mockup-stat"><div class="mockup-stat-label" data-translate="Revenue">Revenue</div><div class="mockup-stat-val">$1,240</div></div>
+            <div class="mockup-stat"><div class="mockup-stat-label" data-translate="Staff Present">Staff Present</div><div class="mockup-stat-val">3/3</div></div>
+            <div class="mockup-stat"><div class="mockup-stat-label" data-translate="Low Stock">Low Stock</div><div class="mockup-stat-val" style="color:var(--gold)">2</div></div>
+          </div>
+          <div class="mockup-list">
+            <div class="mockup-row"><span class="mockup-row-name">Marie — Box Braids</span><span class="mockup-badge mb-confirmed" data-translate="Confirmed">Confirmed</span></div>
+            <div class="mockup-row"><span class="mockup-row-name">Aisha — Cornrows</span><span class="mockup-badge mb-completed" data-translate="Completed">Completed</span></div>
+            <div class="mockup-row"><span class="mockup-row-name">Lisa — Knotless</span><span class="mockup-badge mb-pending" data-translate="Pending">Pending</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── FEATURES ── -->
+<section id="features" class="section-pad">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:560px;margin:0 auto 0">
+      <div class="section-label" data-translate="What's Included">What's Included</div>
+      <h2 class="section-headline" data-translate="Everything your salon needs, nothing it doesn't.">Everything your salon needs, nothing it doesn't.</h2>
+      <p class="section-sub" data-translate="Purpose-built for hair braiding salons, stylists, and beauty professionals. Each module works together so you never lose track of anything.">Purpose-built for hair braiding salons, stylists, and beauty professionals. Each module works together so you never lose track of anything.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-up">
+        <span class="feature-icon">📅</span>
+        <div class="feature-name" data-translate="Appointment Management">Appointment Management</div>
+        <div class="feature-desc" data-translate="Schedule, track, and manage client appointments from booking to completion. Never double-book again.">Schedule, track, and manage client appointments from booking to completion. Never double-book again.</div>
+        <ul class="feature-list">
+          <li data-translate="Client contact & WhatsApp info">Client contact & WhatsApp info</li>
+          <li data-translate="Service, stylist & duration tracking">Service, stylist & duration tracking</li>
+          <li data-translate="Status: Pending, Confirmed, Completed, Cancelled">Status: Pending, Confirmed, Completed, Cancelled</li>
+          <li data-translate="Automated WhatsApp & email reminders">Automated WhatsApp & email reminders</li>
+          <li data-translate="Deposit & balance tracking">Deposit & balance tracking</li>
+        </ul>
+      </div>
+      <div class="feature-card fade-up fade-up-d1">
+        <span class="feature-icon">👩‍💼</span>
+        <div class="feature-name" data-translate="Staff & Attendance">Staff & Attendance</div>
+        <div class="feature-desc" data-translate="Manage your team with daily check-in/check-out logs, monthly summaries, and role-based access control.">Manage your team with daily check-in/check-out logs, monthly summaries, and role-based access control.</div>
+        <ul class="feature-list">
+          <li data-translate="Daily attendance logging">Daily attendance logging</li>
+          <li data-translate="Hours worked & monthly summary">Hours worked & monthly summary</li>
+          <li data-translate="Staff tasks & reminders">Staff tasks & reminders</li>
+          <li data-translate="Role-based permissions per module">Role-based permissions per module</li>
+          <li data-translate="Staff login accounts with temp passwords">Staff login accounts with temp passwords</li>
+        </ul>
+      </div>
+      <div class="feature-card fade-up fade-up-d2">
+        <span class="feature-icon">📦</span>
+        <div class="feature-name" data-translate="Inventory Tracking">Inventory Tracking</div>
+        <div class="feature-desc" data-translate="Know exactly what you have in stock at all times. Get alerts before you run out of braiding hair, oils, or accessories.">Know exactly what you have in stock at all times. Get alerts before you run out of braiding hair, oils, or accessories.</div>
+        <ul class="feature-list">
+          <li data-translate="Track braiding hair, oils, tools & more">Track braiding hair, oils, tools & more</li>
+          <li data-translate="Custom low-stock thresholds">Custom low-stock thresholds</li>
+          <li data-translate="Automatic low-stock alerts">Automatic low-stock alerts</li>
+          <li data-translate="Category filtering & search">Category filtering & search</li>
+        </ul>
+      </div>
+      <div class="feature-card fade-up fade-up-d1">
+        <span class="feature-icon">💰</span>
+        <div class="feature-name" data-translate="Revenue & Payments">Revenue & Payments</div>
+        <div class="feature-desc" data-translate="Track every dollar earned. View daily revenue, payment method breakdowns, and monthly performance at a glance.">Track every dollar earned. View daily revenue, payment method breakdowns, and monthly performance at a glance.</div>
+        <ul class="feature-list">
+          <li data-translate="Daily & monthly revenue reports">Daily & monthly revenue reports</li>
+          <li data-translate="Cash, Zelle & Card tracking">Cash, Zelle & Card tracking</li>
+          <li data-translate="Deposit vs. balance ledger">Deposit vs. balance ledger</li>
+          <li data-translate="Payment method breakdown charts">Payment method breakdown charts</li>
+        </ul>
+      </div>
+      <div class="feature-card fade-up fade-up-d2">
+        <span class="feature-icon">💸</span>
+        <div class="feature-name" data-translate="Expense Tracking">Expense Tracking</div>
+        <div class="feature-desc" data-translate="Log every business expense and instantly see your net profit. Know where your money is going every month.">Log every business expense and instantly see your net profit. Know where your money is going every month.</div>
+        <ul class="feature-list">
+          <li data-translate="Categorized expense logging">Categorized expense logging</li>
+          <li data-translate="Receipt number tracking">Receipt number tracking</li>
+          <li data-translate="Net profit calculation">Net profit calculation</li>
+          <li data-translate="Category breakdown visualization">Category breakdown visualization</li>
+        </ul>
+      </div>
+      <div class="feature-card fade-up fade-up-d3">
+        <span class="feature-icon">🔐</span>
+        <div class="feature-name" data-translate="Roles & Permissions">Roles & Permissions</div>
+        <div class="feature-desc" data-translate="Control exactly what each staff member can see and do. Create login accounts, set permissions, and reset passwords from one place.">Control exactly what each staff member can see and do. Create login accounts, set permissions, and reset passwords from one place.</div>
+        <ul class="feature-list">
+          <li data-translate="Owner vs. Staff role system">Owner vs. Staff role system</li>
+          <li data-translate="Per-module access toggles">Per-module access toggles</li>
+          <li data-translate="Staff account creation by owner">Staff account creation by owner</li>
+          <li data-translate="Forced password change on first login">Forced password change on first login</li>
+          <li data-translate="OTP email password reset">OTP email password reset</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── PRICING ── -->
+<section id="pricing" class="section-pad">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="section-label" data-translate="Pricing">Pricing</div>
+      <h2 class="section-headline" data-translate="Simple, transparent pricing.">Simple, transparent pricing.</h2>
+      <p class="section-sub" data-translate="Start free for 7 days — no credit card required. Cancel anytime.">Start free for 7 days — no credit card required. Cancel anytime.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan-card">
+        <div class="plan-name" data-translate="Monthly">Monthly</div>
+        <div class="plan-tagline" data-translate="Full access, billed monthly">Full access, billed monthly</div>
+        <div class="plan-price-wrap">
+          <div class="plan-price"><sub>$</sub>19.99</div>
+          <div class="plan-billing" data-translate="per month · billed monthly">per month · billed monthly</div>
+        </div>
+        <ul class="plan-features">
+          <li data-translate="All 6 modules included">All 6 modules included</li>
+          <li data-translate="Unlimited staff accounts">Unlimited staff accounts</li>
+          <li data-translate="Appointment reminders (WhatsApp & Email)">Appointment reminders (WhatsApp & Email)</li>
+          <li data-translate="Revenue & expense analytics">Revenue & expense analytics</li>
+          <li data-translate="Roles & permissions system">Roles & permissions system</li>
+          <li data-translate="PWA — install on any device">PWA — install on any device</li>
+          <li data-translate="EN / FR / ES language support">EN / FR / ES language support</li>
+          <li data-translate="Cancel anytime">Cancel anytime</li>
+        </ul>
+        <a href="strandpro.html" class="plan-btn plan-btn-outline" data-translate="Launch Application →">Launch Application →</a>
+      </div>
+      <div class="plan-card featured">
+        <div class="plan-badge" data-translate="★ BEST VALUE">★ BEST VALUE</div>
+        <div class="plan-name" data-translate="Yearly">Yearly</div>
+        <div class="plan-tagline" data-translate="Everything in Monthly, pay once">Everything in Monthly, pay once</div>
+        <div class="plan-price-wrap">
+          <div class="plan-price"><sub>$</sub>150</div>
+          <div class="plan-billing" data-translate="per year · billed annually">per year · billed annually</div>
+          <div class="plan-savings" data-translate="Save $89.88/year (37% off)">Save $89.88/year (37% off)</div>
+        </div>
+        <ul class="plan-features">
+          <li data-translate="Everything in Monthly">Everything in Monthly</li>
+          <li data-translate="37% savings vs. monthly">37% savings vs. monthly</li>
+          <li data-translate="Only $12.50/month effective">Only $12.50/month effective</li>
+          <li data-translate="Priority feature updates">Priority feature updates</li>
+          <li data-translate="All 6 modules included">All 6 modules included</li>
+          <li data-translate="Unlimited staff accounts">Unlimited staff accounts</li>
+          <li data-translate="PWA — install on any device">PWA — install on any device</li>
+          <li data-translate="EN / FR / ES language support">EN / FR / ES language support</li>
+        </ul>
+        <a href="strandpro.html" class="plan-btn plan-btn-gold" data-translate="Launch Application →">Launch Application →</a>
+      </div>
+    </div>
+    <p class="trial-note" data-translate="All plans include a <strong>7-day free trial</strong>. No credit card required to start.">✦ All plans include a <strong>7-day free trial</strong>. No credit card required to start.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── ABOUT ── -->
+<section id="about" class="section-pad">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div>
+        <div class="section-label left" data-translate="About Us">About Us</div>
+        <h2 class="section-headline" data-translate="Built for salons.<br>Backed by Kamel Tech.">Built for salons.<br>Backed by Kamel Tech.</h2>
+        <div class="about-highlight" data-translate="StrandPro is a salon management software platform developed and operated by Kamel Tech Solutions LLC, a technology company based in Houston, Texas."><strong>StrandPro</strong> is a salon management software platform developed and operated by <strong>Kamel Tech Solutions LLC</strong>, a technology company based in Houston, Texas.</div>
+        <p style="font-size:.88rem;color:var(--text2);line-height:1.85;margin-bottom:24px" data-translate="We build practical, affordable software tools for small business owners in beauty industry. StrandPro was designed specifically for hair braiding salons, stylists, and beauty professionals who need real tools — not spreadsheets.">We build practical, affordable software tools for small business owners in the beauty industry. StrandPro was designed specifically for hair braiding salons, stylists, and beauty professionals who need real tools — not spreadsheets.</p>
+        <div class="about-detail">
+          <span class="about-detail-icon">🏢</span>
+          <div class="about-detail-text" data-translate="Legal Business Name"><strong>Legal Business Name</strong>Kamel Tech Solutions LLC</div>
+        </div>
+        <div class="about-detail">
+          <span class="about-detail-icon">📍</span>
+          <div class="about-detail-text" data-translate="Location"><strong>Location</strong>Houston, Texas, United States</div>
+        </div>
+        <div class="about-detail">
+          <span class="about-detail-icon">💻</span>
+          <div class="about-detail-text" data-translate="Product"><strong>Product</strong>StrandPro — Salon Management Software (SaaS)</div>
+        </div>
+        <div class="about-detail">
+          <span class="about-detail-icon">🌐</span>
+          <div class="about-detail-text" data-translate="Website"><strong>Website</strong><a href="https://strandprous.com" style="color:var(--gold-light)">strandprous.com</a></div>
+        </div>
+      </div>
+      <div>
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:36px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--gold-light);margin-bottom:20px" data-translate="Why StrandPro?">Why StrandPro?</div>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="font-size:1.2rem;flex-shrink:0">✦</span>
+              <div>
+                <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px" data-translate="Built for braiders">Built for braiders</div>
+                <div style="font-size:.8rem;color:var(--text3);line-height:1.7" data-translate="Designed from the ground up for hair braiding salons, not adapted from generic software.">Designed from the ground up for hair braiding salons, not adapted from generic software.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="font-size:1.2rem;flex-shrink:0">✦</span>
+              <div>
+                <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px" data-translate="Works offline">Works offline</div>
+                <div style="font-size:.8rem;color:var(--text3);line-height:1.7" data-translate="Install as a PWA on any device. Works even without internet — perfect for salon environments.">Install as a PWA on any device. Works even without internet — perfect for salon environments.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="font-size:1.2rem;flex-shrink:0">✦</span>
+              <div>
+                <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px" data-translate="Multilingual">Multilingual</div>
+                <div style="font-size:.8rem;color:var(--text3);line-height:1.7" data-translate="Full English, French, and Spanish support — serving diverse salon communities across the US.">Full English, French, and Spanish support — serving diverse salon communities across the US.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <span style="font-size:1.2rem;flex-shrink:0">✦</span>
+              <div>
+                <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px" data-translate="Affordable pricing">Affordable pricing</div>
+                <div style="font-size:.8rem;color:var(--text3);line-height:1.7" data-translate="Starting at $12.50/month (yearly plan). No hidden fees, no per-user charges.">Starting at $12.50/month (yearly plan). No hidden fees, no per-user charges.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── CONTACT ── -->
+<section id="contact" class="section-pad">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto">
+      <div class="section-label" data-translate="Contact Us">Contact Us</div>
+      <h2 class="section-headline" data-translate="We're here to help.">We're here to help.</h2>
+      <p class="section-sub" data-translate="Questions about StrandPro, billing, or your account? Reach out — we respond within 1 business day.">Questions about StrandPro, billing, or your account? Reach out — we respond within 1 business day.</p>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <div class="contact-info-item">
+          <div class="contact-icon">📧</div>
+          <div>
+            <div class="contact-info-label" data-translate="Email Support">Email Support</div>
+            <div class="contact-info-val"><a href="mailto:support@strandprous.com">support@strandprous.com</a></div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon">📞</div>
+          <div>
+            <div class="contact-info-label" data-translate="Phone">Phone</div>
+            <div class="contact-info-val"><a href="tel:+17138001234">(713) 800-1234</a></div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon">📍</div>
+          <div>
+            <div class="contact-info-label" data-translate="Business Address">Business Address</div>
+            <div class="contact-info-val">Kamel Tech Solutions LLC<br>Houston, Texas, USA</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon">🕐</div>
+          <div>
+            <div class="contact-info-label" data-translate="Support Hours">Support Hours</div>
+            <div class="contact-info-val" data-translate="Monday – Friday, 9am – 6pm CST">Monday – Friday, 9am – 6pm CST</div>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon">💬</div>
+          <div>
+            <div class="contact-info-label" data-translate="WhatsApp">WhatsApp</div>
+            <div class="contact-info-val"><a href="https://wa.me/13465393081" data-translate="Message us on WhatsApp">Message us on WhatsApp</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-form">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--gold-light);margin-bottom:20px" data-translate="Send a Message">Send a Message</div>
+        <div class="form-success" id="formSuccess" data-translate="✓ Message sent! We'll be in touch within 1 business day.">✓ Message sent! We'll be in touch within 1 business day.</div>
+        <div class="form-row-2">
+          <div class="form-group"><label data-translate="First Name">First Name</label><input type="text" id="cfFirstName" placeholder="Jane"></div>
+          <div class="form-group"><label data-translate="Last Name">Last Name</label><input type="text" id="cfLastName" placeholder="Smith"></div>
+        </div>
+        <div class="form-group"><label data-translate="Email">Email</label><input type="email" id="cfEmail" placeholder="jane@example.com"></div>
+        <div class="form-group"><label data-translate="Subject">Subject</label>
+          <select id="cfSubject">
+            <option value="" data-translate="Select a topic…">Select a topic…</option>
+            <option data-translate="Billing & Subscription">Billing & Subscription</option>
+            <option data-translate="Account Access">Account Access</option>
+            <option data-translate="Technical Support">Technical Support</option>
+            <option data-translate="Refund Request">Refund Request</option>
+            <option data-translate="Cancellation Request">Cancellation Request</option>
+            <option data-translate="Feature Request">Feature Request</option>
+            <option data-translate="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label data-translate="Message">Message</label><textarea id="cfMessage" placeholder="How can we help you?" data-translate="How can we help you?"></textarea></div>
+        <button class="btn-primary" style="width:100%;justify-content:center" onclick="submitContactForm()" data-translate="Send Message →">Send Message →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── POLICIES ── -->
+<section id="policies" style="background:var(--bg);padding:80px 0 0">
+  <div class="section-inner">
+    <div style="text-align:center;max-width:500px;margin:0 auto 40px">
+      <div class="section-label" data-translate="Legal & Policies">Legal & Policies</div>
+      <h2 class="section-headline" data-translate="Our commitments to you.">Our commitments to you.</h2>
+      <p class="section-sub" data-translate="Transparent policies for all StrandPro customers. Last reviewed May 2025.">Transparent policies for all StrandPro customers. Last reviewed May 2025.</p>
+    </div>
+    <div class="policy-toc">
+      <a href="#refund-policy" class="toc-pill" data-translate="💳 Refund Policy">💳 Refund Policy</a>
+      <a href="#cancellation-policy" class="toc-pill" data-translate="❌ Cancellation Policy">❌ Cancellation Policy</a>
+      <a href="#terms" class="toc-pill" data-translate="📄 Terms & Conditions">📄 Terms & Conditions</a>
+      <a href="#privacy" class="toc-pill" data-translate="🔒 Privacy Policy">🔒 Privacy Policy</a>
+      <a href="#free-trial" class="toc-pill" data-translate="🎁 Free Trial Terms">🎁 Free Trial Terms</a>
+    </div>
+  </div>
+
+  <!-- REFUND POLICY -->
+  <div class="policy-section" id="refund-policy">
+    <div class="section-inner">
+      <div class="policy-heading" data-translate="💳 Refund Policy">💳 Refund Policy</div>
+      <div class="policy-updated" data-translate="Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC">Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC</div>
+      <div class="policy-body">
+        <p data-translate="StrandPro subscriptions are provided by Kamel Tech Solutions LLC. We want you to be fully satisfied with our service. This policy explains when refunds are available.">StrandPro subscriptions are provided by Kamel Tech Solutions LLC. We want you to be fully satisfied with our service. This policy explains when refunds are available.</p>
+        <h3 data-translate="7-Day Free Trial">7-Day Free Trial</h3>
+        <p data-translate="All new accounts receive a <strong>7-day free trial</strong> with full access to all features. No payment is collected during the trial period. You will only be charged after your trial ends and you choose a subscription plan.">All new accounts receive a <strong>7-day free trial</strong> with full access to all features. No payment is collected during the trial period. You will only be charged after your trial ends and you choose a subscription plan.</p>
+        <div class="policy-highlight" data-translate="<strong>Our Refund Guarantee:</strong> If you are charged and contact us within <strong>7 days</strong> of your billing date, we will issue a full refund — no questions asked. After 7 days, refunds are evaluated on a case-by-case basis."><strong>Our Refund Guarantee:</strong> If you are charged and contact us within <strong>7 days</strong> of your billing date, we will issue a full refund — no questions asked. After 7 days, refunds are evaluated on a case-by-case basis.</div>
+        <h3 data-translate="Eligible Refund Situations">Eligible Refund Situations</h3>
+        <ul>
+          <li data-translate="You were charged but did not use the service during the billing period">You were charged but did not use the service during the billing period</li>
+          <li data-translate="A technical error caused a duplicate or incorrect charge">A technical error caused a duplicate or incorrect charge</li>
+          <li data-translate="You requested cancellation within 7 days of being charged">You requested cancellation within 7 days of being charged</li>
+          <li data-translate="The service experienced significant downtime (more than 72 consecutive hours) during your billing period">The service experienced significant downtime (more than 72 consecutive hours) during your billing period</li>
+        </ul>
+        <h3 data-translate="Non-Refundable Situations">Non-Refundable Situations</h3>
+        <ul>
+          <li data-translate="Refund requests made more than 30 days after charge date">Refund requests made more than 30 days after the charge date</li>
+          <li data-translate="Accounts that have been used actively during the billing period and refund requested after 7 days">Accounts that have been used actively during the billing period and refund requested after 7 days</li>
+          <li data-translate="Partial-month refunds for mid-cycle cancellations on monthly plans">Partial-month refunds for mid-cycle cancellations on monthly plans</li>
+        </ul>
+        <h3 data-translate="How to Request a Refund">How to Request a Refund</h3>
+        <p data-translate="Email us at <a href=\"mailto:support@strandprous.com\">support@strandprous.com</a> with the subject line \"Refund Request\" and include your account username and the reason for your request. We respond within 2 business days. Approved refunds are processed within 5–10 business days back to your original payment method.">Email us at <a href="mailto:support@strandprous.com">support@strandprous.com</a> with the subject line "Refund Request" and include your account username and the reason for your request. We respond within 2 business days. Approved refunds are processed within 5–10 business days back to your original payment method.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCELLATION POLICY -->
+  <div class="policy-section" id="cancellation-policy">
+    <div class="section-inner">
+      <div class="policy-heading" data-translate="❌ Cancellation Policy">❌ Cancellation Policy</div>
+      <div class="policy-updated" data-translate="Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC">Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC</div>
+          <thead><tr><th>Plan</th><th>Access After Cancellation</th><th>Next Charge</th></tr></thead>
+          <tbody>
+            <tr><td data-translate="Monthly ($19.99/mo)">Monthly ($19.99/mo)</td><td data-translate="Until end of current month">Until end of current month</td><td data-translate="None">None</td></tr>
+            <tr><td data-translate="Yearly ($150/yr)">Yearly ($150/yr)</td><td data-translate="Until end of current year">Until end of current year</td><td data-translate="None">None</td></tr>
+            <tr><td data-translate="Free Trial">Free Trial</td><td data-translate="Until trial expiry date">Until trial expiry date</td><td data-translate="None">None</td></tr>
+          </tbody>
+        </table>
+        <h3 data-translate="How to Cancel">How to Cancel</h3>
+        <p data-translate="You can cancel your subscription in two ways:">You can cancel your subscription in two ways:</p>
+        <ul>
+          <li><strong>In-App:</strong> <span data-translate="In-App: Go to the sidebar → click your subscription status pill → click \"Cancel Subscription\"">Go to the sidebar → click your subscription status pill → click "Cancel Subscription"</span></li>
+          <li><strong>By Email:</strong> <span data-translate="By Email: Send a cancellation request to support@strandprous.com with your account username">Send a cancellation request to support@strandprous.com with your account username</span></li>
+        </ul>
+        <h3 data-translate="Data After Cancellation">Data After Cancellation</h3>
+        <p data-translate="Your data (appointments, staff, inventory, etc.) is stored locally in your browser. After your subscription expires, you will lose access to the app but your data remains in your browser's local storage until you clear it. We recommend exporting important data before your access expires.">Your data (appointments, staff, inventory, etc.) is stored locally in your browser. After your subscription expires, you will lose access to the app but your data remains in your browser's local storage until you clear it. We recommend exporting important data before your access expires.</p>
+        <h3 data-translate="Reactivation">Reactivation</h3>
+        <p data-translate="You may reactivate a cancelled subscription at any time by choosing a new plan. All existing data will still be available if you use the same browser and device.">You may reactivate a cancelled subscription at any time by choosing a new plan. All existing data will still be available if you use the same browser and device.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TERMS & CONDITIONS -->
+  <div class="policy-section" id="terms">
+    <div class="section-inner">
+      <div class="policy-heading" data-translate="📄 Terms & Conditions">📄 Terms & Conditions</div>
+      <div class="policy-updated" data-translate="Effective Date: January 1, 2025 &nbsp;·&nbsp; Last Updated: May 1, 2025">Effective Date: January 1, 2025 &nbsp;·&nbsp; Last Updated: May 1, 2025</div>
+      <div class="policy-body">
+        <p data-translate="These Terms and Conditions (\"Terms\") govern your use of StrandPro, a salon management software platform operated by <strong>Kamel Tech Solutions LLC</strong> (\"we\", \"our\", \"us\"), accessible at strandprous.com. By creating an account or using the service, you agree to these Terms.">These Terms and Conditions ("Terms") govern your use of StrandPro, a salon management software platform operated by <strong>Kamel Tech Solutions LLC</strong> ("we", "our", "us"), accessible at strandprous.com. By creating an account or using the service, you agree to these Terms.</p>
+        <h3 data-translate="1. Service Description">1. Service Description</h3>
+        <p data-translate="StrandPro is a software-as-a-service (SaaS) platform providing salon management tools including appointment scheduling, staff attendance tracking, inventory management, revenue tracking, expense logging, and roles/permissions management for beauty salons, braiding salons, and stylists.">StrandPro is a software-as-a-service (SaaS) platform providing salon management tools including appointment scheduling, staff attendance tracking, inventory management, revenue tracking, expense logging, and roles/permissions management for beauty salons, braiding salons, and stylists.</p>
+        <h3 data-translate="2. Eligibility">2. Eligibility</h3>
+        <p data-translate="You must be at least 18 years of age and a legal resident of the United States to subscribe to StrandPro. By using the service, you represent that you meet these requirements. StrandPro is intended for business use by salon owners and their staff.">You must be at least 18 years of age and a legal resident of the United States to subscribe to StrandPro. By using the service, you represent that you meet these requirements. StrandPro is intended for business use by salon owners and their staff.</p>
+        <h3 data-translate="3. Account Responsibilities">3. Account Responsibilities</h3>
+        <ul>
+          <li data-translate="You are responsible for maintaining the confidentiality of your account credentials">You are responsible for maintaining the confidentiality of your account credentials</li>
+          <li data-translate="You are responsible for all activity that occurs under your account">You are responsible for all activity that occurs under your account</li>
+          <li data-translate="You must provide accurate and complete information when creating your account">You must provide accurate and complete information when creating your account</li>
+          <li data-translate="You must notify us immediately of any unauthorized access to your account">You must notify us immediately of any unauthorized access to your account</li>
+          <li data-translate="Owner accounts are responsible for the conduct of all staff accounts they create">Owner accounts are responsible for the conduct of all staff accounts they create</li>
+        </ul>
+        <h3 data-translate="4. Subscription & Payment Terms">4. Subscription & Payment Terms</h3>
+        <p data-translate="StrandPro is offered on a subscription basis. After your 7-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).">StrandPro is offered on a subscription basis. After your 7-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).</p>
+        <ul>
+          <li data-translate="Monthly Plan: $19.99/month, billed monthly">Monthly Plan: $19.99/month, billed monthly</li>
+          <li data-translate="Yearly Plan: $150.00/year, billed annually">Yearly Plan: $150.00/year, billed annually</li>
+          <li data-translate="All prices are in USD and inclusive of any applicable fees">All prices are in USD and inclusive of any applicable fees</li>
+          <li data-translate="Subscriptions auto-renew unless cancelled before the renewal date">Subscriptions auto-renew unless cancelled before the renewal date</li>
+        </ul>
+        <h3 data-translate="5. Acceptable Use">5. Acceptable Use</h3>
+        <p data-translate="You agree not to use StrandPro to:">You agree not to use StrandPro to:</p>
+        <ul>
+          <li data-translate="Violate any applicable law or regulation">Violate any applicable law or regulation</li>
+          <li data-translate="Harass, threaten, or harm any person">Harass, threaten, or harm any person</li>
+          <li data-translate="Attempt to gain unauthorized access to our systems">Attempt to gain unauthorized access to our systems</li>
+          <li data-translate="Use the software for any purpose other than legitimate salon management">Use the software for any purpose other than legitimate salon management</li>
+          <li data-translate="Share your account credentials with individuals outside your salon">Share your account credentials with individuals outside your salon</li>
+        </ul>
+        <h3 data-translate="6. Data Storage">6. Data Storage</h3>
+        <p data-translate="StrandPro stores data locally in your browser using localStorage. Kamel Tech Solutions LLC does not have access to your salon's operational data (appointments, clients, staff records, financial data). You are solely responsible for backing up your data. We are not liable for data loss due to browser clearing, device changes, or software updates.">StrandPro stores data locally in your browser using localStorage. Kamel Tech Solutions LLC does not have access to your salon's operational data (appointments, clients, staff records, financial data). You are solely responsible for backing up your data. We are not liable for data loss due to browser clearing, device changes, or software updates.</p>
+        <h3 data-translate="7. Intellectual Property">7. Intellectual Property</h3>
+        <p data-translate="StrandPro, its design, code, branding, and all related materials are the intellectual property of Kamel Tech Solutions LLC. You are granted a limited, non-exclusive, non-transferable license to use the software for your salon business. You may not copy, modify, distribute, or reverse-engineer any part of the software.">StrandPro, its design, code, branding, and all related materials are the intellectual property of Kamel Tech Solutions LLC. You are granted a limited, non-exclusive, non-transferable license to use the software for your salon business. You may not copy, modify, distribute, or reverse-engineer any part of the software.</p>
+        <h3 data-translate="8. Limitation of Liability">8. Limitation of Liability</h3>
+        <p data-translate="To the maximum extent permitted by law, Kamel Tech Solutions LLC shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of StrandPro, including but not limited to loss of data, lost profits, or business interruption. Our total liability to you shall not exceed the amount paid by you in the 12 months preceding the claim.">To the maximum extent permitted by law, Kamel Tech Solutions LLC shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of StrandPro, including but not limited to loss of data, lost profits, or business interruption. Our total liability to you shall not exceed the amount paid by you in the 12 months preceding the claim.</p>
+        <h3 data-translate="9. Service Availability">9. Service Availability</h3>
+        <p data-translate="We strive to maintain 99% uptime but do not guarantee uninterrupted access. Maintenance, updates, or unforeseen issues may occasionally cause temporary downtime. We will provide advance notice of planned maintenance where possible.">We strive to maintain 99% uptime but do not guarantee uninterrupted access. Maintenance, updates, or unforeseen issues may occasionally cause temporary downtime. We will provide advance notice of planned maintenance where possible.</p>
+        <h3 data-translate="10. Modifications to Terms">10. Modifications to Terms</h3>
+        <p data-translate="We may update these Terms from time to time. We will notify active subscribers via email at least 14 days before significant changes take effect. Continued use of the service after changes constitutes acceptance of the updated Terms.">We may update these Terms from time to time. We will notify active subscribers via email at least 14 days before significant changes take effect. Continued use of the service after changes constitutes acceptance of the updated Terms.</p>
+        <h3 data-translate="11. Governing Law">11. Governing Law</h3>
+        <p data-translate="These Terms are governed by the laws of the State of Texas, United States, without regard to conflict of law principles. Any disputes shall be resolved in the courts of Houston, Harris County, Texas.">These Terms are governed by the laws of the State of Texas, United States, without regard to conflict of law principles. Any disputes shall be resolved in the courts of Houston, Harris County, Texas.</p>
+        <h3 data-translate="12. Contact">12. Contact</h3>
+        <p data-translate="For questions about these Terms, contact us at <a href=\"mailto:legal@strandprous.com\">legal@strandprous.com</a> or Kamel Tech Solutions LLC, Houston, Texas.">For questions about these Terms, contact us at <a href="mailto:legal@strandprous.com">legal@strandprous.com</a> or Kamel Tech Solutions LLC, Houston, Texas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIVACY POLICY -->
+  <div class="policy-section" id="privacy">
+    <div class="section-inner">
+      <div class="policy-heading" data-translate="🔒 Privacy Policy">🔒 Privacy Policy</div>
+      <div class="policy-updated" data-translate="Effective Date: January 1, 2025 &nbsp;·&nbsp; Last Updated: May 1, 2025">Effective Date: January 1, 2025 &nbsp;·&nbsp; Last Updated: May 1, 2025</div>
+      <div class="policy-body">
+        <p data-translate="Kamel Tech Solutions LLC (\"we\", \"our\", \"us\") operates StrandPro and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your information.">Kamel Tech Solutions LLC ("we", "our", "us") operates StrandPro and is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and protect your information.</p>
+        <div class="policy-highlight" data-translate="<strong>Key Point:</strong> StrandPro stores your salon's operational data (appointments, staff, inventory, financials) <strong>locally in your browser</strong>. Kamel Tech Solutions LLC does not collect, access, or store this operational data on our servers."><strong>Key Point:</strong> StrandPro stores your salon's operational data (appointments, staff, inventory, financials) <strong>locally in your browser</strong>. Kamel Tech Solutions LLC does not collect, access, or store this operational data on our servers.</div>
+        <h3 data-translate="Information We Collect">Information We Collect</h3>
+        <p><strong data-translate="Account Information:">Account Information:</strong> <span data-translate="When you sign up, we collect your name, email address, username, business name, and city. This is used to manage your account and subscription.">When you sign up, we collect your name, email address, username, business name, and city. This is used to manage your account and subscription.</span></p>
+        <p><strong data-translate="Payment Information:">Payment Information:</strong> <span data-translate="Payment details are collected and processed by Stripe, our payment processor. We do not store full credit card numbers. We receive only the last 4 digits and payment confirmation.">Payment details are collected and processed by Stripe, our payment processor. We do not store full credit card numbers. We receive only the last 4 digits and payment confirmation.</span></p>
+        <p><strong data-translate="Usage Data:">Usage Data:</strong> <span data-translate="We may collect anonymized usage data (pages visited, features used) to improve the service. This data does not identify you personally.">We may collect anonymized usage data (pages visited, features used) to improve the service. This data does not identify you personally.</span></p>
+        <p><strong data-translate="Support Communications:">Support Communications:</strong> <span data-translate="When you contact us, we store your message and contact details to respond and resolve your issue.">When you contact us, we store your message and contact details to respond and resolve your issue.</span></p>
+        <h3 data-translate="How We Use Your Information">How We Use Your Information</h3>
+        <ul>
+          <li data-translate="To create and manage your subscription account">To create and manage your subscription account</li>
+          <li data-translate="To process payments and send billing receipts">To process payments and send billing receipts</li>
+          <li data-translate="To provide customer support">To provide customer support</li>
+          <li data-translate="To send service announcements and policy updates">To send service announcements and policy updates</li>
+          <li data-translate="To improve and develop StrandPro features">To improve and develop StrandPro features</li>
+        </ul>
+        <h3 data-translate="Data We Do NOT Collect">Data We Do NOT Collect</h3>
+        <p data-translate="We do not collect, access, or store the following data, which remains solely in your browser's local storage:">We do not collect, access, or store the following data, which remains solely in your browser's local storage:</p>
+        <ul>
+          <li data-translate="Your clients' names, phone numbers, or contact information">Your clients' names, phone numbers, or contact information</li>
+          <li data-translate="Appointment records or scheduling data">Appointment records or scheduling data</li>
+          <li data-translate="Staff attendance records">Staff attendance records</li>
+          <li data-translate="Inventory levels or product data">Inventory levels or product data</li>
+          <li data-translate="Revenue, payment, or expense records">Revenue, payment, or expense records</li>
+        </ul>
+        <h3 data-translate="Sharing Your Information">Sharing Your Information</h3>
+        <p data-translate="We do not sell your personal information. We may share data only with:">We do not sell your personal information. We may share data only with:</p>
+        <ul>
+          <li data-translate="<strong>Stripe</strong> — for payment processing"><strong>Stripe</strong> — for payment processing</li>
+          <li data-translate="<strong>Legal authorities</strong> — if required by law or valid legal process"><strong>Legal authorities</strong> — if required by law or valid legal process</li>
+        </ul>
+        <h3 data-translate="Data Security">Data Security</h3>
+        <p data-translate="We implement industry-standard security practices including HTTPS encryption, secure password hashing, and access controls. However, no system is 100% secure. You are responsible for maintaining the security of your account credentials.">We implement industry-standard security practices including HTTPS encryption, secure password hashing, and access controls. However, no system is 100% secure. You are responsible for maintaining the security of your account credentials.</p>
+        <h3 data-translate="Cookies">Cookies</h3>
+        <p data-translate="StrandPro uses browser localStorage (not traditional cookies) to store your session and preferences. No third-party tracking cookies are used. You can clear this data at any time through your browser settings.">StrandPro uses browser localStorage (not traditional cookies) to store your session and preferences. No third-party tracking cookies are used. You can clear this data at any time through your browser settings.</p>
+        <h3 data-translate="Your Rights">Your Rights</h3>
+        <ul>
+          <li data-translate="<strong>Access:</strong> Request a copy of the personal data we hold about you"><strong>Access:</strong> Request a copy of the personal data we hold about you</li>
+          <li data-translate="<strong>Correction:</strong> Request corrections to inaccurate data"><strong>Correction:</strong> Request corrections to inaccurate data</li>
+          <li data-translate="<strong>Deletion:</strong> Request deletion of your account and personal data"><strong>Deletion:</strong> Request deletion of your account and personal data</li>
+          <li data-translate="<strong>Portability:</strong> Request your data in a portable format"><strong>Portability:</strong> Request your data in a portable format</li>
+        </ul>
+        <p data-translate="To exercise any of these rights, email <a href=\"mailto:privacy@strandprous.com\">privacy@strandprous.com</a>.">To exercise any of these rights, email <a href="mailto:privacy@strandprous.com">privacy@strandprous.com</a>.</p>
+        <h3 data-translate="Children's Privacy">Children's Privacy</h3>
+        <p data-translate="StrandPro is not directed at children under 18. We do not knowingly collect personal information from minors.">StrandPro is not directed at children under 18. We do not knowingly collect personal information from minors.</p>
+        <h3 data-translate="Changes to This Policy">Changes to This Policy</h3>
+        <p data-translate="We may update this Privacy Policy periodically. We will notify you by email of significant changes. Continued use of the service after changes constitutes your acceptance.">We may update this Privacy Policy periodically. We will notify you by email of significant changes. Continued use of the service after changes constitutes your acceptance.</p>
+        <h3 data-translate="Contact">Contact</h3>
+        <p data-translate="Privacy questions: <a href=\"mailto:privacy@strandprous.com\">privacy@strandprous.com</a> | Kamel Tech Solutions LLC, Houston, Texas">Privacy questions: <a href="mailto:privacy@strandprous.com">privacy@strandprous.com</a> | Kamel Tech Solutions LLC, Houston, Texas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FREE TRIAL TERMS -->
+  <div class="policy-section" id="free-trial">
+    <div class="section-inner">
+      <div class="policy-heading" data-translate="🎁 Free Trial Terms">🎁 Free Trial Terms</div>
+      <div class="policy-updated" data-translate="Effective Date: January 1, 2025">Effective Date: January 1, 2025</div>
+      <div class="policy-body">
+        <p data-translate="StrandPro offers a 7-day free trial to new accounts. These terms govern the free trial offer.">StrandPro offers a 7-day free trial to new accounts. These terms govern the free trial offer.</p>
+        <h3 data-translate="Trial Eligibility">Trial Eligibility</h3>
+        <ul>
+          <li data-translate="Available to new customers only — one trial per person/business">Available to new customers only — one trial per person/business</li>
+          <li data-translate="No credit card or payment information required to start the trial">No credit card or payment information required to start the trial</li>
+          <li data-translate="Available to businesses operating in the United States">Available to businesses operating in the United States</li>
+        </ul>
+        <h3 data-translate="What's Included">What's Included</h3>
+        <p data-translate="During the free trial, you have full access to all StrandPro features including appointments, staff management, inventory, revenue, expenses, and roles & permissions — identical to paid plan access.">During the free trial, you have full access to all StrandPro features including appointments, staff management, inventory, revenue, expenses, and roles & permissions — identical to paid plan access.</p>
+        <h3 data-translate="Trial Duration">Trial Duration</h3>
+        <p data-translate="The trial lasts exactly <strong>7 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.">The trial lasts exactly <strong>7 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.</p>
+        <h3 data-translate="After the Trial">After the Trial</h3>
+        <p data-translate="When the trial ends, access to the app is paused until you select a subscription plan. Your data is preserved in your browser. You will be prompted to choose a Monthly ($19.99/mo) or Yearly ($150/yr) plan to continue.">When the trial ends, access to the app is paused until you select a subscription plan. Your data is preserved in your browser. You will be prompted to choose a Monthly ($19.99/mo) or Yearly ($150/yr) plan to continue.</p>
+        <div class="policy-highlight" data-translate="<strong>No automatic charges:</strong> StrandPro will never charge you automatically after the trial. You must actively choose a plan and enter payment information to subscribe."><strong>No automatic charges:</strong> StrandPro will never charge you automatically after the trial. You must actively choose a plan and enter payment information to subscribe.</div>
+        <h3 data-translate="Trial Abuse">Trial Abuse</h3>
+        <p data-translate="Creating multiple accounts to extend free trial access is prohibited and may result in permanent account suspension.">Creating multiple accounts to extend free trial access is prohibited and may result in permanent account suspension.</p>
+        <h3 data-translate="Questions">Questions</h3>
+        <p data-translate="Email <a href=\"mailto:support@strandprous.com\">support@strandprous.com</a> with any questions about the free trial.">Email <a href="mailto:support@strandprous.com">support@strandprous.com</a> with any questions about the free trial.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="section-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name" data-translate="StrandPro">StrandPro</div>
+        <div class="footer-brand-legal" data-translate="Operated by Kamel Tech Solutions LLC<br>Houston, Texas, United States">Operated by Kamel Tech Solutions LLC<br>Houston, Texas, United States</div>
+        <div class="footer-brand-desc" data-translate="Professional salon management software for braiders, stylists, and beauty salon owners. Appointments, staff, inventory, payments — all in one place.">Professional salon management software for braiders, stylists, and beauty salon owners. Appointments, staff, inventory, payments — all in one place.</div>
+      </div>
+      <div>
+        <div class="footer-col-title" data-translate="Product">Product</div>
+        <ul class="footer-links">
+          <li><a href="#features" data-translate="Features">Features</a></li>
+          <li><a href="#pricing" data-translate="Pricing">Pricing</a></li>
+          <li><a href="strandpro.html" data-translate="Launch Application">Launch Application</a></li>
+          <li><a href="#free-trial" data-translate="Free Trial">Free Trial</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title" data-translate="Company">Company</div>
+        <ul class="footer-links">
+          <li><a href="#about" data-translate="About Us">About Us</a></li>
+          <li><a href="#contact" data-translate="Contact">Contact</a></li>
+          <li><a href="mailto:support@strandprous.com" data-translate="Support">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title" data-translate="Legal">Legal</div>
+        <ul class="footer-links">
+          <li><a href="#refund-policy" data-translate="Refund Policy">Refund Policy</a></li>
+          <li><a href="#cancellation-policy" data-translate="Cancellation Policy">Cancellation Policy</a></li>
+          <li><a href="#terms" data-translate="Terms & Conditions">Terms & Conditions</a></li>
+          <li><a href="#privacy" data-translate="Privacy Policy">Privacy Policy</a></li>
+          <li><a href="#free-trial" data-translate="Trial Terms">Trial Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 Kamel Tech Solutions LLC. All rights reserved. StrandPro is a trademark of Kamel Tech Solutions LLC.</div>
+      <div class="footer-legal-links">
+        <a href="mailto:support@strandprous.com">support@strandprous.com</a>
+        <a href="tel:+17138001234">(713) 800-1234</a>
+        <a href="#privacy" data-translate="Privacy">Privacy</a>
+        <a href="#terms" data-translate="Terms">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+<div id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script src="translations-index.js"></script>
+<script src="language-switcher.js"></script>
+<script>
+// Mobile menu
+function toggleMobileMenu(){
+  const m=document.getElementById('mobileMenu');
+  m.classList.toggle('show');
+}
+
+
+
+// Close mobile menu on outside click
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('mobileMenu');
+  const ham=document.querySelector('.hamburger');
+  if(menu.classList.contains('open')&&!menu.contains(e.target)&&!ham.contains(e.target)){
+    menu.classList.remove('open');
+  }
+});
+
+// Nav scroll effect
+window.addEventListener('scroll',()=>{
+  const nav=document.getElementById('mainNav');
+  nav.style.borderBottomColor=window.scrollY>50?'#3a3228':'#2a2419';
+  // Back to top
+  document.getElementById('backToTop').classList.toggle('show',window.scrollY>600);
+});
+
+// Contact form
+function submitContactForm(){
+  const first=document.getElementById('cfFirstName').value.trim();
+  const email=document.getElementById('cfEmail').value.trim();
+  const subject=document.getElementById('cfSubject').value;
+  const message=document.getElementById('cfMessage').value.trim();
+  if(!first||!email||!subject||!message){showToast('Please fill in all required fields.');return;}
+  if(!email.includes('@')){showToast('Please enter a valid email address.');return;}
+  // Build mailto (since no backend)
+  const to='support@strandprous.com';
+  const sub=encodeURIComponent(`[StrandPro Contact] ${subject} — from ${first}`);
+  const body=encodeURIComponent(`From: ${first} ${document.getElementById('cfLastName').value}\nEmail: ${email}\nSubject: ${subject}\n\n${message}`);
+  window.location.href=`mailto:${to}?subject=${sub}&body=${body}`;
+  document.getElementById('formSuccess').classList.add('show');
+  ['cfFirstName','cfLastName','cfEmail','cfMessage'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cfSubject').value='';
+  showToast('✓ Opening your email app with the message pre-filled.');
+}
+
+// Toast
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const target=document.querySelector(a.getAttribute('href'));
+    if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth'});}
+  });
+});
+
+// Intersection observer for fade-up animations
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.style.animationPlayState='running';
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(el=>{
+  el.style.animationPlayState='paused';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
