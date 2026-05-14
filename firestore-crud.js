@@ -1,209 +1,143 @@
-// Fonctions CRUD pour Firestore - StrandPro Salon Management
+// firestore-crud.js
+import { db } from './firebase-config.js';
+import { 
+    collection, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    getDocs, 
+    updateDoc, 
+    deleteDoc, 
+    query, 
+    where, 
+    orderBy,
+    serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-class FirestoreManager {
-  constructor(db) {
-    this.db = db;
-    this.collections = window.firestoreCollections;
-  }
+const currentUser = () => JSON.parse(localStorage.getItem('sp_session'));
 
-  // CREATE - Ajouter un document
-  async addDocument(collectionName, data) {
-    try {
-      const docRef = await addDoc(collection(this.db, collectionName), {
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      console.log(`Document ajouté dans ${collectionName} avec ID: ${docRef.id}`);
-      return { success: true, id: docRef.id, data: { ...data, id: docRef.id } };
-    } catch (error) {
-      console.error(`Erreur ajout document ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // READ - Obtenir un document par ID
-  async getDocument(collectionName, docId) {
-    try {
-      const docRef = doc(this.db, collectionName, docId);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        return { success: true, data: { id: docSnap.id, ...docSnap.data() } };
-      } else {
-        return { success: false, error: 'Document non trouvé' };
-      }
-    } catch (error) {
-      console.error(`Erreur lecture document ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // READ - Obtenir tous les documents d'une collection
-  async getAllDocuments(collectionName, orderByField = 'createdAt', orderDirection = 'desc') {
-    try {
-      const q = query(
-        collection(this.db, collectionName),
-        orderBy(orderByField, orderDirection)
-      );
-      const querySnapshot = await getDocs(q);
-      
-      const documents = [];
-      querySnapshot.forEach((doc) => {
-        documents.push({ id: doc.id, ...doc.data() });
-      });
-      
-      return { success: true, data: documents };
-    } catch (error) {
-      console.error(`Erreur lecture collection ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // UPDATE - Mettre à jour un document
-  async updateDocument(collectionName, docId, updateData) {
-    try {
-      const docRef = doc(this.db, collectionName, docId);
-      await updateDoc(docRef, {
-        ...updateData,
-        updatedAt: new Date()
-      });
-      console.log(`Document ${docId} mis à jour dans ${collectionName}`);
-      return { success: true, id: docId, data: updateData };
-    } catch (error) {
-      console.error(`Erreur mise à jour document ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // DELETE - Supprimer un document
-  async deleteDocument(collectionName, docId) {
-    try {
-      const docRef = doc(this.db, collectionName, docId);
-      await deleteDoc(docRef);
-      console.log(`Document ${docId} supprimé de ${collectionName}`);
-      return { success: true, id: docId };
-    } catch (error) {
-      console.error(`Erreur suppression document ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  // QUERY - Rechercher avec filtres
-  async queryDocuments(collectionName, filters = [], orderByField = 'createdAt', orderDirection = 'desc', limitCount = null) {
-    try {
-      let q = query(collection(this.db, collectionName));
-      
-      // Appliquer les filtres
-      filters.forEach(filter => {
-        q = query(q, where(filter.field, filter.operator, filter.value));
-      });
-      
-      // Appliquer l'ordre
-      q = query(q, orderBy(orderByField, orderDirection));
-      
-      // Appliquer la limite si spécifiée
-      if (limitCount) {
-        q = query(q, limit(limitCount));
-      }
-      
-      const querySnapshot = await getDocs(q);
-      const documents = [];
-      
-      querySnapshot.forEach((doc) => {
-        documents.push({ id: doc.id, ...doc.data() });
-      });
-      
-      return { success: true, data: documents };
-    } catch (error) {
-      console.error(`Erreur requête ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  }
+// Helper pour obtenir la collection avec salon ID
+function getSalonPath(collectionName) {
+    const user = currentUser();
+    const salonId = user?.uid || 'demo';
+    return `salons/${salonId}/${collectionName}`;
 }
 
-// Fonctions spécifiques pour StrandPro
-class StrandProFirestore extends FirestoreManager {
-  // Gestion des clients
-  async addCustomer(customerData) {
-    return this.addDocument(this.collections.CUSTOMERS, customerData);
-  }
+// === INVENTORY ===
+export const InvAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('inventory'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-  async getCustomers() {
-    return this.getAllDocuments(this.collections.CUSTOMERS, 'name', 'asc');
-  }
+    async save(item) {
+        const ref = item.id ? doc(db, getSalonPath('inventory'), item.id) : doc(collection(db, getSalonPath('inventory')));
+        await setDoc(ref, { ...item, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    },
 
-  async searchCustomers(searchTerm) {
-    const filters = [
-      { field: 'name', operator: '>=', value: searchTerm },
-      { field: 'name', operator: '<=', value: searchTerm + '\uf8ff' }
-    ];
-    return this.queryDocuments(this.collections.CUSTOMERS, filters);
-  }
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('inventory'), id));
+    }
+};
 
-  // Gestion des rendez-vous
-  async addAppointment(appointmentData) {
-    return this.addDocument(this.collections.APPOINTMENTS, appointmentData);
-  }
+// === STAFF ===
+export const StaffAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('staff'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-  async getAppointmentsByDate(date) {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    
-    const filters = [
-      { field: 'date', operator: '>=', value: startOfDay },
-      { field: 'date', operator: '<=', value: endOfDay }
-    ];
-    
-    return this.queryDocuments(this.collections.APPOINTMENTS, filters, 'date', 'asc');
-  }
+    async save(staffMember) {
+        const ref = staffMember.id ? doc(db, getSalonPath('staff'), staffMember.id) : doc(collection(db, getSalonPath('staff')));
+        await setDoc(ref, { ...staffMember, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    },
 
-  async getUpcomingAppointments(limit = 10) {
-    const now = new Date();
-    const filters = [
-      { field: 'date', operator: '>=', value: now }
-    ];
-    return this.queryDocuments(this.collections.APPOINTMENTS, filters, 'date', 'asc', limit);
-  }
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('staff'), id));
+    }
+};
 
-  // Gestion des services
-  async addService(serviceData) {
-    return this.addDocument(this.collections.SERVICES, serviceData);
-  }
+// === APPOINTMENTS ===
+export const ApptAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('appointments'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-  async getServices() {
-    return this.getAllDocuments(this.collections.SERVICES, 'name', 'asc');
-  }
+    async save(appt) {
+        const ref = appt.id ? doc(db, getSalonPath('appointments'), appt.id) : doc(collection(db, getSalonPath('appointments')));
+        await setDoc(ref, { ...appt, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    },
 
-  // Gestion du personnel
-  async addStaff(staffData) {
-    return this.addDocument(this.collections.STAFF, staffData);
-  }
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('appointments'), id));
+    }
+};
 
-  async getStaff() {
-    return this.getAllDocuments(this.collections.STAFF, 'name', 'asc');
-  }
+// === EXPENSES ===
+export const ExpAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('expenses'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-  // Gestion de l'inventaire
-  async addInventoryItem(itemData) {
-    return this.addDocument(this.collections.INVENTORY, itemData);
-  }
+    async save(exp) {
+        const ref = exp.id ? doc(db, getSalonPath('expenses'), exp.id) : doc(collection(db, getSalonPath('expenses')));
+        await setDoc(ref, { ...exp, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    },
 
-  async getInventory() {
-    return this.getAllDocuments(this.collections.INVENTORY, 'name', 'asc');
-  }
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('expenses'), id));
+    }
+};
 
-  async updateInventoryQuantity(itemId, newQuantity) {
-    return this.updateDocument(this.collections.INVENTORY, itemId, { 
-      quantity: newQuantity,
-      lastUpdated: new Date()
-    });
-  }
-}
+// === TASKS ===
+export const TaskAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('tasks'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
 
-// Initialiser le gestionnaire Firestore
-window.strandProFirestore = new StrandProFirestore(window.firebaseDB);
+    async save(task) {
+        const ref = task.id ? doc(db, getSalonPath('tasks'), task.id) : doc(collection(db, getSalonPath('tasks')));
+        await setDoc(ref, { ...task, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    },
 
-console.log('Firestore CRUD operations initialized');
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('tasks'), id));
+    }
+};
+
+// === ATTENDANCE ===
+export const AttAPI = {
+    async getAll() {
+        const q = collection(db, getSalonPath('attendance'));
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
+
+    async save(att) {
+        const ref = att.id ? doc(db, getSalonPath('attendance'), att.id) : doc(collection(db, getSalonPath('attendance')));
+        await setDoc(ref, { ...att, updatedAt: serverTimestamp() }, { merge: true });
+        return ref.id;
+    }
+};
+
+// Pour les permissions et users (owner)
+export const UserAPI = {
+    async getAllUsers() {
+        const q = collection(db, "users");
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    }
+};

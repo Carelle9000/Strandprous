@@ -36,8 +36,8 @@ if ('serviceWorker' in navigator) {
 <!-- <script src="./background-sync.js"></script> DISABLED FOR HOSTINGER DEPLOYMENT -->
 <script src="./i18n-translations.js"></script>
 <script src="./firebase-config.js" type="module"></script>
-<script src="./firestore-crud.js" type="module"></script>
 <script src="./firebase-auth.js" type="module"></script>
+<script src="./firestore-crud.js" type="module"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1050,13 +1050,28 @@ tr:hover td { background:var(--bg4); }
 <script>
 'use strict';
 
-// ── STORAGE ──
-const S = {
-  get:    k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } },
-  set:    (k,v) => localStorage.setItem(k, JSON.stringify(v)),
-  getObj: k => { try { return JSON.parse(localStorage.getItem(k)) || null; } catch { return null; } },
-  setObj: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
-};
+// ── FIREBASE STORAGE REPLACEMENT ──
+let currentSalonData = {}; // cache local optionnel
+
+async function loadAllData() {
+    try {
+        const [inv, staff, appts, tasks, att, expenses] = await Promise.all([
+            InvAPI.getAll(),
+            StaffAPI.getAll(),
+            ApptAPI.getAll(),
+            TaskAPI.getAll(),
+            AttAPI.getAll(),
+            ExpAPI.getAll()
+        ]);
+
+        // On stocke temporairement pour compatibilité avec ton code existant
+        window.appData = {
+            inv, staff, appts, tasks, att, expenses
+        };
+    } catch (e) {
+        console.error("Erreur chargement données Firebase:", e);
+    }
+}
 
 // ── UTILS ──
 const uid      = () => Math.random().toString(36).slice(2,9);
@@ -1544,8 +1559,24 @@ const PERM_MODULES=[
 ];
 const STAFF_ALWAYS=['staff'];
 
-function getUserPerms(username){const all=S.getObj('sp_permissions')||{};return all[username]||{};}
-function setUserPerms(username,perms){const all=S.getObj('sp_permissions')||{};all[username]=perms;S.setObj('sp_permissions',all);}
+// ====================== Gestion des Permissions ======================
+
+async function getUserPermissions(staffId) {
+    try {
+        const permDoc = await getDoc(doc(db, `salons/${getCurrentUser().uid}/permissions`, staffId));
+        return permDoc.exists() ? permDoc.data() : {};
+    } catch (e) {
+        console.error(e);
+        return {};
+    }
+}
+
+// Fonction de compatibilité temporaire
+function getUserPerms(username) {
+    // Cette fonction sera remplacée par getUserPermissions
+    // Pour l'inant, retourne un objet vide
+    return {};
+}
 
 function canAccess(module){
   const user=getCurrentUser();if(!user)return false;
@@ -1579,44 +1610,91 @@ function applyRoleUI(){
   });
 }
 
-function renderPermissions(){
-  const roster=S.get('staff'),users=getUsers(),grid=document.getElementById('permGrid');
-  if(!roster.length){grid.innerHTML=`<div class="perm-empty"><div class="e-icon">👥</div><p>No staff added yet. Add staff members under Staff & Attendance and they will appear here.</p></div>`;return;}
-  const userByName={};
-  Object.values(users).filter(u=>u.role!=='owner').forEach(u=>{userByName[u.name.toLowerCase()]=u;});
-  const entries=roster.map(s=>{
-    const linkedAccount=userByName[s.name.toLowerCase()]||null;
-    return{permKey:linkedAccount?linkedAccount.username:'roster__'+s.id,name:s.name,jobRole:s.role,username:linkedAccount?linkedAccount.username:null,hasAccount:!!linkedAccount,rosterId:s.id};
-  });
-  const rosterNameSet=new Set(roster.map(s=>s.name.toLowerCase()));
-  Object.values(users).filter(u=>u.role!=='owner'&&!rosterNameSet.has(u.name.toLowerCase())).forEach(u=>{
-    entries.push({permKey:u.username,name:u.name,jobRole:'Staff',username:u.username,hasAccount:true,rosterId:null});
-  });
-  const alwaysRows=`
-    <div class="perm-module-row locked-row"><div class="perm-module-label"><span class="perm-module-icon">👩‍💼</span> Staff Members</div><label class="perm-toggle always-on"><input type="checkbox" checked disabled><div class="perm-track"></div></label></div>
-    <div class="perm-module-row locked-row"><div class="perm-module-label"><span class="perm-module-icon">📋</span> Staff Tasks & Reminders</div><label class="perm-toggle always-on"><input type="checkbox" checked disabled><div class="perm-track"></div></label></div>`;
-  grid.innerHTML=entries.map(e=>{
-    const perms=getUserPerms(e.permKey);
-    const initials=e.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    const moduleRows=PERM_MODULES.map(mod=>{
-      const granted=!!perms[mod.key];
-      return`<div class="perm-module-row"><div class="perm-module-label"><span class="perm-module-icon">${mod.icon}</span> ${mod.label}</div><label class="perm-toggle"><input type="checkbox" ${granted?'checked':''} onchange="togglePerm('${e.permKey}','${mod.key}',this.checked,'${e.name}')"><div class="perm-track"></div></label></div>`;
-    }).join('');
-    const accountLine=e.hasAccount
-      ?`<div class="perm-user-role">@${e.username} · ${e.jobRole}</div>`
-      :`<div class="perm-user-role" style="color:var(--warn);font-size:.65rem">⚠ No login account · ${e.jobRole}</div>`;
-    const actionBtn=e.hasAccount
-      ?`<button class="btn btn-outline btn-sm" style="font-size:.68rem;padding:4px 9px;white-space:nowrap" onclick="openMgrResetPass('${e.username}','${e.name.replace(/'/g,"\\'")}')">🔑 Reset PW</button>`
-      :`<button class="btn btn-gold btn-sm" style="font-size:.68rem;padding:4px 9px;white-space:nowrap" onclick="openCreateStaffAcct('roster__${e.rosterId}','${e.name.replace(/'/g,"\\'")}')">+ Account</button>`;
-    return`<div class="perm-card fade-in"><div class="perm-card-header"><div class="perm-avatar">${initials}</div><div class="perm-user-info"><div class="perm-user-name">${e.name}</div>${accountLine}</div>${actionBtn}</div><div class="perm-modules">${alwaysRows}${moduleRows}</div></div>`;
-  }).join('');
+async function renderPermissions() {
+    await loadAllData();
+
+    const roster = window.appData.staff || []; // Liste du personnel
+    const grid = document.getElementById('permGrid');
+
+    if (roster.length === 0) {
+        grid.innerHTML = `
+            <div class="perm-empty">
+                <div class="e-icon">👥</div>
+                <p>Aucun membre du personnel ajouté. Ajoutez du personnel dans l'onglet Staff.</p>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+
+    for (const member of roster) {
+        const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        
+        // Récupérer les permissions depuis Firestore
+        const perms = await getUserPermissions(member.id);
+
+        const moduleRows = PERM_MODULES.map(mod => {
+            const granted = !!perms[mod.key];
+            return `
+                <div class="perm-module-row">
+                    <div class="perm-module-label">
+                        <span class="perm-module-icon">${mod.icon}</span> ${mod.label}
+                    </div>
+                    <label class="perm-toggle">
+                        <input type="checkbox" ${granted ? 'checked' : ''} 
+                               onchange="togglePerm('${member.id}', '${mod.key}', this.checked, '${member.name.replace(/'/g, "\\'")}')">
+                        <div class="perm-track"></div>
+                    </label>
+                </div>`;
+        }).join('');
+
+        html += `
+            <div class="perm-card">
+                <div class="perm-card-header">
+                    <div class="perm-avatar">${initials}</div>
+                    <div class="perm-user-info">
+                        <div class="perm-user-name">${member.name}</div>
+                        <div class="perm-user-role">${member.role}</div>
+                    </div>
+                    <button class="btn btn-gold btn-sm" onclick="openCreateStaffAcct('${member.id}', '${member.name.replace(/'/g, "\\'")}')">
+                        + Compte Login
+                    </button>
+                </div>
+                <div class="perm-modules">
+                    <!-- Modules toujours activés pour le staff -->
+                    <div class="perm-module-row locked-row">
+                        <div class="perm-module-label"><span class="perm-module-icon">👩‍💼</span> Staff & Attendance</div>
+                        <label class="perm-toggle always-on"><input type="checkbox" checked disabled><div class="perm-track"></div></label>
+                    </div>
+                    <div class="perm-module-row locked-row">
+                        <div class="perm-module-label"><span class="perm-module-icon">📋</span> Tasks & Reminders</div>
+                        <label class="perm-toggle always-on"><input type="checkbox" checked disabled><div class="perm-track"></div></label>
+                    </div>
+                    ${moduleRows}
+                </div>
+            </div>`;
+    }
+
+    grid.innerHTML = html;
 }
 
-function togglePerm(permKey,module,granted,displayName){
-  const perms=getUserPerms(permKey);perms[module]=granted;setUserPerms(permKey,perms);
-  const modLabel=PERM_MODULES.find(m=>m.key===module)?.label||module;
-  showToast(`✓ ${modLabel} ${granted?'granted to':'revoked for'} ${displayName}`);
-  addNotif(`🔐 ${modLabel} access ${granted?'granted':'revoked'} for ${displayName}`);
+async function togglePerm(staffId, moduleKey, granted, displayName) {
+    try {
+        const salonId = getCurrentUser().uid;
+        const permRef = doc(db, `salons/${salonId}/permissions`, staffId);
+        
+        await setDoc(permRef, {
+            [moduleKey]: granted,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        const modLabel = PERM_MODULES.find(m => m.key === moduleKey)?.label || moduleKey;
+        showToast(`✓ ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
+        addNotif(`🔐 ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
+    } catch (e) {
+        console.error(e);
+        alert("Erreur lors de la modification des permissions");
+    }
 }
 
 // ── STAFF ACCOUNT MANAGEMENT ──
@@ -1694,17 +1772,17 @@ function managerResetPass(){
 
 // ── NAVIGATION ──
 const PAGE_TITLES={dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',permissions:'Roles & Permissions',denied:'Access Restricted'};
-function navigate(page){
+async function navigate(page){
   if(!canAccess(page)){_activatePage('denied');document.getElementById('topbarTitle').textContent='Access Restricted';return;}
   _activatePage(page);
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
-  if(page==='dashboard')    renderDashboard();
+  if(page==='dashboard')    await renderDashboard();
   if(page==='inventory')    renderInventory();
   if(page==='staff')        renderStaff();
   if(page==='appointments') renderAppts();
-  if(page==='revenue')      renderRevenue();
-  if(page==='expenses')     renderExpenses();
-  if(page==='permissions')  renderPermissions();
+  if(page==='revenue')      await renderRevenue();
+  if(page==='expenses')     await renderExpenses();
+  if(page==='permissions')  await renderPermissions();
 }
 function _activatePage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1740,30 +1818,113 @@ function seedData(){
   ]);}
 }
 
-// ── DASHBOARD ──
-function renderDashboard(){
-  const inv=S.get('inv'),staff=S.get('staff'),appts=S.get('appts'),att=S.get('att'),tod=today();
-  const todayAppts=appts.filter(a=>a.date===tod);
-  const monthlyCompleted=appts.filter(a=>a.date&&a.date.startsWith(monthKey(tod))&&a.status==='Completed');
-  const monthRev=monthlyCompleted.reduce((s,a)=>s+(parseFloat(a.price)||0),0);
-  const lowStock=inv.filter(i=>i.qty<i.threshold);
-  const presentToday=att.filter(a=>a.date===tod);
-  document.getElementById('dashStats').innerHTML=`
-    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-label" data-translate="Today's Appts">Today's Appts</div><div class="stat-value">${todayAppts.length}</div><div class="stat-sub">${todayAppts.filter(a=>a.status==='Confirmed').length} <span data-translate="confirmed">confirmed</span></div></div>
-    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label" data-translate="Monthly Revenue">Monthly Revenue</div><div class="stat-value">${fmtMoney(monthRev)}</div><div class="stat-sub">${monthlyCompleted.length} <span data-translate="completed">completed</span></div></div>
-    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-label" data-translate="Today's Revenue">Today's Revenue</div><div class="stat-value">${fmtMoney(todayAppts.filter(a=>a.status==='Completed').reduce((s,a)=>s+(parseFloat(a.price)||0),0))}</div></div>
-    <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-label" data-translate="Low Stock">Low Stock</div><div class="stat-value ${lowStock.length>0?'pulse-warn':''}" style="${lowStock.length>0?'color:var(--warn)':''}">${lowStock.length}</div></div>
-    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label" data-translate="Staff Present">Staff Present</div><div class="stat-value">${presentToday.length}</div><div class="stat-sub"><span data-translate="of">of</span> ${staff.length}</div></div>`;
-  const tEl=document.getElementById('dashTodayAppts');
-  tEl.innerHTML=todayAppts.length===0?`<div class="text-muted text-sm" style="padding:12px 0" data-translate="No appointments today.">No appointments today.</div>`:todayAppts.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">${a.client}</div><div class="text-muted text-sm">${a.service}${a.time?' · '+a.time:''}</div></div>${statusBadge(a.status)}</div>`).join('');
-  const lEl=document.getElementById('dashLowStock');
-  lEl.innerHTML=lowStock.length===0?`<div style="color:var(--success);font-size:.82rem;padding:12px 0" data-translate="✓ All items sufficiently stocked.">✓ All items sufficiently stocked.</div>`:lowStock.slice(0,5).map(i=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><div class="text-sm">${i.name}</div><span class="badge badge-warn">${i.qty}/${i.threshold}</span></div>`).join('');
-  const sEl=document.getElementById('dashStaffPresent');
-  sEl.innerHTML=presentToday.length===0?`<div class="text-muted text-sm" style="padding:12px 0" data-translate="No check-ins today.">No check-ins today.</div>`:presentToday.map(a=>{const m=staff.find(s=>s.id===a.staffId);return`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.83rem"><span>${m?m.name:'—'}</span><span class="text-muted">${a.in||'—'} – ${a.out||'ongoing'}</span></div>`;}).join('');
-  // Apply translations to dynamically generated content
-  if (typeof applyTranslations === 'function') {
-    applyTranslations(_lang);
-  }
+// ====================== DASHBOARD ======================
+
+async function renderDashboard() {
+    await loadAllData();
+
+    const inv = window.appData.inv || [];
+    const staff = window.appData.staff || [];
+    const appts = window.appData.appts || [];
+    const att = window.appData.att || [];
+    const tod = today();
+    const currentMonth = monthKey(tod);
+
+    // Today's Appointments
+    const todayAppts = appts.filter(a => a.date === tod);
+
+    // Monthly Revenue (completed appointments this month)
+    const monthlyCompleted = appts.filter(a => 
+        monthKey(a.date) === currentMonth && a.status === 'Completed'
+    );
+    const monthRev = monthlyCompleted.reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0);
+
+    // Today's Revenue
+    const todayRev = todayAppts
+        .filter(a => a.status === 'Completed')
+        .reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0);
+
+    // Low Stock
+    const lowStock = inv.filter(i => i.qty < (i.threshold || 5));
+
+    // Staff Present Today
+    const presentToday = att.filter(a => a.date === tod);
+
+    // === Stat Cards ===
+    document.getElementById('dashStats').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-label">RDV Aujourd'hui</div>
+            <div class="stat-value">${todayAppts.length}</div>
+            <div class="stat-sub">${todayAppts.filter(a => a.status === 'Confirmed').length} confirmés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Revenue du Mois</div>
+            <div class="stat-value">${fmtMoney(monthRev)}</div>
+            <div class="stat-sub">${monthlyCompleted.length} terminés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💵</div>
+            <div class="stat-label">Revenue Aujourd'hui</div>
+            <div class="stat-value">${fmtMoney(todayRev)}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-label">Stock Bas</div>
+            <div class="stat-value ${lowStock.length > 0 ? 'pulse-warn' : ''}" style="${lowStock.length > 0 ? 'color:var(--warn)' : ''}">${lowStock.length}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-label">Présents Aujourd'hui</div>
+            <div class="stat-value">${presentToday.length}</div>
+            <div class="stat-sub">sur ${staff.length}</div>
+        </div>
+    `;
+
+    // === Today's Appointments ===
+    const tEl = document.getElementById('dashTodayAppts');
+    tEl.innerHTML = todayAppts.length === 0 
+        ? `<div class="text-muted text-sm" style="padding:12px 0">Aucun rendez-vous aujourd'hui.</div>` 
+        : todayAppts.map(a => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+                <div>
+                    <div style="font-weight:500;font-size:.83rem">${a.client}</div>
+                    <div class="text-muted text-sm">${a.service}${a.time ? ' · ' + a.time : ''}</div>
+                </div>
+                ${statusBadge(a.status)}
+            </div>
+        `).join('');
+
+    // === Low Stock Alerts ===
+    const lEl = document.getElementById('dashLowStock');
+    lEl.innerHTML = lowStock.length === 0 
+        ? `<div style="color:var(--success);font-size:.82rem;padding:12px 0">✅ Tout le stock est suffisant.</div>` 
+        : lowStock.slice(0, 5).map(i => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div class="text-sm">${i.name}</div>
+                <span class="badge badge-warn">${i.qty} / ${i.threshold || 5}</span>
+            </div>
+        `).join('');
+
+    // === Staff Present Today ===
+    const sEl = document.getElementById('dashStaffPresent');
+    sEl.innerHTML = presentToday.length === 0 
+        ? `<div class="text-muted text-sm" style="padding:12px 0">Aucune présence aujourd'hui.</div>` 
+        : presentToday.map(a => {
+            const member = staff.find(s => s.id === a.staffId);
+            const hrs = calcHours(a.in, a.out);
+            return `
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.83rem">
+                    <span>${member ? member.name : '—'}</span>
+                    <span class="text-muted">${a.in || '—'} – ${a.out || 'en cours'}${hrs ? ' · ' + hrs.toFixed(1) + 'h' : ''}</span>
+                </div>`;
+        }).join('');
+
+    // Apply translations if needed
+    if (typeof applyTranslations === 'function') {
+        applyTranslations(_lang);
+    }
 }
 
 // ── INVENTORY ──
@@ -1781,94 +1942,287 @@ function openInvModal(id){
   openModal('invModal');
   applyTranslations(_lang);
 }
-function saveInvItem(){
-  const name=document.getElementById('invName').value.trim();
-  if(!name){alert(getTranslation('Item name required.', _lang) || 'Item name required.');return;}
-  const items=S.get('inv');
-  const obj={name,category:document.getElementById('invCat').value,qty:parseInt(document.getElementById('invQty').value)||0,unit:document.getElementById('invUnit').value,threshold:parseInt(document.getElementById('invThreshold').value)||5};
-  if(editInvId){const idx=items.findIndex(i=>i.id===editInvId);items[idx]={...items[idx],...obj};}
-  else items.push({...obj,id:uid()});
-  S.set('inv',items);closeModal('invModal');renderInventory();
-  if(obj.qty<obj.threshold)addNotif(`⚠️ Low stock: ${obj.name} (${obj.qty} ${obj.unit} left)`);
-}
-function deleteInv(id){if(!confirm(getTranslation('Delete item?', _lang) || 'Delete item?'))return;S.set('inv',S.get('inv').filter(i=>i.id!==id));renderInventory();}
-function renderInventory(){
-  const items=S.get('inv');
-  const search=document.getElementById('invSearch').value.toLowerCase();
-  const cat=document.getElementById('invCatFilter').value;
-  const filtered=items.filter(i=>(!search||i.name.toLowerCase().includes(search))&&(!cat||i.category===cat));
-  document.getElementById('invEmpty').style.display=filtered.length===0?'block':'none';
-  document.getElementById('invTableBody').innerHTML=filtered.map(i=>{const low=i.qty<i.threshold;return`<tr><td style="font-weight:500">${i.name}</td><td><span class="badge badge-gold">${i.category}</span></td><td style="${low?'color:var(--warn);font-weight:600':''}">${i.qty}</td><td class="text-muted">${i.unit}</td><td class="text-muted">${i.threshold}</td><td>${low?`<span class="badge badge-warn pulse-warn">⚠ Low</span>`:`<span class="badge badge-success">OK</span>`}</td><td><button class="btn btn-outline btn-sm btn-icon" onclick="openInvModal('${i.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteInv('${i.id}')">🗑</button></td></tr>`;}).join('');
+
+async function renderInventory() {
+    await loadAllData(); // Assure que les données sont à jour
+
+    const items = window.appData.inv;
+    const search = document.getElementById('invSearch').value.toLowerCase().trim();
+    const cat = document.getElementById('invCatFilter').value;
+
+    const filtered = items.filter(i => {
+        const matchSearch = !search || i.name.toLowerCase().includes(search);
+        const matchCat = !cat || i.category === cat;
+        return matchSearch && matchCat;
+    });
+
+    const tbody = document.getElementById('invTableBody');
+    const empty = document.getElementById('invEmpty');
+
+    if (filtered.length === 0) {
+        empty.style.display = 'block';
+        tbody.innerHTML = '';
+        return;
+    }
+
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filtered.map(i => {
+        const isLow = i.qty < (i.threshold || 5);
+        return `
+            <tr>
+                <td style="font-weight:500">${i.name}</td>
+                <td><span class="badge badge-gold">${i.category}</span></td>
+                <td style="${isLow ? 'color:var(--warn);font-weight:600' : ''}">${i.qty}</td>
+                <td class="text-muted">${i.unit}</td>
+                <td class="text-muted">${i.threshold || 5}</td>
+                <td>${isLow ? 
+                    `<span class="badge badge-warn pulse-warn">⚠ Low</span>` : 
+                    `<span class="badge badge-success">OK</span>`}
+                </td>
+                <td>
+                    <button class="btn btn-outline btn-sm btn-icon" onclick="openInvModal('${i.id}')">✏️</button>
+                    <button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteInv('${i.id}')">🗑</button>
+                </td>
+            </tr>`;
+    }).join('');
 }
 
+async function saveInvItem() {
+    const name = document.getElementById('invName').value.trim();
+    if (!name) {
+        alert("Le nom de l'article est requis");
+        return;
+    }
+
+    const item = {
+        id: editInvId,
+        name: name,
+        category: document.getElementById('invCat').value,
+        qty: parseInt(document.getElementById('invQty').value) || 0,
+        unit: document.getElementById('invUnit').value,
+        threshold: parseInt(document.getElementById('invThreshold').value) || 5
+    };
+
+    try {
+        await InvAPI.save(item);
+        await loadAllData();
+        renderInventory();
+        closeModal('invModal');
+        showToast(item.id ? 'Article mis à jour ✓' : 'Article ajouté ✓');
+
+        if (item.qty < item.threshold) {
+            addNotif(`⚠️ Stock bas : ${item.name} (${item.qty} restant)`);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Erreur lors de la sauvegarde");
+    }
+}
+
+async function deleteInv(id) {
+    if (!confirm("Supprimer cet article ?")) return;
+    try {
+        await InvAPI.delete(id);
+        await loadAllData();
+        renderInventory();
+        showToast("Article supprimé");
+    } catch (e) {
+        alert("Erreur lors de la suppression");
+    }
+}
+
+
 // ── STAFF ──
+async function renderStaff() {
+    await loadAllData(); // Assure que les données sont à jour
+
+    const staff = window.appData.staff || [];
+    const att = window.appData.att || [];
+    const tasks = window.appData.tasks || [];
+    const tod = today();
+    const isOwner = getCurrentUser()?.role === 'owner';
+
+    // Liste du personnel
+    document.getElementById('staffList').innerHTML = staff.length === 0 
+        ? `<div class="empty-state"><div class="e-icon">👥</div><p>No staff members added.</p></div>` 
+        : staff.map(s => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+                <div>
+                    <div style="font-weight:500;font-size:.85rem">${s.name}</div>
+                    <div class="text-muted text-sm">${s.role}${s.phone ? ' · ' + s.phone : ''}${s.email ? ' · ' + s.email : ''}</div>
+                </div>
+                <div>
+                    <button class="btn btn-outline btn-sm btn-icon" onclick="openStaffModal('${s.id}')">✏️</button>
+                    ${isOwner ? `<button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteStaff('${s.id}')">🗑</button>` : ''}
+                </div>
+            </div>`).join('');
+
+    // Présence aujourd'hui
+    const todayAtt = att.filter(a => a.date === tod);
+    const todayEl = document.getElementById('todayAtt');
+    if (todayEl) {
+        todayEl.innerHTML = todayAtt.length === 0 
+            ? `<div class="text-muted text-sm" style="padding:12px 0">No attendance recorded today.</div>` 
+            : todayAtt.map(a => {
+                const member = staff.find(s => s.id === a.staffId);
+                const hrs = calcHours(a.in, a.out);
+                const isLate = a.in && a.in > '09:00';
+                return `
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+                        <div>
+                            <div style="font-weight:500;font-size:.83rem">${member ? member.name : '—'}</div>
+                            <div class="text-muted text-sm">
+                                ${a.in || '—'} → ${a.out || 'in progress'}${hrs ? ' · ' + hrs.toFixed(1) + 'h' : ''}
+                                ${isLate ? '<span class="badge badge-warn" style="margin-left:5px">Late</span>' : ''}
+                            </div>
+                        </div>
+                        ${isOwner ? `<button class="btn btn-danger btn-sm btn-icon" onclick="deleteAtt('${a.id}')">🗑</button>` : ''}
+                    </div>`;
+            }).join('');
+    }
+
+    // Tâches
+    renderTasks();
+}
+
 function openAddStaffModal(){['staffName','staffPhone','staffWA','staffEmail'].forEach(id=>document.getElementById(id).value='');document.getElementById('staffRole').value='Braider';openModal('addStaffModal');}
+// ====================== STAFF ======================
+
+let editStaffId = null;
+let editAttId = null;
+let editTaskId = null;
+
+function openStaffModal(id) {
+    editStaffId = id || null;
+    const staff = window.appData.staff || [];
+    const member = id ? staff.find(s => s.id === id) : null;
+    
+    document.getElementById('staffName').value = member ? member.name : '';
+    document.getElementById('staffRole').value = member ? member.role : 'Braider';
+    document.getElementById('staffPhone').value = member ? member.phone || '' : '';
+    document.getElementById('staffWA').value = member ? member.wa || '' : '';
+    document.getElementById('staffEmail').value = member ? member.email || '' : '';
+    
+    openModal('addStaffModal');
+}
+
 function openAttModal(){
-  const staff=S.get('staff');
+  editAttId = null;
+  const staff=window.appData.staff;
   document.getElementById('attStaff').innerHTML=staff.map(s=>`<option value="${s.id}">${s.name} (${s.role})</option>`).join('');
   document.getElementById('attDate').value=today();
   ['attIn','attOut','attNote'].forEach(id=>document.getElementById(id).value='');
   openModal('attModal');
 }
 function openTaskModal(){
-  const staff=S.get('staff');
+  editTaskId = null;
+  const staff=window.appData.staff;
   document.getElementById('taskStaff').innerHTML='<option value="">All Staff</option>'+staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   ['taskTitle','taskTime','taskNote'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('taskDue').value=today();document.getElementById('taskPriority').value='Normal';
   openModal('taskModal');
 }
-function saveStaff(){
+async function saveStaff(){
   const name=document.getElementById('staffName').value.trim();
   if(!name){alert('Name required.');return;}
-  const staff=S.get('staff');
-  staff.push({id:uid(),name,role:document.getElementById('staffRole').value,phone:document.getElementById('staffPhone').value.trim(),wa:document.getElementById('staffWA').value.trim(),email:document.getElementById('staffEmail').value.trim()});
-  S.set('staff',staff);closeModal('addStaffModal');renderStaff();showToast(`✓ ${name} added to staff.`);
-}
-function deleteStaff(id){if(!confirm('Remove staff member?'))return;S.set('staff',S.get('staff').filter(s=>s.id!==id));renderStaff();}
-function saveAtt(){
-  const date=document.getElementById('attDate').value;if(!date){alert('Date required.');return;}
-  const att=S.get('att');
-  att.push({id:uid(),staffId:document.getElementById('attStaff').value,date,in:document.getElementById('attIn').value,out:document.getElementById('attOut').value,note:document.getElementById('attNote').value});
-  S.set('att',att);closeModal('attModal');renderStaff();
-  const staff=S.get('staff'),m=staff.find(s=>s.id===document.getElementById('attStaff').value);
-  addNotif(`✅ Attendance logged for ${m?m.name:''} on ${fmtDate(date)}`);
-}
-function deleteAtt(id){S.set('att',S.get('att').filter(a=>a.id!==id));renderStaff();}
-function calcHours(i,o){if(!i||!o)return 0;const[ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number),h=(oh*60+om-ih*60-im)/60;return h>0?h:0;}
-function saveTask(){
-  const title=document.getElementById('taskTitle').value.trim();if(!title){alert('Task title required.');return;}
-  const tasks=S.get('tasks');
-  const newTask={id:uid(),title,assignedTo:document.getElementById('taskStaff').value,due:document.getElementById('taskDue').value,time:document.getElementById('taskTime').value,priority:document.getElementById('taskPriority').value,note:document.getElementById('taskNote').value,done:false,createdAt:Date.now()};
-  tasks.push(newTask);S.set('tasks',tasks);closeModal('taskModal');renderStaff();
-  const staff=S.get('staff'),m=newTask.assignedTo?staff.find(s=>s.id===newTask.assignedTo):null;
-  addNotif(`📋 New task: "${title}" for ${m?m.name:'All Staff'}`);
-  showToast(`✓ Task added for ${m?m.name:'All Staff'}`);
-}
-function toggleTask(id){const tasks=S.get('tasks'),tk=tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;if(tk.done)addNotif(`✅ Task completed: "${tk.title}"`);}S.set('tasks',tasks);renderStaff();}
-function deleteTask(id){if(!confirm('Delete task?'))return;S.set('tasks',S.get('tasks').filter(t=>t.id!==id));renderStaff();}
-
-function renderStaff(){
-  const staff=S.get('staff'),att=S.get('att'),tasks=S.get('tasks'),tod=today();
-  const isOwner=getCurrentUser()?.role==='owner';
-  document.getElementById('staffList').innerHTML=staff.length===0
-    ?`<div class="empty-state"><div class="e-icon">👥</div><p>No staff added yet.</p></div>`
-    :staff.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.85rem">${s.name}</div><div class="text-muted text-sm">${s.role}${s.phone?' · '+s.phone:''}</div></div>${isOwner?`<button class="btn btn-danger btn-sm btn-icon" onclick="deleteStaff('${s.id}')">🗑</button>`:''}</div>`).join('');
-  const todayEl=document.getElementById('todayAtt');
-  if(todayEl){
-    const todayAtt=att.filter(a=>a.date===tod);
-    todayEl.innerHTML=todayAtt.length===0?`<div class="text-muted text-sm" style="padding:12px 0">No attendance logged today.</div>`:todayAtt.map(a=>{const m=staff.find(s=>s.id===a.staffId);const hrs=calcHours(a.in,a.out);return`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:500;font-size:.83rem">${m?m.name:'—'}</div><div class="text-muted text-sm">${a.in||'—'} → ${a.out||'ongoing'}${hrs>0?' · '+hrs.toFixed(1)+'h':''}</div></div>${isOwner?`<button class="btn btn-danger btn-sm btn-icon" onclick="deleteAtt('${a.id}')">🗑</button>`:''}</div>`;}).join('');
-  }
-  const priorityColor={Urgent:'var(--danger)',High:'var(--warn)',Normal:'var(--text3)'};
-  const tEl=document.getElementById('taskList');
-  const pending=tasks.filter(t=>!t.done),done=tasks.filter(t=>t.done);
-  const renderTaskItem=tk=>{
-    const m=tk.assignedTo?staff.find(s=>s.id===tk.assignedTo):null;
-    const overdue=tk.due&&tk.due<tod&&!tk.done;
-    return`<div class="task-item"><div class="task-check ${tk.done?'done':''}" onclick="toggleTask('${tk.id}')">${tk.done?'✓':''}</div><div class="task-body"><div class="task-title ${tk.done?'done':''}">${tk.title}</div><div class="task-meta">${m?`<span>${m.name}</span> · `:''}<span>${fmtDate(tk.due)}${tk.time?' at '+tk.time:''}</span><span style="color:${priorityColor[tk.priority]||'var(--text3)'}"> · ${tk.priority}</span>${overdue?'<span style="color:var(--danger)"> · OVERDUE</span>':''}</div>${tk.note?`<div class="text-muted text-sm" style="margin-top:3px">${tk.note}</div>`:''}</div>${isOwner?`<button class="btn btn-danger btn-sm btn-icon" onclick="deleteTask('${tk.id}')">🗑</button>`:''}</div>`;
+  
+  const staffMember={
+    id:editStaffId,
+    name:name,
+    role:document.getElementById('staffRole').value,
+    phone:document.getElementById('staffPhone').value.trim(),
+    wa:document.getElementById('staffWA').value.trim(),
+    email:document.getElementById('staffEmail').value.trim()
   };
-  tEl.innerHTML=tasks.length===0?`<div class="empty-state" style="padding:24px"><div class="e-icon">📋</div><p>No tasks yet. Click "+ Task" to add one.</p></div>`:`${pending.map(renderTaskItem).join('')}${done.length>0?`<div style="color:var(--text3);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 0 4px">Completed</div>${done.map(renderTaskItem).join('')}`:''}`;
-  if(!isOwner)return;
-  const months=[...new Set(att.map(a=>monthKey(a.date)).filter(Boolean))].sort().reverse();
+  
+  try{
+    await StaffAPI.save(staffMember);
+    await loadAllData();
+    renderStaff();
+    closeModal('addStaffModal');
+    showToast(staffMember.id ? 'Staff member updated ✓' : 'Staff member added ✓');
+  }catch(e){
+    console.error(e);
+    alert("Error saving staff member");
+  }
+}
+async function deleteStaff(id){
+  if(!confirm('Remove staff member?'))return;
+  try{
+    await StaffAPI.delete(id);
+    await loadAllData();
+    renderStaff();
+    showToast('Staff member removed');
+  }catch(e){
+    console.error(e);
+    alert('Error removing staff member');
+  }
+}
+async function saveAtt(){
+  const date=document.getElementById('attDate').value;if(!date){alert('Date required.');return;}
+  const att={
+    id:editAttId,
+    staffId:document.getElementById('attStaff').value,
+    date:date,
+    in:document.getElementById('attIn').value,
+    out:document.getElementById('attOut').value,
+    note:document.getElementById('attNote').value
+  };
+  
+  try{
+    await AttAPI.save(att);
+    await loadAllData();
+    renderStaff();
+    closeModal('attModal');
+    showToast('Attendance logged ✓');
+    const staff=window.appData.staff,m=staff.find(s=>s.id===document.getElementById('attStaff').value);
+    addNotif(`✅ Attendance logged for ${m?m.name:''} on ${fmtDate(date)}`);
+  }catch(e){
+    console.error(e);
+    alert('Error saving attendance');
+  }
+}
+async function deleteAtt(id){
+  if(!confirm('Remove this attendance record?'))return;
+  try{
+    await AttAPI.delete(id);
+    await loadAllData();
+    renderStaff();
+    showToast('Attendance record removed');
+  }catch(e){
+    console.error(e);
+    alert('Error removing attendance record');
+  }
+}
+function calcHours(i,o){if(!i||!o)return 0;const[ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number),h=(oh*60+om-ih*60-im)/60;return h>0?h:0;}
+async function saveTask(){
+  const title=document.getElementById('taskTitle').value.trim();if(!title){alert('Task title required.');return;}
+  const task={
+    id:editTaskId,
+    title:title,
+    assignedTo:document.getElementById('taskStaff').value,
+    due:document.getElementById('taskDue').value,
+    time:document.getElementById('taskTime').value,
+    priority:document.getElementById('taskPriority').value,
+    note:document.getElementById('taskNote').value,
+    done:false
+  };
+  
+  try{
+    await TaskAPI.save(task);
+    await loadAllData();
+    renderStaff();
+    closeModal('taskModal');
+    showToast('Task saved ✓');
+  }catch(e){
+    console.error(e);
+    alert('Error saving task');
+  }
+}
+
+// Attendance month filter setup
+function setupAttMonthFilter(){
   const sel=document.getElementById('attMonthFilter');
   const selSummary=document.getElementById('attMonthFilterSummary');
   if(sel){
@@ -1909,8 +2263,179 @@ function renderAttendance(){
 }
 
 
-// ── APPOINTMENTS ──
-let editApptId=null;
+// ====================== APPOINTMENTS ======================
+
+let editApptId = null;
+
+async function renderAppts() {
+    await loadAllData();
+
+    const appts = window.appData.appts || [];
+    const search = (document.getElementById('apptSearch').value || '').toLowerCase().trim();
+    const statusFilter = document.getElementById('apptStatusFilter').value;
+    const serviceFilter = document.getElementById('apptServiceFilter').value;
+    const dateFilter = document.getElementById('apptDateFilter').value;
+
+    const filtered = appts.filter(a => {
+        const matchSearch = !search || a.client.toLowerCase().includes(search);
+        const matchStatus = !statusFilter || a.status === statusFilter;
+        const matchService = !serviceFilter || a.service === serviceFilter;
+        const matchDate = !dateFilter || a.date === dateFilter;
+        return matchSearch && matchStatus && matchService && matchDate;
+    }).sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
+
+    const tbody = document.getElementById('apptTableBody');
+    const empty = document.getElementById('apptEmpty');
+
+    if (filtered.length === 0) {
+        empty.style.display = 'block';
+        tbody.innerHTML = '';
+        return;
+    }
+
+    empty.style.display = 'none';
+
+    tbody.innerHTML = filtered.map(a => `
+        <tr>
+            <td>
+                <div style="font-weight:500">${a.client}</div>
+                <div class="text-muted text-sm">${a.phone || ''}</div>
+            </td>
+            <td>${a.service}</td>
+            <td>${a.stylist || '—'}</td>
+            <td>${fmtDate(a.date)}${a.time ? ' · ' + a.time : ''}</td>
+            <td>${fmtMoney(a.price)}</td>
+            <td>${statusBadge(a.status)}</td>
+            <td>
+                <div class="reminder-group">
+                    <button class="btn btn-whatsapp btn-sm btn-icon" title="WhatsApp" onclick="sendClientReminder('${a.id}','whatsapp')">💬</button>
+                    <button class="btn btn-email btn-sm btn-icon" title="Email" onclick="sendClientReminder('${a.id}','email')">✉️</button>
+                </div>
+            </td>
+            <td>
+                <button class="btn btn-outline btn-sm btn-icon" onclick="openApptModal('${a.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteAppt('${a.id}')">🗑</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function openApptModal(id = null) {
+    editApptId = id;
+
+    const staff = window.appData.staff || [];
+    const appt = id ? (window.appData.appts || []).find(a => a.id === id) : null;
+
+    document.getElementById('apptModalTitle').textContent = id ? 'Modifier Rendez-vous' : 'Nouveau Rendez-vous';
+
+    // Remplir les stylistes
+    const stylistSel = document.getElementById('apptStylist');
+    stylistSel.innerHTML = staff.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+
+    // Remplir les services
+    const serviceSel = document.getElementById('apptService');
+    serviceSel.innerHTML = buildServiceOptions();
+
+    if (appt) {
+        document.getElementById('apptClient').value = appt.client || '';
+        document.getElementById('apptPhone').value = appt.phone || '';
+        document.getElementById('apptWA').value = appt.wa || '';
+        document.getElementById('apptEmail').value = appt.email || '';
+        document.getElementById('apptService').value = appt.service || 'Box Braids';
+        document.getElementById('apptStylist').value = appt.stylist || '';
+        document.getElementById('apptDate').value = appt.date || '';
+        document.getElementById('apptTime').value = appt.time || '';
+        document.getElementById('apptDur').value = appt.duration || 2;
+        document.getElementById('apptPrice').value = appt.price || '';
+        document.getElementById('apptDeposit').value = appt.deposit || 30;
+        document.getElementById('apptPayMethod').value = appt.payMethod || 'Cash';
+        document.getElementById('apptStatus').value = appt.status || 'Pending';
+    } else {
+        // Valeurs par défaut
+        ['apptClient','apptPhone','apptWA','apptEmail','apptTime','apptPrice'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('apptDate').value = today();
+        document.getElementById('apptDur').value = 2;
+        document.getElementById('apptDeposit').value = 30;
+        document.getElementById('apptPayMethod').value = 'Cash';
+        document.getElementById('apptStatus').value = 'Pending';
+    }
+
+    openModal('apptModal');
+}
+
+async function saveAppt() {
+    const client = document.getElementById('apptClient').value.trim();
+    if (!client) {
+        alert("Le nom du client est obligatoire");
+        return;
+    }
+
+    const appt = {
+        id: editApptId,
+        client: client,
+        phone: document.getElementById('apptPhone').value.trim(),
+        wa: document.getElementById('apptWA').value.trim(),
+        email: document.getElementById('apptEmail').value.trim(),
+        service: document.getElementById('apptService').value,
+        stylist: document.getElementById('apptStylist').value,
+        date: document.getElementById('apptDate').value,
+        time: document.getElementById('apptTime').value,
+        duration: parseFloat(document.getElementById('apptDur').value) || 2,
+        price: parseFloat(document.getElementById('apptPrice').value) || 0,
+        deposit: parseFloat(document.getElementById('apptDeposit').value) || 30,
+        payMethod: document.getElementById('apptPayMethod').value,
+        status: document.getElementById('apptStatus').value
+    };
+
+    try {
+        await ApptAPI.save(appt);
+        await loadAllData();
+        renderAppts();
+        closeModal('apptModal');
+        showToast(appt.id ? 'Rendez-vous mis à jour ✓' : 'Nouveau rendez-vous créé ✓');
+
+        if (!appt.id) {
+            addNotif(`📅 Nouveau RDV : ${appt.client} - ${appt.service}`);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Erreur lors de la sauvegarde du rendez-vous");
+    }
+}
+
+async function deleteAppt(id) {
+    if (!confirm("Supprimer ce rendez-vous ?")) return;
+    try {
+        await ApptAPI.delete(id);
+        await loadAllData();
+        renderAppts();
+        showToast("Rendez-vous supprimé");
+    } catch (e) {
+        alert("Erreur lors de la suppression");
+    }
+}
+
+// Fonction de rappel client
+function sendClientReminder(apptId, channel) {
+    const appts = window.appData.appts || [];
+    const a = appts.find(x => x.id === apptId);
+    if (!a) return;
+
+    const msg = `Hi ${a.client}! 💇‍♀️\n\nVotre rendez-vous est prévu pour :\n📅 ${fmtDate(a.date)} à ${a.time || 'TBD'}\n💆 Service : ${a.service}\n💰 Solde : ${fmtMoney((a.price||0)-(a.deposit||0))}\n\nÀ bientôt ! ✨`;
+
+    if (channel === 'whatsapp') {
+        const phone = (a.wa || a.phone || '').replace(/\D/g,'');
+        if (!phone) return showToast("Aucun numéro WhatsApp enregistré");
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    } else {
+        if (!a.email) return showToast("Aucun email enregistré");
+        window.open(`mailto:${a.email}?subject=${encodeURIComponent('Rappel RDV - ' + fmtDate(a.date))}&body=${encodeURIComponent(msg)}`, '_blank');
+    }
+}
+
+// ── SERVICES ──
 const SERVICES=[
   // ── Hair Braiding Services ──
   'Box Braids','Knotless Braids','Cornrows','Feed-In Braids','Goddess Braids',
@@ -1978,212 +2503,405 @@ function buildServiceOptions(includeAll=false){
   return html;
 }
 
-function openApptModal(id){
-  editApptId=id||null;
-  const staff=S.get('staff'),appts=S.get('appts'),appt=id?appts.find(a=>a.id===id):null;
-  const titleKey = id ? 'Edit Appointment' : 'New Appointment';
-  document.getElementById('apptModalTitle').textContent = getTranslation(titleKey, _lang) || titleKey;
-  const sel=document.getElementById('apptStylist');
-  sel.innerHTML=staff.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
-  const serviceSel=document.getElementById('apptService');
-  serviceSel.innerHTML=buildServiceOptions();
-  const sfEl=document.getElementById('apptServiceFilter');
-  if(sfEl.options.length<=1)sfEl.innerHTML=buildServiceOptions(true);
-  if(appt){
-    document.getElementById('apptClient').value=appt.client||'';document.getElementById('apptPhone').value=appt.phone||'';
-    document.getElementById('apptWA').value=appt.wa||'';document.getElementById('apptEmail').value=appt.email||'';
-    document.getElementById('apptService').value=appt.service||'Box Braids';sel.value=appt.stylist||'';
-    document.getElementById('apptDate').value=appt.date||'';document.getElementById('apptTime').value=appt.time||'';
-    document.getElementById('apptDur').value=appt.duration||2;document.getElementById('apptPrice').value=appt.price||'';
-    document.getElementById('apptDeposit').value=appt.deposit||30;document.getElementById('apptPayMethod').value=appt.payMethod||'Cash';
-    document.getElementById('apptStatus').value=appt.status||'Pending';
-  } else {
-    ['apptClient','apptPhone','apptWA','apptEmail','apptTime','apptPrice'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('apptDate').value=today();document.getElementById('apptDur').value=2;
-    document.getElementById('apptDeposit').value=30;document.getElementById('apptPayMethod').value='Cash';
-    document.getElementById('apptStatus').value='Pending';
-  }
-  openModal('apptModal');
-}
-function saveAppt(){
-  const client=document.getElementById('apptClient').value.trim();if(!client){alert('Client name required.');return;}
-  const appts=S.get('appts');
-  const obj={client,phone:document.getElementById('apptPhone').value.trim(),wa:document.getElementById('apptWA').value.trim(),email:document.getElementById('apptEmail').value.trim(),service:document.getElementById('apptService').value,stylist:document.getElementById('apptStylist').value,date:document.getElementById('apptDate').value,time:document.getElementById('apptTime').value,duration:parseFloat(document.getElementById('apptDur').value)||2,price:parseFloat(document.getElementById('apptPrice').value)||0,deposit:parseFloat(document.getElementById('apptDeposit').value)||30,payMethod:document.getElementById('apptPayMethod').value,status:document.getElementById('apptStatus').value};
-  if(editApptId){const idx=appts.findIndex(a=>a.id===editApptId);appts[idx]={...appts[idx],...obj};}
-  else{appts.push({...obj,id:uid()});addNotif(`📅 New appointment: ${client} — ${obj.service} on ${fmtDate(obj.date)}`);}
-  S.set('appts',appts);closeModal('apptModal');renderAppts();
-}
-function deleteAppt(id){if(!confirm('Delete appointment?'))return;S.set('appts',S.get('appts').filter(a=>a.id!==id));renderAppts();}
-function sendClientReminder(apptId,channel){
-  const appts=S.get('appts'),a=appts.find(x=>x.id===apptId);if(!a)return;
-  const msg=`Hi ${a.client}! 💇‍♀️ This is a reminder from StrandPro.\n\nYour appointment is scheduled for:\n📅 ${fmtDate(a.date)} at ${a.time||'TBD'}\n💆 Service: ${a.service}\n💰 Balance due: ${fmtMoney((a.price||0)-(a.deposit||0))}\n\nWe are located in Houston, TX.\n\nSee you soon! ✨\n— StrandPro Team`;
-  if(channel==='whatsapp'){
-    const clean=(a.wa||a.phone||'').replace(/\D/g,'');if(!clean){showToast('No WhatsApp number saved for this client.');return;}
-    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`,'_blank');addNotif(`📱 WhatsApp reminder sent to ${a.client}`);
-  } else {
-    if(!a.email){showToast('No email saved for this client.');return;}
-    window.open(`mailto:${a.email}?subject=${encodeURIComponent('Appointment Reminder — '+fmtDate(a.date))}&body=${encodeURIComponent(msg)}`,'_blank');addNotif(`📧 Email reminder opened for ${a.client}`);
-  }
-  showToast(`✓ Reminder sent to ${a.client}`);
-}
-function renderAppts(){
-  const appts=S.get('appts');
-  const sfEl=document.getElementById('apptServiceFilter');
-  if(sfEl.options.length<=1)sfEl.innerHTML=buildServiceOptions(true);
-  const search=(document.getElementById('apptSearch').value||'').toLowerCase();
-  const status=document.getElementById('apptStatusFilter').value;
-  const service=document.getElementById('apptServiceFilter').value;
-  const date=document.getElementById('apptDateFilter').value;
-  const filtered=appts.filter(a=>(!search||a.client.toLowerCase().includes(search))&&(!status||a.status===status)&&(!service||a.service===service)&&(!date||a.date===date)).sort((a,b)=>(b.date||'')>(a.date||'')?1:-1);
-  document.getElementById('apptEmpty').style.display=filtered.length===0?'block':'none';
-  document.getElementById('apptTableBody').innerHTML=filtered.map(a=>`<tr><td><div style="font-weight:500">${a.client}</div><div class="text-muted text-sm">${a.phone||''}</div></td><td>${a.service}</td><td>${a.stylist||'—'}</td><td>${fmtDate(a.date)}${a.time?' · '+a.time:''}</td><td>${fmtMoney(a.price)}</td><td>${statusBadge(a.status)}</td><td><div class="reminder-group"><button class="btn btn-whatsapp btn-sm btn-icon" title="WhatsApp" onclick="sendClientReminder('${a.id}','whatsapp')"><span style="font-size:.8rem">💬</span></button><button class="btn btn-email btn-sm btn-icon" title="Email" onclick="sendClientReminder('${a.id}','email')"><span style="font-size:.8rem">✉️</span></button></div></td><td><button class="btn btn-outline btn-sm btn-icon" onclick="openApptModal('${a.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteAppt('${a.id}')">🗑</button></td></tr>`).join('');
+// Anciennes fonctions appointments supprimées - remplacées par les versions Firestore ci-dessus
+
+// ====================== REVENUE ======================
+
+async function renderRevenue() {
+    await loadAllData();
+
+    const appts = window.appData.appts || [];
+    const sel = document.getElementById('revMonthFilter');
+    const months = [...new Set(appts.map(a => monthKey(a.date)).filter(Boolean))].sort().reverse();
+    const curM = monthKey(today());
+    if (!months.includes(curM)) months.unshift(curM);
+
+    const curVal = sel.value || curM;
+    sel.innerHTML = months.map(m => {
+        const [y, mo] = m.split('-');
+        return `<option value="${m}" ${m === curVal ? 'selected' : ''}>${new Date(+y, +mo-1).toLocaleString('en-US', {month:'long', year:'numeric'})}</option>`;
+    }).join('');
+
+    const m = sel.value || curM;
+    const monthAppts = appts.filter(a => monthKey(a.date) === m);
+    const completed = monthAppts.filter(a => a.status === 'Completed');
+
+    const totalRev = completed.reduce((s, a) => s + (a.price || 0), 0);
+    const totalDep = monthAppts.reduce((s, a) => s + (a.deposit || 0), 0);
+    const totalPend = monthAppts.filter(a => a.status !== 'Completed' && a.status !== 'Cancelled')
+                        .reduce((s, a) => s + ((a.price || 0) - (a.deposit || 0)), 0);
+
+    document.getElementById('revStats').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Revenue</div>
+            <div class="stat-value">${fmtMoney(totalRev)}</div>
+            <div class="stat-sub">${completed.length} terminés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-label">Dépôts</div>
+            <div class="stat-value">${fmtMoney(totalDep)}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-label">En Attente</div>
+            <div class="stat-value" style="color:var(--warn)">${fmtMoney(totalPend)}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">❌</div>
+            <div class="stat-label">Annulés</div>
+            <div class="stat-value" style="color:var(--danger)">${monthAppts.filter(a => a.status === 'Cancelled').length}</div>
+        </div>`;
+
+    // Daily Revenue
+    const byDay = {};
+    monthAppts.forEach(a => {
+        if (!a.date) return;
+        if (!byDay[a.date]) byDay[a.date] = {rev:0, cnt:0, pending:0};
+        if (a.status === 'Completed') {
+            byDay[a.date].rev += a.price || 0;
+            byDay[a.date].cnt++;
+        }
+        if (a.status !== 'Completed' && a.status !== 'Cancelled') {
+            byDay[a.date].pending += (a.price || 0) - (a.deposit || 0);
+        }
+    });
+
+    const days = Object.keys(byDay).sort().reverse();
+    document.getElementById('dailyRevBody').innerHTML = days.map(d => `
+        <tr>
+            <td>${fmtDate(d)}</td>
+            <td>${byDay[d].cnt}</td>
+            <td style="color:var(--gold-light);font-weight:500">${fmtMoney(byDay[d].rev)}</td>
+            <td style="color:var(--warn)">${fmtMoney(byDay[d].pending)}</td>
+        </tr>
+    `).join('');
+
+    document.getElementById('dailyRevEmpty').style.display = days.length === 0 ? 'block' : 'none';
+
+    // Payment Methods
+    const methods = {};
+    completed.forEach(a => {
+        const pm = a.payMethod || 'Cash';
+        if (!methods[pm]) methods[pm] = {count:0, total:0};
+        methods[pm].count++;
+        methods[pm].total += a.price || 0;
+    });
+
+    const pmEl = document.getElementById('payMethodBreakdown');
+    if (Object.keys(methods).length === 0) {
+        pmEl.innerHTML = `<div class="text-muted text-sm" style="padding:12px 0">Aucun paiement ce mois-ci.</div>`;
+    } else {
+        const gt = Object.values(methods).reduce((s, v) => s + v.total, 0);
+        pmEl.innerHTML = Object.entries(methods).map(([method, data]) => {
+            const pct = gt > 0 ? Math.round(data.total / gt * 100) : 0;
+            return `
+                <div style="margin-bottom:14px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.83rem">
+                        <span style="font-weight:500">${method}</span>
+                        <span style="color:var(--gold-light)">${fmtMoney(data.total)} <span class="text-muted">(${data.count})</span></span>
+                    </div>
+                    <div style="background:var(--bg4);border-radius:4px;height:5px;overflow:hidden">
+                        <div style="background:var(--gold);height:100%;width:${pct}%;border-radius:4px"></div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    renderLedger(monthAppts);
 }
 
-// ── REVENUE ──
-function renderRevenue(){
-  const appts=S.get('appts'),sel=document.getElementById('revMonthFilter');
-  const months=[...new Set(appts.map(a=>monthKey(a.date)).filter(Boolean))].sort().reverse();
-  const curM=monthKey(today());if(!months.includes(curM))months.unshift(curM);
-  const curVal=sel.value||curM;
-  sel.innerHTML=months.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}" ${m===curVal?'selected':''}>${new Date(+y,+mo-1).toLocaleString('en-US',{month:'long',year:'numeric'})}</option>`;}).join('');
-  const m=sel.value||curM,monthAppts=appts.filter(a=>monthKey(a.date)===m);
-  const completed=monthAppts.filter(a=>a.status==='Completed');
-  const totalRev=completed.reduce((s,a)=>s+(a.price||0),0);
-  const totalDep=monthAppts.reduce((s,a)=>s+(a.deposit||0),0);
-  const totalPend=monthAppts.filter(a=>a.status!=='Completed'&&a.status!=='Cancelled').reduce((s,a)=>s+((a.price||0)-(a.deposit||0)),0);
-  document.getElementById('revStats').innerHTML=`
-    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label" data-translate="Revenue">Revenue</div><div class="stat-value">${fmtMoney(totalRev)}</div><div class="stat-sub">${completed.length} <span data-translate="completed">completed</span></div></div>
-    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-label" data-translate="Deposits">Deposits</div><div class="stat-value">${fmtMoney(totalDep)}</div></div>
-    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-label" data-translate="Pending">Pending</div><div class="stat-value" style="color:var(--warn)">${fmtMoney(totalPend)}</div></div>
-    <div class="stat-card"><div class="stat-icon">❌</div><div class="stat-label" data-translate="Cancelled">Cancelled</div><div class="stat-value" style="color:var(--danger)">${monthAppts.filter(a=>a.status==='Cancelled').length}</div></div>`;
-  const byDay={};monthAppts.forEach(a=>{if(!a.date)return;if(!byDay[a.date])byDay[a.date]={rev:0,cnt:0,pending:0};if(a.status==='Completed'){byDay[a.date].rev+=a.price||0;byDay[a.date].cnt++;}if(a.status!=='Completed'&&a.status!=='Cancelled')byDay[a.date].pending+=(a.price||0)-(a.deposit||0);});
-  const days=Object.keys(byDay).sort().reverse();
-  document.getElementById('dailyRevEmpty').style.display=days.length===0?'block':'none';
-  document.getElementById('dailyRevBody').innerHTML=days.map(d=>`<tr><td>${fmtDate(d)}</td><td>${byDay[d].cnt}</td><td style="color:var(--gold-light);font-weight:500">${fmtMoney(byDay[d].rev)}</td><td style="color:var(--warn)">${fmtMoney(byDay[d].pending)}</td></tr>`).join('');
-  const methods={};completed.forEach(a=>{const pm=a.payMethod||'Cash';if(!methods[pm])methods[pm]={count:0,total:0};methods[pm].count++;methods[pm].total+=a.price||0;});
-  const mEntries=Object.entries(methods);
-  const pmEl=document.getElementById('payMethodBreakdown');
-  if(!mEntries.length){pmEl.innerHTML=`<div class="text-muted text-sm" style="padding:12px 0" data-translate="No completed payments this month.">No completed payments this month.</div>`;}
-  else{const gt=mEntries.reduce((s,[,v])=>s+v.total,0);pmEl.innerHTML=mEntries.map(([method,data])=>{const pct=gt>0?Math.round(data.total/gt*100):0;return`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.83rem"><span style="font-weight:500">${method}</span><span style="color:var(--gold-light)">${fmtMoney(data.total)} <span class="text-muted">(${data.count})</span></span></div><div style="background:var(--bg4);border-radius:4px;height:5px;overflow:hidden"><div style="background:var(--gold);height:100%;width:${pct}%;border-radius:4px"></div></div><div class="text-muted text-sm" style="margin-top:3px">${pct}%</div></div>`;}).join('');}
-  document.getElementById('ledgerEmpty').style.display=monthAppts.length===0?'block':'none';
-  document.getElementById('ledgerBody').innerHTML=[...monthAppts].sort((a,b)=>(b.date||'')>(a.date||'')?1:-1).map(a=>{const bal=(a.price||0)-(a.deposit||0);return`<tr><td style="font-weight:500">${a.client}</td><td>${a.service}</td><td>${fmtDate(a.date)}</td><td>${fmtMoney(a.price)}</td><td>${fmtMoney(a.deposit)}</td><td style="color:${bal>0?'var(--warn)':'var(--success)'}">${fmtMoney(bal)}</td><td><span class="badge badge-grey">${a.payMethod||'—'}</span></td><td>${statusBadge(a.status)}</td></tr>`;}).join('');
-  applyTranslations(_lang);
+function renderLedger(monthAppts) {
+    const tbody = document.getElementById('ledgerBody');
+    tbody.innerHTML = [...monthAppts].sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1).map(a => {
+        const bal = (a.price || 0) - (a.deposit || 0);
+        return `
+            <tr>
+                <td style="font-weight:500">${a.client}</td>
+                <td>${a.service}</td>
+                <td>${fmtDate(a.date)}</td>
+                <td>${fmtMoney(a.price)}</td>
+                <td>${fmtMoney(a.deposit)}</td>
+                <td style="color:${bal>0?'var(--warn)':'var(--success)'}">${fmtMoney(bal)}</td>
+                <td><span class="badge badge-grey">${a.payMethod || '—'}</span></td>
+                <td>${statusBadge(a.status)}</td>
+            </tr>`;
+    }).join('');
 }
 
-// ── EXPENSES ──
-const EXP_CATS=['Supplies','Rent','Utilities','Payroll','Marketing','Equipment','Maintenance','Insurance','Other'];
-let editExpId=null;
-function openExpModal(id){
-  editExpId=id||null;const expenses=S.get('expenses'),exp=id?expenses.find(e=>e.id===id):null;
-  document.getElementById('expModalTitle').textContent=id?'Edit Expense':'Add Expense';
-  document.getElementById('expDesc').value=exp?exp.desc:'';document.getElementById('expCat').value=exp?exp.cat:'Supplies';
-  document.getElementById('expAmount').value=exp?exp.amount:'';document.getElementById('expDate').value=exp?exp.date:today();
-  document.getElementById('expPaidBy').value=exp?exp.paidBy:'Cash';document.getElementById('expReceipt').value=exp?exp.receipt:'';
-  document.getElementById('expNote').value=exp?exp.note:'';openModal('expModal');
+// ====================== EXPENSES ======================
+
+let editExpId = null;
+
+async function renderExpenses() {
+    await loadAllData();
+
+    const expenses = window.appData.expenses || [];
+    const sel = document.getElementById('expMonthFilter');
+    const search = (document.getElementById('expSearch').value || '').toLowerCase().trim();
+    const catFilter = document.getElementById('expCatFilter').value;
+
+    // Gestion des mois
+    const months = [...new Set(expenses.map(e => monthKey(e.date)).filter(Boolean))].sort().reverse();
+    const curM = monthKey(today());
+    if (!months.includes(curM)) months.unshift(curM);
+
+    const curVal = sel.value || curM;
+    sel.innerHTML = months.map(m => {
+        const [y, mo] = m.split('-');
+        return `<option value="${m}" ${m === curVal ? 'selected' : ''}>${new Date(+y, +mo - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })}</option>`;
+    }).join('');
+
+    const selectedMonth = sel.value || curM;
+
+    // Filtrage
+    const monthExpenses = expenses.filter(e => monthKey(e.date) === selectedMonth);
+    const filtered = monthExpenses.filter(e => 
+        (!search || e.desc.toLowerCase().includes(search) || (e.cat && e.cat.toLowerCase().includes(search))) &&
+        (!catFilter || e.cat === catFilter)
+    ).sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
+
+    // Statistiques
+    const totalExp = monthExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const monthRev = (window.appData.appts || [])
+        .filter(a => monthKey(a.date) === selectedMonth && a.status === 'Completed')
+        .reduce((sum, a) => sum + (a.price || 0), 0);
+    const net = monthRev - totalExp;
+
+    document.getElementById('expStats').innerHTML = `
+        <div class="stat-card">
+            <div class="stat-icon">💸</div>
+            <div class="stat-label">Total Dépenses</div>
+            <div class="stat-value" style="color:var(--danger)">${fmtMoney(totalExp)}</div>
+            <div class="stat-sub">${monthExpenses.length} enregistrements</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Revenue</div>
+            <div class="stat-value">${fmtMoney(monthRev)}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">${net >= 0 ? '📈' : '📉'}</div>
+            <div class="stat-label">Bénéfice Net</div>
+            <div class="stat-value ${net >= 0 ? 'net-positive' : 'net-negative'}">${fmtMoney(net)}</div>
+        </div>
+    `;
+
+    // Répartition par catégorie
+    const catTotals = {};
+    monthExpenses.forEach(e => {
+        const cat = e.cat || 'Other';
+        catTotals[cat] = (catTotals[cat] || 0) + e.amount;
+    });
+
+    let breakdownHTML = '';
+    const grandTotal = totalExp || 1;
+    Object.entries(catTotals).forEach(([cat, amount]) => {
+        const pct = Math.round((amount / grandTotal) * 100);
+        breakdownHTML += `
+            <div style="margin-bottom:12px">
+                <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px">
+                    <span style="font-weight:500">${cat}</span>
+                    <span style="color:var(--gold-light)">${fmtMoney(amount)} <span class="text-muted">(${pct}%)</span></span>
+                </div>
+                <div style="background:var(--bg4);border-radius:3px;height:5px;overflow:hidden">
+                    <div style="background:var(--gold);height:100%;width:${pct}%;border-radius:3px"></div>
+                </div>
+            </div>`;
+    });
+    document.getElementById('expCatBreakdown').innerHTML = breakdownHTML || '<p class="text-muted text-sm">Aucune dépense ce mois-ci.</p>';
+
+    // Tableau des dépenses
+    const tbody = document.getElementById('expTableBody');
+    tbody.innerHTML = filtered.map(e => `
+        <tr>
+            <td>${fmtDate(e.date)}</td>
+            <td style="font-weight:500">${e.desc}</td>
+            <td><span class="badge badge-grey">${e.cat || 'Other'}</span></td>
+            <td style="color:var(--danger);font-weight:600">${fmtMoney(e.amount)}</td>
+            <td><span class="badge badge-grey">${e.paidBy || '—'}</span></td>
+            <td class="text-muted text-sm">${e.receipt || '—'}</td>
+            <td>
+                <button class="btn btn-outline btn-sm btn-icon" onclick="openExpModal('${e.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteExpense('${e.id}')">🗑</button>
+            </td>
+        </tr>
+    `).join('');
+
+    document.getElementById('expEmpty').style.display = filtered.length === 0 ? 'block' : 'none';
 }
-function saveExpense(){
-  const desc=document.getElementById('expDesc').value.trim(),amount=parseFloat(document.getElementById('expAmount').value);
-  if(!desc){alert('Description required.');return;}if(isNaN(amount)||amount<=0){alert('Enter a valid amount.');return;}
-  const expenses=S.get('expenses');
-  const obj={desc,amount,cat:document.getElementById('expCat').value,date:document.getElementById('expDate').value,paidBy:document.getElementById('expPaidBy').value,receipt:document.getElementById('expReceipt').value.trim(),note:document.getElementById('expNote').value.trim()};
-  if(editExpId){const idx=expenses.findIndex(e=>e.id===editExpId);expenses[idx]={...expenses[idx],...obj};}
-  else{expenses.push({...obj,id:uid()});addNotif(`💸 Expense recorded: ${desc} — ${fmtMoney(amount)}`);}
-  S.set('expenses',expenses);closeModal('expModal');renderExpenses();
+
+async function openExpModal(id = null) {
+    editExpId = id;
+    const expenses = window.appData.expenses || [];
+    const exp = id ? expenses.find(e => e.id === id) : null;
+
+    document.getElementById('expModalTitle').textContent = id ? 'Modifier Dépense' : 'Nouvelle Dépense';
+
+    document.getElementById('expDesc').value = exp?.desc || '';
+    document.getElementById('expCat').value = exp?.cat || 'Supplies';
+    document.getElementById('expAmount').value = exp?.amount || '';
+    document.getElementById('expDate').value = exp?.date || today();
+    document.getElementById('expPaidBy').value = exp?.paidBy || 'Cash';
+    document.getElementById('expReceipt').value = exp?.receipt || '';
+    document.getElementById('expNote').value = exp?.note || '';
+
+    openModal('expModal');
 }
-function deleteExpense(id){if(!confirm('Delete this expense?'))return;S.set('expenses',S.get('expenses').filter(e=>e.id!==id));renderExpenses();}
-function renderExpenses(){
-  const expenses=S.get('expenses'),sel=document.getElementById('expMonthFilter');
-  const months=[...new Set(expenses.map(e=>monthKey(e.date)).filter(Boolean))].sort().reverse();
-  const curM=monthKey(today());if(!months.includes(curM))months.unshift(curM);
-  const curVal=sel.value||curM;
-  sel.innerHTML=months.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}" ${m===curVal?'selected':''}>${new Date(+y,+mo-1).toLocaleString('en-US',{month:'long',year:'numeric'})}</option>`;}).join('');
-  const m=sel.value||curM,search=(document.getElementById('expSearch').value||'').toLowerCase(),catF=document.getElementById('expCatFilter').value;
-  const monthExp=expenses.filter(e=>monthKey(e.date)===m);
-  const filtered=monthExp.filter(e=>(!search||e.desc.toLowerCase().includes(search)||e.cat.toLowerCase().includes(search))&&(!catF||e.cat===catF)).sort((a,b)=>b.date>a.date?1:-1);
-  const totalExp=monthExp.reduce((s,e)=>s+e.amount,0);
-  const monthRev=S.get('appts').filter(a=>monthKey(a.date)===m&&a.status==='Completed').reduce((s,a)=>s+(a.price||0),0);
-  const net=monthRev-totalExp;
-  const topCat=EXP_CATS.map(c=>({c,total:monthExp.filter(e=>e.cat===c).reduce((s,e)=>s+e.amount,0)})).sort((a,b)=>b.total-a.total)[0];
-  document.getElementById('expStats').innerHTML=`
-    <div class="stat-card"><div class="stat-icon">💸</div><div class="stat-label" data-translate="Total Expenses">Total Expenses</div><div class="stat-value" style="color:var(--danger)">${fmtMoney(totalExp)}</div><div class="stat-sub">${monthExp.length} records</div></div>
-    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label" data-translate="Revenue">Revenue</div><div class="stat-value">${fmtMoney(monthRev)}</div></div>
-    <div class="stat-card"><div class="stat-icon">${net>=0?'📈':'📉'}</div><div class="stat-label" data-translate="Net Profit">Net Profit</div><div class="stat-value ${net>=0?'net-positive':'net-negative'}">${fmtMoney(net)}</div></div>
-    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-label" data-translate="Top Category">Top Category</div><div class="stat-value" style="font-size:1.1rem">${topCat&&topCat.total>0?topCat.c:'—'}</div><div class="stat-sub">${topCat&&topCat.total>0?fmtMoney(topCat.total):''}</div></div>`;
-  const gt=totalExp||1;
-  document.getElementById('expCatBreakdown').innerHTML=EXP_CATS.map(c=>{const total=monthExp.filter(e=>e.cat===c).reduce((s,e)=>s+e.amount,0);if(!total)return'';const pct=Math.round(total/gt*100);return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px"><span style="font-weight:500">${c}</span><span style="color:var(--gold-light)">${fmtMoney(total)} <span class="text-muted">(${pct}%)</span></span></div><div style="background:var(--bg4);border-radius:3px;height:5px;overflow:hidden"><div style="background:var(--gold);height:100%;width:${pct}%;border-radius:3px"></div></div></div>`;}).join('');
-  document.getElementById('expEmpty').style.display=filtered.length===0?'block':'none';
-  document.getElementById('expTableBody').innerHTML=filtered.map(e=>`<tr><td>${fmtDate(e.date)}</td><td style="font-weight:500">${e.desc}${e.note?`<div class="text-muted text-sm">${e.note}</div>`:''}</td><td><span class="badge badge-grey">${e.cat}</span></td><td style="color:var(--danger);font-weight:600">${fmtMoney(e.amount)}</td><td><span class="badge badge-grey">${e.paidBy}</span></td><td class="text-muted text-sm">${e.receipt||'—'}</td><td><button class="btn btn-outline btn-sm btn-icon" onclick="openExpModal('${e.id}')">✏️</button><button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteExpense('${e.id}')">🗑</button></td></tr>`).join('');
-  applyTranslations(_lang);
+
+async function saveExpense() {
+    const desc = document.getElementById('expDesc').value.trim();
+    const amount = parseFloat(document.getElementById('expAmount').value);
+
+    if (!desc) return alert("Description requise");
+    if (!amount || amount <= 0) return alert("Montant invalide");
+
+    const expense = {
+        id: editExpId,
+        desc: desc,
+        amount: amount,
+        cat: document.getElementById('expCat').value,
+        date: document.getElementById('expDate').value,
+        paidBy: document.getElementById('expPaidBy').value,
+        receipt: document.getElementById('expReceipt').value.trim(),
+        note: document.getElementById('expNote').value.trim()
+    };
+
+    try {
+        await ExpAPI.save(expense);
+        await loadAllData();
+        renderExpenses();
+        closeModal('expModal');
+        showToast(expense.id ? 'Dépense mise à jour ✓' : 'Dépense ajoutée ✓');
+        
+        if (!expense.id) {
+            addNotif(`💸 Nouvelle dépense : ${desc} - ${fmtMoney(amount)}`);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Erreur lors de la sauvegarde de la dépense");
+    }
+}
+
+async function deleteExpense(id) {
+    if (!confirm("Supprimer cette dépense ?")) return;
+    try {
+        await ExpAPI.delete(id);
+        await loadAllData();
+        renderExpenses();
+        showToast("Dépense supprimée");
+    } catch (e) {
+        alert("Erreur lors de la suppression");
+    }
 }
 
 // ── BACKGROUND CHECKS ──
 function checkDueTasks(){
-  const tasks=S.get('tasks'),tod=today(),now=new Date();
+  const tasks = window.appData.tasks || [], tod = today(), now = new Date();
   const hhmm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   tasks.filter(tk=>!tk.done&&tk.due===tod&&tk.time===hhmm).forEach(tk=>{
-    addNotif(`⏰ Task due now: "${tk.title}"`);sendBrowserNotif('Task Due',tk.title);
+    addNotif(`⏰ Tâche en cours: "${tk.title}"`);
+    sendBrowserNotif('Tâche à faire', tk.title);
   });
 }
 function checkUpcomingAppts(){
-  const appts=S.get('appts'),tod=today(),now=new Date();
+  const appts = window.appData.appts || [], tod = today(), now = new Date();
   appts.filter(a=>a.date===tod&&a.status!=='Cancelled'&&a.status!=='Completed'&&a.time).forEach(a=>{
     const[h,mn]=a.time.split(':').map(Number);
     const apptTime=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,mn);
-    if(Math.floor((apptTime-now)/60000)===60){addNotif(`📅 Appointment in 1 hour: ${a.client} — ${a.service} at ${a.time}`);sendBrowserNotif('Upcoming Appointment',`${a.client} — ${a.service} at ${a.time}`);}
+    if(Math.floor((apptTime-now)/60000)===60){
+      addNotif(`📅 RDV dans 1 heure: ${a.client} — ${a.service} à ${a.time}`);
+      sendBrowserNotif('Rendez-vous imminent',`${a.client} — ${a.service} à ${a.time}`);
+    }
   });
 }
 function checkLowStock(){
-  S.get('inv').filter(i=>i.qty<i.threshold).forEach(i=>addNotif(`⚠️ Low stock: ${i.name} (${i.qty} ${i.unit} left)`));
+  const inv = window.appData.inv || [];
+  inv.filter(i=>i.qty < (i.threshold || 5)).forEach(i=>addNotif(`⚠️ Stock bas: ${i.name} (${i.qty} ${i.unit || 'unités'} restantes)`));
 }
 
 // ── INIT ──
-function init(){
-  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const sfEl=document.getElementById('apptServiceFilter');
-  sfEl.innerHTML=buildServiceOptions(true);
-  ['attMonthFilter','revMonthFilter','expMonthFilter'].forEach(id=>{
-    const sel=document.getElementById(id);if(!sel)return;
-    const curM=monthKey(today()),[y,mo]=curM.split('-');
-    sel.innerHTML=`<option value="${curM}">${new Date(+y,+mo-1).toLocaleString('en-US',{month:'long',year:'numeric'})}</option>`;
-  });
-  // Set lang - prioritize language from index.html, fallback to sp_lang or default to 'en'
-  _lang=localStorage.getItem('selectedLanguage')||localStorage.getItem('sp_lang')||'en';
-  const flags={en:'🇺🇸',fr:'🇫🇷',es:'🇪🇸'},codes={en:'EN',fr:'FR',es:'ES'};
-  const lf=document.getElementById('langFlag'),lc=document.getElementById('langCode');
-  if(lf)lf.textContent=flags[_lang]||'🇺🇸';if(lc)lc.textContent=codes[_lang]||'EN';
-  document.querySelectorAll('.lang-option').forEach(el=>el.classList.remove('active'));
-  document.getElementById('lang-'+_lang)?.classList.add('active');
-  ensureAdminExists();
-  const session=getCurrentUser();
-  if(session){
-    // Check forced pw change
-    const users=getUsers(),user=users[session.username];
-    if(user?.mustChangePassword){
-      hideAuthScreen();showForcedPwScreen();return;
+// ====================== INIT PRINCIPALE ======================
+
+async function init() {
+    console.log("🚀 Initialisation de StrandPro...");
+
+    // Date dans la topbar
+    document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric'
+    });
+
+    // Initialisation Firebase Auth
+    if (typeof initAuth === 'function') {
+        initAuth();
     }
-    hideAuthScreen();
-    updateUserUI();updateSidebarBranding();applyRoleUI();
-    initSubscription();checkAccess(false);seedData();
-    // Apply translations after UI is ready
-    if (typeof applyTranslations === 'function') {
-      applyTranslations(_lang);
-    }
-    // Only navigate if access is allowed, otherwise stay on paywall
-    if (isAccessAllowed()) {
-      navigate(session.role==='owner'?'dashboard':'staff');
-      showToast(`👋 Welcome back, ${session.name}!`);
+
+    // Charger toutes les données depuis Firebase
+    await loadAllData();
+
+    const session = getCurrentUser();
+
+    if (session) {
+        const users = getUsers(); // Garde ta logique locale pour l'authentification
+        const user = users[session.username];
+
+        // Vérification du changement forcé de mot de passe
+        if (user?.mustChangePassword) {
+            hideAuthScreen();
+            showForcedPwScreen();
+            return;
+        }
+
+        hideAuthScreen();
+
+        // Mise à jour de l'interface utilisateur
+        updateUserUI();
+        updateSidebarBranding();
+        applyRoleUI();
+        initSubscription();
+        checkAccess(false);
+
+        // Navigation selon le rôle et l'accès
+        if (isAccessAllowed()) {
+            navigate(session.role === 'owner' ? 'dashboard' : 'staff');
+            showToast(`👋 Bienvenue ${session.name}!`);
+            
+            // Vérifications initiales (uniquement si utilisateur connecté)
+            checkLowStock();
+            checkDueTasks();
+            checkUpcomingAppts();
+        } else {
+            showPaywall();
+        }
+
     } else {
-      // Show paywall if access is not allowed
-      showPaywall();
+        // Aucun utilisateur connecté → écran de connexion
+        showAuthScreen();
     }
-    setTimeout(()=>requestNotifPermission(),3000);
-    checkLowStock();
-    setInterval(checkDueTasks,60000);setInterval(checkUpcomingAppts,60000);
-    checkDueTasks();checkUpcomingAppts();
-  } else {
-    showAuthScreen();
-  }
+
+    // === Rafraîchissement automatique des données ===
+    setInterval(async () => {
+        await loadAllData();
+        
+        const activePage = document.querySelector('.page.active');
+        if (activePage) {
+            const pageId = activePage.id.replace('page-', '');
+            
+            if (pageId === 'dashboard') renderDashboard();
+            else if (pageId === 'inventory') renderInventory();
+            else if (pageId === 'staff') renderStaff();
+            else if (pageId === 'appointments') renderAppts();
+            else if (pageId === 'revenue') renderRevenue();
+            else if (pageId === 'expenses') renderExpenses();
+            else if (pageId === 'permissions') renderPermissions();
+        }
+    }, 45000); // Toutes les 45 secondes
+
+    console.log("✅ StrandPro initialisé avec Firebase");
 }
+
+// Lancer l'initialisation au chargement de la page
 init();
 </script>
 </body>
