@@ -285,6 +285,7 @@ const i18nTranslations = {
     confirmNewPassword: 'Confirm New Password',
     updatePassword: 'Update Password',
     min6Characters: 'Min 6 characters',
+    companyLogo: 'Company Logo',
     
     // Page Titles & Section Headers
     inventory: 'Inventory',
@@ -378,6 +379,7 @@ const i18nTranslations = {
     noResultsFound: 'No results found',
     confirmDelete: 'Are you sure you want to delete this item?',
     confirmAction: 'Are you sure you want to perform this action?',
+    confirm_logout: 'Are you sure you want to sign out?',
     operationSuccessful: 'Operation completed successfully',
     operationFailed: 'Operation failed. Please try again.',
     
@@ -812,6 +814,7 @@ const i18nTranslations = {
     confirmNewPassword: 'Confirmer le nouveau mot de passe',
     updatePassword: 'Mettre à jour le mot de passe',
     min6Characters: 'Min 6 caractères',
+    companyLogo: 'Logo de l\'entreprise',
     
     // Page Titles & Section Headers
     inventory: 'Inventaire',
@@ -1414,6 +1417,7 @@ const i18nTranslations = {
     confirmNewPassword: 'Confirmar nueva contraseña',
     updatePassword: 'Actualizar contraseña',
     min6Characters: 'Mín 6 caracteres',
+    companyLogo: 'Logo de la empresa',
     
     // Page Titles & Section Headers
     inventory: 'Inventario',

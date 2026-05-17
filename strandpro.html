@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="StrandPro">
+
 <meta name="description" content="StrandPro — Salon Management System">
 <title>StrandPro — Salon Management</title>
 
@@ -515,6 +516,7 @@ tr:hover td { background:var(--bg4); }
         <div class="auth-group" style="margin-bottom:0"><label data-translate="Business Name">Business Name</label><input type="text" id="signupBusiness" placeholder="e.g. Luxe Braids Salon" data-translate-placeholder="e.g. Luxe Braids Salon" autocomplete="organization"></div>
         <div class="auth-group" style="margin-bottom:0"><label data-translate="City">City</label><input type="text" id="signupCity" placeholder="e.g. Houston" data-translate-placeholder="e.g. Houston" autocomplete="address-level2"></div>
       </div>
+      <div class="auth-group"><label data-translate="Company Logo">Company Logo</label><input type="file" id="signupLogo" accept="image/*" onchange="previewLogo(this)" style="background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 10px;font-size:.87rem;font-family:'DM Sans',sans-serif;outline:none;width:100%"><div id="logoPreview" style="margin-top:8px;display:none"><img id="logoPreviewImg" style="max-width:100px;max-height:100px;border-radius:8px;border:1px solid var(--border2)"></div></div>
       <div class="auth-group"><label data-translate="Your Full Name">Your Full Name</label><input type="text" id="signupName" placeholder="Owner's full name" data-translate-placeholder="Owner's full name" autocomplete="name"></div>
       <div class="auth-group"><label data-translate="Email">Email</label><input type="email" id="signupEmail" placeholder="your@email.com" data-translate-placeholder="your@email.com" autocomplete="email"></div>
       <div class="auth-group"><label data-translate="Username">Username</label><input type="text" id="signupUser" placeholder="Choose a username" data-translate-placeholder="Choose a username" autocomplete="username"></div>
@@ -606,7 +608,6 @@ tr:hover td { background:var(--bg4); }
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <img src="./icons/stradpro-logo.jpeg" alt="StrandPro Logo" style="width: 40px; height: 40px; border-radius: 8px; margin-bottom: 8px;">
-      <div class="brand-app">StrandPro</div>
       <div class="brand-salon" id="sidebarSalonName"><span class="brand-placeholder">Your Salon Name</span></div>
       <div class="brand-city"  id="sidebarCity"></div>
     </div>
@@ -621,6 +622,13 @@ tr:hover td { background:var(--bg4); }
       <div class="nav-item" id="nav-expenses"            onclick="navigate('expenses');closeSidebar()"><span class="nav-icon">💸</span> <span data-translate="Expenses">Expenses</span></div>
       <div class="nav-item owner-only" id="nav-permissions" onclick="navigate('permissions');closeSidebar()"><span class="nav-icon">🔐</span> <span data-translate="Roles & Permissions">Roles & Permissions</span></div>
     </nav>
+    <!-- === BAS : Logo & Titre StrandPro === -->
+  <div class="sidebar-footer">
+    <div style="text-align:center; padding:8px 0; opacity:0.75;">
+      <img id="strandproMiniLogo" src="./icons/stradpro-logo.jpeg" 
+           style="width:28px; height:28px; border-radius:6px; margin-bottom:4px;">
+      <div class="brand-app" style="font-size:1.1rem; letter-spacing:0.5px;">StrandPro</div>
+    </div>
     <div class="sidebar-footer">
       <div class="sub-status-pill" onclick="openManageSub()">
         <div class="sub-dot" id="subDot"></div>
@@ -691,6 +699,26 @@ tr:hover td { background:var(--bg4); }
         <div class="card"><div class="card-title" data-translate="⚠️ Low Stock Alerts">⚠️ Low Stock Alerts</div><div id="dashLowStock"></div></div>
         <div class="card"><div class="card-title" data-translate="👥 Staff Present Today">👥 Staff Present Today</div><div id="dashStaffPresent"></div></div>
       </div>
+      <div class="card" style="margin-top:20px">
+  <div class="card-title">🔗 Lien de Prise de Rendez-vous Client</div>
+  <p style="font-size:0.85rem;color:var(--text3);margin-bottom:12px">
+    Partage ce lien avec tes clients pour qu’ils prennent rendez-vous directement.
+  </p>
+  
+  <div style="display:flex; gap:10px; flex-wrap:wrap">
+    <button class="btn btn-gold" onclick="generateAppointmentLink()">
+      📋 Générer & Copier le Lien
+    </button>
+    
+    <button class="btn btn-outline" onclick="syncGoogleFormResponses()">
+      🔄 Synchroniser les RDV
+    </button>
+  </div>
+  
+  <div id="shareLinkContainer" style="margin-top:12px; display:none">
+    <input type="text" id="generatedLink" readonly style="width:100%; background:var(--bg4); padding:10px; border-radius:6px; font-size:0.8rem">
+  </div>
+</div>
     </section>
 
     <!-- INVENTORY -->
@@ -881,7 +909,7 @@ tr:hover td { background:var(--bg4); }
         <div class="paywall-logo-name">StrandPro</div>
         <div class="paywall-logo-sub">Salon Management System</div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="hidePaywall(); navigate('dashboard')" data-translate="← Back to Dashboard">← Back to Dashboard</button>
+      <!--<button class="btn btn-outline btn-sm" onclick="hidePaywall(); navigate('dashboard')" data-translate="← Back to Dashboard">← Back to Dashboard</button>-->
     </div>
     <div class="paywall-headline" data-translate="Continue with Full Access">Continue with Full Access</div>
     <div class="paywall-sub" data-translate="Your 7-day free trial has ended. Choose a plan to keep all features.">Your 7-day free trial has ended. Choose a plan to keep all features.</div>
@@ -1052,7 +1080,6 @@ tr:hover td { background:var(--bg4); }
 
 // ── FIREBASE STORAGE REPLACEMENT ──
 let currentSalonData = {}; // cache local optionnel
-
 async function loadAllData() {
     try {
         const [inv, staff, appts, tasks, att, expenses] = await Promise.all([
@@ -1064,14 +1091,194 @@ async function loadAllData() {
             ExpAPI.getAll()
         ]);
 
-        // On stocke temporairement pour compatibilité avec ton code existant
-        window.appData = {
-            inv, staff, appts, tasks, att, expenses
+        window.appData = { 
+            inv: inv || [], 
+            staff: staff || [], 
+            appts: appts || [], 
+            tasks: tasks || [], 
+            att: att || [], 
+            expenses: expenses || [] 
         };
+
+        console.log(`✅ loadAllData terminé - RDV chargés : ${window.appData.appts.length}`);
     } catch (e) {
-        console.error("Erreur chargement données Firebase:", e);
+        console.error("Erreur chargement données:", e);
+        window.appData = { inv: [], staff: [], appts: [], tasks: [], att: [], expenses: [] };
     }
 }
+// Fonction pour prévisualiser le logo
+function previewLogo(input) {
+    const preview = document.getElementById('logoPreview');
+    const previewImg = document.getElementById('logoPreviewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// ====================== LOCAL STORAGE WRAPPER ======================
+// ====================== LOCAL STORAGE WRAPPER (Version Robuste) ======================
+const S = {
+    get: function(key) {
+        try {
+            const data = localStorage.getItem(key);
+            const parsed = data ? JSON.parse(data) : [];
+            console.log(`S.get('${key}') → ${parsed.length} éléments`);
+            return parsed;
+        } catch(e) {
+            console.error(`Erreur S.get('${key}')`, e);
+            return [];
+        }
+    },
+    set: function(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value || []));
+            console.log(`S.set('${key}') → ${value ? value.length : 0} éléments sauvegardés`);
+        } catch(e) {
+            console.error(`Erreur S.set('${key}')`, e);
+        }
+    },
+    getObj: function(key) {
+        try {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        } catch(e) {
+            return null;
+        }
+    },
+    setObj: function(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch(e) {}
+    }
+};
+
+
+
+// ====================== FIREBASE API SIMULATION (Fallback) ======================
+const InvAPI = {
+    getAll: async () => S.get('inv'),
+    save: async (item) => {
+        let items = S.get('inv');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'inv_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('inv', items);
+        return item;
+    },
+    delete: async (id) => {
+        let items = S.get('inv').filter(i => i.id !== id);
+        S.set('inv', items);
+    }
+};
+
+const StaffAPI = {
+    getAll: async () => S.get('staff'),
+    save: async (item) => {
+        let items = S.get('staff');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'staff_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('staff', items);
+        return item;
+    },
+    delete: async (id) => {
+        let items = S.get('staff').filter(i => i.id !== id);
+        S.set('staff', items);
+    }
+};
+// ====================== ApptAPI (Version corrigée) ======================
+const ApptAPI = {
+    getAll: async () => {
+        const appts = S.get('appts');
+        console.log(`ApptAPI.getAll() → ${appts.length} rendez-vous trouvés`);
+        return appts;
+    },
+    save: async (item) => {
+        let appts = S.get('appts');
+        
+        if (item.id && appts.some(a => a.id === item.id)) {
+            appts = appts.map(a => a.id === item.id ? item : a);
+        } else {
+            item.id = item.id || 'gform_' + Date.now().toString(36);
+            appts.push(item);
+        }
+        
+        S.set('appts', appts);
+        console.log(`✅ ApptAPI.save() → Sauvegardé : ${item.client}`);
+        return item;
+    },
+    delete: async (id) => {
+        let appts = S.get('appts').filter(a => a.id !== id);
+        S.set('appts', appts);
+    }
+};
+
+const TaskAPI = {
+    getAll: async () => S.get('tasks'),
+    save: async (item) => {
+        let items = S.get('tasks');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'task_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('tasks', items);
+        return item;
+    }
+};
+
+const AttAPI = {
+    getAll: async () => S.get('att'),
+    save: async (item) => {
+        let items = S.get('att');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'att_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('att', items);
+        return item;
+    },
+    delete: async (id) => {
+        let items = S.get('att').filter(i => i.id !== id);
+        S.set('att', items);
+    }
+};
+
+const ExpAPI = {
+    getAll: async () => S.get('expenses'),
+    save: async (item) => {
+        let items = S.get('expenses');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'exp_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('expenses', items);
+        return item;
+    },
+    delete: async (id) => {
+        let items = S.get('expenses').filter(i => i.id !== id);
+        S.set('expenses', items);
+    }
+};
 
 // ── UTILS ──
 const uid      = () => Math.random().toString(36).slice(2,9);
@@ -1097,6 +1304,135 @@ function showToast(msg) {
   c.appendChild(el); setTimeout(()=>el.remove(),3500);
 }
 
+// ==================== GOOGLE FORM INTEGRATION ====================
+
+let googleFormUrl = "https://forms.gle/zySXzi44DGgpeYct7"; // ← À remplacer par ton vrai lien
+
+function generateAppointmentLink() {
+  if (!googleFormUrl) {
+    alert("Tu dois d'abord créer un Google Form et mettre son lien ici.");
+    return;
+  }
+
+  const link = googleFormUrl;
+  const container = document.getElementById('shareLinkContainer');
+  const input = document.getElementById('generatedLink');
+
+  input.value = link;
+  container.style.display = 'block';
+
+  // Copier automatiquement
+  input.select();
+  document.execCommand('copy');
+  
+  showToast("✅ Lien copié ! Partage-le avec tes clients.");
+  addNotif("🔗 Nouveau lien de RDV client généré");
+}
+
+// ==================== SYNCHRONISATION ====================
+
+async function syncGoogleFormResponses() {
+    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT65jxb_ZMoLhH_DH-Kg5vtLNoXfSBLWqk7CE_ibiA4UTpoDhUvbpeRymDreQnUQseKoEcNl7p1jv42/pubhtml"
+
+    if (!confirm("Importer les nouveaux rendez-vous ?")) return;
+
+    showToast("🔄 Importation en cours...");
+
+    try {
+        const response = await fetch(sheetCsvUrl);
+        if (!response.ok) throw new Error("Erreur CSV");
+
+        const csvText = await response.text();
+        const rows = parseCSV(csvText);
+        let imported = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const clientName = row["What is your name ?"] || row["What is your name"] || "";
+
+            if (!clientName.trim()) continue;
+
+            const appt = {
+                id: 'gform_' + Date.now().toString(36) + i,
+                client: clientName.trim(),
+                phone: (row["What is your phone number ?"] || "").trim(),
+                wa: (row["What is your whatsapp number ?"] || "").trim(),
+                email: (row["What is your email address ?"] || "").trim(),
+                service: (row["What are services do you want ?"] || "Service non spécifié").trim(),
+                stylist: "",
+                date: row["Date"] || today(),
+                time: (row["Time"] || "").trim(),
+                duration: 2,
+                price: 0,
+                deposit: 30,
+                payMethod: row["Payment Method"] || "Cash",
+                status: "Pending"
+            };
+
+            await ApptAPI.save(appt);
+            imported++;
+        }
+
+        // Rechargement forcé
+        await loadAllData();
+
+        // Aller sur la page Appointments et forcer l'affichage
+        navigate('appointments');
+        
+        // Double sécurité : re-rendre après 300ms
+        setTimeout(() => {
+            if (typeof renderAppts === 'function') renderAppts();
+        }, 400);
+
+        if (imported > 0) {
+            showToast(`✅ ${imported} rendez-vous importés avec succès !`);
+            addNotif(`📥 ${imported} RDV Google Form importés`);
+        } else {
+            showToast("Aucune nouvelle réponse trouvée.");
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert("Erreur : " + e.message);
+    }
+}
+// Fonction de parsing CSV simple (sans PapaParse)
+function parseCSV(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+
+    return lines.slice(1).map(line => {
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let char of line) {
+            if (char === '"' && !inQuotes) {
+                inQuotes = true;
+                continue;
+            }
+            if (char === '"' && inQuotes) {
+                inQuotes = false;
+                continue;
+            }
+            if (char === ',' && !inQuotes) {
+                values.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        values.push(current.trim());
+
+        const obj = {};
+        headers.forEach((header, index) => {
+            obj[header] = values[index] || '';
+        });
+        return obj;
+    });
+}
 // ── LANG ──
 let _lang = localStorage.getItem('selectedLanguage')||localStorage.getItem('sp_lang') || 'en';
 function setLang(lang) {
@@ -1208,7 +1544,21 @@ function getDaysLeft(sub){
   if((sub.status==='active'||sub.status==='cancelled')&&sub.expiry)return Math.max(0,Math.ceil((sub.expiry-Date.now())/86400000));
   return 0;
 }
-function isAccessAllowed(){const sub=S.getObj('sp_sub');if(!sub)return false;return(sub.status==='trial'&&getDaysLeft(sub)>0)||((sub.status==='active'||sub.status==='cancelled')&&getDaysLeft(sub)>0);}
+function isAccessAllowed(){
+  const sub = S.getObj('sp_sub');
+  if(!sub) return false;
+
+  if(sub.status === 'trial'){
+    return getDaysLeft(sub) > 0;
+  }
+
+  // Pour les abonnements payants
+  if(sub.status === 'active' || sub.status === 'pending'){
+    return getDaysLeft(sub) > 0;
+  }
+
+  return false;
+}
 function updateSubUI(){
   const sub=S.getObj('sp_sub');if(!sub)return;
   const d=getDaysLeft(sub),dot=document.getElementById('subDot'),pill=document.getElementById('subPillValue');
@@ -1227,17 +1577,29 @@ function selectPlan(p){
   document.getElementById('subscribeBtn').textContent=p==='monthly'?'Subscribe — Monthly · $19.99/mo':'Subscribe — Yearly · $150/year (Save $89.88)';
 }
 function confirmSubscribe(){
-  const links={
-    monthly:'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00',
-    yearly: 'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'
-  };
-  S.setObj('sp_sub',{
-    status:'pending',
-    plan:selectedPlan,
-    trialStart:S.getObj('sp_sub')?.trialStart||Date.now()
-  });
-  window.location.href=links[selectedPlan];
-  hidePaywall();updateSubUI();showToast(`✓ Subscribed to ${p.label} plan!`);addNotif(`🎉 Subscribed to ${p.label} plan`);
+    const planInfo = PLANS[selectedPlan];
+    if (!planInfo) return;
+
+    const links = {
+        monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00',
+        yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'
+    };
+
+    // Mise à jour du statut
+    S.setObj('sp_sub', {
+        status: 'pending',           // Important : en attente de paiement
+        plan: selectedPlan,
+        trialStart: S.getObj('sp_sub')?.trialStart || Date.now()
+    });
+
+    hidePaywall();
+    updateSubUI();
+
+    // Redirection
+    window.location.href = links[selectedPlan];
+
+    // Option bonus : on peut aussi vider le cache de navigation
+    // history.replaceState(null, '', window.location.href);
 }
 function openManageSub(){
   const sub=S.getObj('sp_sub');if(!sub)return;
@@ -1325,25 +1687,84 @@ function doLogin(){
   checkDueTasks();checkUpcomingAppts();
 }
 
-function doSignup(){
-  const business=document.getElementById('signupBusiness').value.trim();
-  const city=document.getElementById('signupCity').value.trim();
-  const name=document.getElementById('signupName').value.trim();
-  const email=document.getElementById('signupEmail').value.trim();
-  const username=document.getElementById('signupUser').value.trim().toLowerCase();
-  const pw=document.getElementById('signupPass').value;
-  const pw2=document.getElementById('signupPass2').value;
-  if(!business||!city||!name||!username||!pw){showAuthMsg('signupErr','All fields are required.');return;}
-  if(username.length<3){showAuthMsg('signupErr','Username must be at least 3 characters.');return;}
-  if(pw.length<6){showAuthMsg('signupErr','Password must be at least 6 characters.');return;}
-  if(pw!==pw2){showAuthMsg('signupErr','Passwords do not match.');return;}
-  const users=getUsers();
-  if(users[username]){showAuthMsg('signupErr','That username is already taken.');return;}
-  users[username]={username,name,role:'owner',pw:hashPw(pw),email,businessName:business,city,mustChangePassword:false};
-  setUsers(users);
-  showAuthMsg('signupOk',`✓ Account created! Sign in as "${username}".`,'success');
-  ['signupBusiness','signupCity','signupName','signupEmail','signupUser','signupPass','signupPass2'].forEach(id=>document.getElementById(id).value='');
-  setTimeout(()=>switchAuthTab('login'),1800);
+async function doSignup() {
+    const business = document.getElementById('signupBusiness').value.trim();
+    const city = document.getElementById('signupCity').value.trim();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const username = document.getElementById('signupUser').value.trim().toLowerCase();
+    const pw = document.getElementById('signupPass').value;
+    const pw2 = document.getElementById('signupPass2').value;
+
+    // Récupération du logo
+    const logoInput = document.getElementById('signupLogo');
+    let logoBase64 = null;
+
+    if (logoInput.files && logoInput.files[0]) {
+        logoBase64 = await fileToBase64(logoInput.files[0]);
+    }
+
+    if (!business || !city || !name || !username || !pw) {
+        showAuthMsg('signupErr', 'Tous les champs obligatoires doivent être remplis.');
+        return;
+    }
+    if (username.length < 3) {
+        showAuthMsg('signupErr', 'Le nom d\'utilisateur doit faire au moins 3 caractères.');
+        return;
+    }
+    if (pw.length < 6) {
+        showAuthMsg('signupErr', 'Le mot de passe doit faire au moins 6 caractères.');
+        return;
+    }
+    if (pw !== pw2) {
+        showAuthMsg('signupErr', 'Les mots de passe ne correspondent pas.');
+        return;
+    }
+
+    const users = getUsers();
+    if (users[username]) {
+        showAuthMsg('signupErr', 'Ce nom d\'utilisateur est déjà pris.');
+        return;
+    }
+
+    // Création du compte avec le logo
+    users[username] = {
+        username,
+        name,
+        role: 'owner',
+        pw: hashPw(pw),
+        email,
+        businessName: business,
+        city,
+        logo: logoBase64,           // ← Ajout du logo
+        mustChangePassword: false
+    };
+
+    setUsers(users);
+    
+    showAuthMsg('signupOk', `✓ Compte créé avec succès ! Connecte-toi avec "${username}".`, 'success');
+    
+    // Réinitialiser le formulaire
+    document.getElementById('signupBusiness').value = '';
+    document.getElementById('signupCity').value = '';
+    document.getElementById('signupName').value = '';
+    document.getElementById('signupEmail').value = '';
+    document.getElementById('signupUser').value = '';
+    document.getElementById('signupPass').value = '';
+    document.getElementById('signupPass2').value = '';
+    document.getElementById('logoPreview').style.display = 'none';
+
+    setTimeout(() => switchAuthTab('login'), 1800);
+}
+
+// Fonction utilitaire pour convertir l'image en Base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 // ── PASSWORD RESET WITH OTP ──
@@ -1524,23 +1945,40 @@ function updateUserUI(){
 }
 
 // ── SIDEBAR BRANDING ──
-function updateSidebarBranding(){
-  const session=getCurrentUser();if(!session)return;
-  const users=getUsers(),user=users[session.username];
-  const salonEl=document.getElementById('sidebarSalonName');
-  const cityEl=document.getElementById('sidebarCity');
-  if(user?.businessName){
-    salonEl.innerHTML=`<span>${user.businessName}</span>`;
-  } else {
-    salonEl.innerHTML=`<span class="brand-placeholder">Your Salon Name</span>`;
-  }
-  if(user?.city){
-    cityEl.textContent=user.city;
-    cityEl.style.display='block';
-  } else {
-    cityEl.textContent='';
-    cityEl.style.display='none';
-  }
+function updateSidebarBranding() {
+    const session = getCurrentUser();
+    if (!session) return;
+
+    const users = getUsers();
+    const user = users[session.username];
+
+    // === Logo du salon ===
+    const logoImg = document.querySelector('.sidebar-brand img');
+    if (logoImg) {
+        if (user?.logo) {
+            logoImg.src = user.logo;
+            logoImg.alt = user.businessName || "Salon Logo";
+        } else {
+            logoImg.src = "./icons/stradpro-logo.jpeg"; // logo par défaut
+        }
+    }
+
+    // Nom du salon
+    const salonEl = document.getElementById('sidebarSalonName');
+    if (user?.businessName) {
+        salonEl.innerHTML = `<span>${user.businessName}</span>`;
+    } else {
+        salonEl.innerHTML = `<span class="brand-placeholder">Your Salon Name</span>`;
+    }
+
+    // Ville
+    const cityEl = document.getElementById('sidebarCity');
+    if (user?.city) {
+        cityEl.textContent = user.city;
+        cityEl.style.display = 'block';
+    } else {
+        cityEl.style.display = 'none';
+    }
 }
 
 function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('open');}
@@ -1773,7 +2211,15 @@ function managerResetPass(){
 // ── NAVIGATION ──
 const PAGE_TITLES={dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',permissions:'Roles & Permissions',denied:'Access Restricted'};
 async function navigate(page){
-  if(!canAccess(page)){_activatePage('denied');document.getElementById('topbarTitle').textContent='Access Restricted';return;}
+  if(!isAccessAllowed()){
+        showPaywall();
+        return;
+    }
+  if(!canAccess(page)){
+    _activatePage('denied');
+    document.getElementById('topbarTitle').textContent='Access Restricted';
+    return;
+  }
   _activatePage(page);
   document.getElementById('topbarTitle').textContent=PAGE_TITLES[page]||page;
   if(page==='dashboard')    await renderDashboard();
@@ -1794,6 +2240,7 @@ function _activatePage(page){
 }
 
 // ── SEED DATA ──
+
 function seedData(){
   if(S.get('inv').length===0){S.set('inv',[
     {id:uid(),name:'Kanekalon Braiding Hair (Black)',category:'Braiding Hair',qty:30,unit:'packs',threshold:8},
@@ -2903,6 +3350,37 @@ async function init() {
 
 // Lancer l'initialisation au chargement de la page
 init();
+
+// === SÉCURITÉ : Vérification forcée à chaque visibilité / focus ===
+function enforcePaywallOnReturn() {
+    const sub = S.getObj('sp_sub');
+    
+    if (sub && !isAccessAllowed()) {
+        console.log("🔒 Accès expiré détecté après retour navigateur");
+        showPaywall();
+    }
+}
+
+// Déclencheurs puissants
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        enforcePaywallOnReturn();
+    }
+});
+
+window.addEventListener('focus', enforcePaywallOnReturn);
+window.addEventListener('pageshow', (event) => {
+    // pageshow avec persisted = retour via back/forward
+    if (event.persisted) {
+        console.log("📌 Retour via bouton Back détecté");
+        setTimeout(enforcePaywallOnReturn, 800);   // petit délai pour laisser charger
+    }
+});
+
+// Aussi au chargement normal
+window.addEventListener('load', () => {
+    setTimeout(enforcePaywallOnReturn, 1200);
+});
 </script>
 </body>
 </html>

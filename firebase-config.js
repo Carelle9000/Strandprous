@@ -1,18 +1,20 @@
 // Firebase Configuration
 // Remplacez ces valeurs par celles de votre projet Firebase Console
 const firebaseConfig = {
-  apiKey: "votre-api-key",
-  authDomain: "votre-projet.firebaseapp.com",
-  projectId: "votre-projet-id",
-  storageBucket: "votre-projet.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  apiKey: "AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg",
+  authDomain: "strandprous.firebaseapp.com",
+  databaseURL: "https://strandprous-default-rtdb.firebaseio.com",
+  projectId: "strandprous",
+  storageBucket: "strandprous.firebasestorage.app",
+  messagingSenderId: "684736633913",
+  appId: "1:684736633913:web:92f765b9c58d6a2ed8c1e8",
+  measurementId: "G-1X0D38EK1W"
 };
 
 // Importer les modules Firebase nécessaires
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, doc, addDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 
 // Initialiser Firebase
 const app = initializeApp(firebaseConfig);
@@ -37,3 +39,4 @@ const COLLECTIONS = {
 window.firestoreCollections = COLLECTIONS;
 
 console.log('Firebase initialisé avec succès');
+export { db, auth };

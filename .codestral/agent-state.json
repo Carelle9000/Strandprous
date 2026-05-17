@@ -1,0 +1,10 @@
+{
+  "id": "run-1778853645825-bwswym",
+  "task": "le owner doit pouvoir générer un lien que lorque lon va le clique il va ouvrir un formulaire google avaec les champs correspondant à la prise de rdv",
+  "status": "running",
+  "iteration": 1,
+  "maxIterations": 4,
+  "phase": "validation",
+  "updatedAt": 1778853697591,
+  "lastTestCommand": "npm run dev"
+}

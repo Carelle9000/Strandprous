@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 // Hash password (client-side - à améliorer avec Cloud Functions en prod)
 const hashPw = (pw) => btoa(pw).slice(0, 32); // Temporaire
@@ -78,3 +78,9 @@ export async function doLogoutFirebase() {
     await signOut(auth);
     localStorage.removeItem('sp_session');
 }
+
+// Exposer globalement pour strandpro.html
+window.initAuth = initAuth;
+window.doLoginFirebase = doLoginFirebase;
+window.doSignupFirebase = doSignupFirebase;
+window.doLogoutFirebase = doLogoutFirebase;

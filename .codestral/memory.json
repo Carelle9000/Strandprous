@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "updatedAt": 1778853696991,
+  "workspace": "c:\\Users\\DELL5500\\Desktop\\choupinnett-management\\strandprous",
+  "projectType": "node",
+  "recentAgentRuns": [
+    {
+      "id": "run-1778853696357-y4luhj",
+      "task": "le owner doit pouvoir générer un lien que lorque lon va le clique il va ouvrir un formulaire google avaec les champs correspondant à la prise de rdv",
+      "summary": "Ajout d'un formulaire Google pour la prise de rendez-vous",
+      "createdAt": 1778853696357,
+      "changes": [
+        {
+          "path": "appointment-form.html",
+          "action": "create"
+        },
+        {
+          "path": "strandpro.html",
+          "action": "modify"
+        }
+      ]
+    }
+  ],
+  "lastAgentState": {
+    "id": "run-1778853645825-bwswym",
+    "task": "le owner doit pouvoir générer un lien que lorque lon va le clique il va ouvrir un formulaire google avaec les champs correspondant à la prise de rdv",
+    "status": "running",
+    "iteration": 1,
+    "maxIterations": 4,
+    "phase": "apply",
+    "updatedAt": 1778853696237
+  },
+  "directories": [
+    {
+      "path": ".",
+      "files": 21,
+      "languages": [
+        "html",
+        "js",
+        "json",
+        "md",
+        "rules",
+        "text",
+        "webmanifest"
+      ]
+    }
+  ],
+  "environment": {
+    "type": "node",
+    "packageManager": "npm",
+    "scripts": [
+      "backend",
+      "build",
+      "deploy",
+      "dev",
+      "lint",
+      "serve",
+      "server",
+      "start",
+      "test"
+    ],
+    "validation": [
+      "build",
+      "lint",
+      "test"
+    ],
+    "devServer": "npm run dev",
+    "notes": []
+  },
+  "workspaceIndex": [
+    {
+      "path": ".htaccess",
+      "language": "text",
+      "size": 2142,
+      "summary": "DirectoryIndex index.html RewriteEngine On RewriteCond %{REQUEST_FILENAME} !-f RewriteCond %{REQUEST_FILENAME} !-d RewriteRule ^.*$ /index.html [L,QSA] <Files \"sw.js\"> AddType application/javascript .js </Files>",
+      "updatedAt": 1778853463426
+    },
+    {
+      "path": "background-sync.js",
+      "language": "js",
+      "size": 8763,
+      "summary": "class BackgroundSyncManager { constructor() { console.log('[Sync] Background sync disabled for deployment'); return; } async init() { await this.initDB(); window.addEventListener('online', () => {",
+      "updatedAt": 1778853463405
+    },
+    {
+      "path": "deploy-hostinger.md",
+      "language": "md",
+      "size": 2008,
+      "summary": "Le fichier `.htaccess` a été modifié pour résoudre le 403 Forbidden : - **DirectoryIndex** : Définit `strandprotx.html` comme page par défaut - **SPA Routing** : Redirige toutes les requêtes vers `strandprotx.html` - **HTTPS Redirection** :",
+      "updatedAt": 1778853463404
+    },
+    {
+      "path": "firebase-auth.js",
+      "language": "js",
+      "size": 2719,
+      "summary": "import { auth } from './firebase-config.js'; import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from \"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js\";",
+      "updatedAt": 1778853463394
+    },
+    {
+      "path": "firebase-config.js",
+      "language": "js",
+      "size": 1388,
+      "summary": "const firebaseConfig = { apiKey: \"AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg\", authDomain: \"strandprous.firebaseapp.com\", databaseURL: \"https://strandprous-default-rtdb.firebaseio.com\", projectId: \"strandprous\", storageBucket: \"strandprous.fir",
+      "updatedAt": 1778853463393
+    },
+    {
+      "path": "firestore-crud.js",
+      "language": "js",
+      "size": 4682,
+      "summary": "import { db } from './firebase-config.js'; import { collection, doc, setDoc, getDoc, getDocs, updateDoc,",
+      "updatedAt": 1778853463391
+    },
+    {
+      "path": "firestore.rules",
+      "language": "rules",
+      "size": 628,
+      "summary": "{ \"rules\": { \"users\": { \".read\": \"auth != null\", \".write\": \"auth != null\" }, \"appointments\": { \".read\": \"auth != null\",",
+      "updatedAt": 1778853463389
+    },
+    {
+      "path": "i18n-translations.js",
+      "language": "js",
+      "size": 50848,
+      "summary": "const i18nTranslations = { en: { dashboard: 'Dashboard', appointments: 'Appointments', inventory: 'Inventory', revenue: 'Revenue', staff: 'Staff', users: 'Users',",
+      "updatedAt": 1778853463387
+    },
+    {
+      "path": "index.html",
+      "language": "html",
+      "size": 85435,
+      "summary": "<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <meta name=\"description\" content=\"StrandPro — Salon management software for beauty salons, braiders, and s",
+      "updatedAt": 1778853463385
+    },
+    {
+      "path": "language-switcher.js",
+      "language": "js",
+      "size": 3040,
+      "summary": "let currentLanguage = localStorage.getItem('selectedLanguage') || 'fr'; function createLanguageSwitcher() { const languageHTML = ` <div id=\"language-switcher\" style=\"position: fixed; top: 80px; right: 20px; z-index: 1000; background: var(--",
+      "updatedAt": 1778853463382
+    },
+    {
+      "path": "manifest.json",
+      "language": "json",
+      "size": 1893,
+      "summary": "{ \"name\": \"StradProUS - Smarter Salon Management\", \"short_name\": \"StradProUS\", \"description\": \"Complete salon management system for beauty professionals, braiders, and stylists\", \"start_url\": \"./strandpro.html\", \"display\": \"standalone\", \"ba",
+      "updatedAt": 1778853463379
+    },
+    {
+      "path": "manifest.webmanifest",
+      "language": "webmanifest",
+      "size": 1782,
+      "summary": "{ \"name\": \"StrandPro Salon Management\", \"short_name\": \"StrandPro\", \"description\": \"Professional salon management system for StrandPro\", \"version\": \"2.0.1\", \"start_url\": \"./\", \"display\": \"standalone\", \"background_color\": \"#0D0B09\",",
+      "updatedAt": 1778853463377
+    },
+    {
+      "path": "offline.html",
+      "language": "html",
+      "size": 5827,
+      "summary": "<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <meta name=\"theme-color\" content=\"#141210\"> <title>Offline - StrandPro</title> <style>",
+      "updatedAt": 1778853463374
+    },
+    {
+      "path": "package-lock.json",
+      "language": "json",
+      "size": 132598,
+      "summary": "{ \"name\": \"strandpro-salon-app\", \"version\": \"1.0.0\", \"lockfileVersion\": 3, \"requires\": true, \"packages\": { \"\": { \"name\": \"strandpro-salon-app\",",
+      "updatedAt": 1778853463278
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "size": 4732,
+      "summary": "{ \"name\": \"strandpro-salon-app\", \"version\": \"1.0.0\", \"description\": \"Professional salon management system for StrandPro\", \"main\": \"index.html\", \"scripts\": { \"start\": \"npx http-server . -p 8080 -c-1 --cors -o\", \"dev\": \"npx http-server . -p 8",
+      "updatedAt": 1778853463252
+    },
+    {
+      "path": "pwa-install.js",
+      "language": "js",
+      "size": 5283,
+      "summary": "class PWAInstall { constructor() { this.deferredPrompt = null; this.installPrompt = null; this.isInstalled = false; this.userDismissed = false; this.init(); }",
+      "updatedAt": 1778853463226
+    },
+    {
+      "path": "server.js",
+      "language": "js",
+      "size": 2127,
+      "summary": "const http = require('http'); const fs = require('fs'); const path = require('path'); const port = 8083; const mimeTypes = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',",
+      "updatedAt": 1778853463208
+    },
+    {
+      "path": "strandpro (3).html",
+      "language": "html",
+      "size": 207256,
+      "summary": "<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"> <meta name=\"theme-color\" content=\"#141210\"> <meta name=\"mobile-web-app-capable\" conten",
+      "updatedAt": 1778853463174
+    },
+    {
+      "path": "strandpro.html",
+      "language": "html",
+      "size": 175746,
+      "summary": "<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"> <meta name=\"theme-color\" content=\"#141210\"> <meta name=\"mobile-web-app-capable\" conten",
+      "updatedAt": 1778853462908
+    },
+    {
+      "path": "sw.js",
+      "language": "js",
+      "size": 10399,
+      "summary": "const CACHE_NAME = 'strandpro-v1'; const STATIC_CACHE = 'strandpro-static-v1'; const DYNAMIC_CACHE = 'strandpro-dynamic-v1'; const STATIC_ASSETS = [ './', './strandpro.html', './strandprotx.html', './offline.html',",
+      "updatedAt": 1778853462668
+    },
+    {
+      "path": "translations-index.js",
+      "language": "js",
+      "size": 117360,
+      "summary": "const translations = { 'Features': { 'fr': 'Fonctionnalités', 'es': 'Características' }, 'Questions': { 'fr': 'Questions', 'es': 'Preguntas'",
+      "updatedAt": 1778853462590
+    }
+  ]
+}

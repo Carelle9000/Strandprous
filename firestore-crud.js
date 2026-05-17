@@ -130,6 +130,10 @@ export const AttAPI = {
         const ref = att.id ? doc(db, getSalonPath('attendance'), att.id) : doc(collection(db, getSalonPath('attendance')));
         await setDoc(ref, { ...att, updatedAt: serverTimestamp() }, { merge: true });
         return ref.id;
+    },
+
+    async delete(id) {
+        await deleteDoc(doc(db, getSalonPath('attendance'), id));
     }
 };
 
@@ -141,3 +145,12 @@ export const UserAPI = {
         return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
     }
 };
+
+// Exposer les APIs globalement pour strandpro.html
+window.InvAPI = InvAPI;
+window.StaffAPI = StaffAPI;
+window.ApptAPI = ApptAPI;
+window.ExpAPI = ExpAPI;
+window.TaskAPI = TaskAPI;
+window.AttAPI = AttAPI;
+window.UserAPI = UserAPI;
