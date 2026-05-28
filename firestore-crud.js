@@ -17,9 +17,11 @@ import {
 const currentUser = () => JSON.parse(localStorage.getItem('sp_session'));
 
 // Helper pour obtenir la collection avec salon ID
+// Pour les owners : salons/{ownerUsername}/...
+// Pour le staff d'un owner Yearly : salons/{ownerUsername}/... (via salonId dans la session)
 function getSalonPath(collectionName) {
     const user = currentUser();
-    const salonId = user?.uid || 'demo';
+    const salonId = user?.salonId || user?.username || user?.uid || 'demo';
     return `salons/${salonId}/${collectionName}`;
 }
 
@@ -146,11 +148,104 @@ export const UserAPI = {
     }
 };
 
-// Exposer les APIs globalement pour strandpro.html
-window.InvAPI = InvAPI;
-window.StaffAPI = StaffAPI;
-window.ApptAPI = ApptAPI;
-window.ExpAPI = ExpAPI;
-window.TaskAPI = TaskAPI;
-window.AttAPI = AttAPI;
-window.UserAPI = UserAPI;
+// ── SALON REGISTRY (SuperAdmin) ──
+// Chaque owner sync son document dans salons/{username}
+// Le SuperAdmin lit toute la collection salons/
+export const SalonRegistryAPI = {
+
+    // Appelé au login/signup de chaque owner pour maintenir le registre à jour
+    async syncSalon(data) {
+        if (!data?.username) return;
+        const ref = doc(db, 'salons', data.username);
+        const existing = await getDoc(ref);
+        const base = existing.exists() ? existing.data() : {
+            createdAt:    data.createdAt || serverTimestamp(),
+            featureFlags: {
+                inventory:    true,
+                staff:        true,
+                appointments: true,
+                revenue:      true,
+                expenses:     true,
+                googleForm:   true,
+                permissions:  true
+            }
+        };
+        await setDoc(ref, {
+            ...base,
+            username:     data.username,
+            businessName: data.businessName || '',
+            city:         data.city         || '',
+            email:        data.email        || '',
+            plan:         data.plan         || null,
+            status:       data.status       || 'trial',
+            trialStart:   data.trialStart   || base.trialStart || null,
+            expiry:       data.expiry       || base.expiry     || null,
+            suspended:    base.suspended    ?? false,
+            featureFlags: base.featureFlags,
+            lastSeen:     serverTimestamp()
+        }, { merge: true });
+    },
+
+    // Lire la config d'un seul owner (feature flags, suspension…)
+    async getSalon(username) {
+        if (!username) return null;
+        const snap = await getDoc(doc(db, 'salons', username));
+        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    },
+
+    // SuperAdmin — lire tous les salons
+    async getAllSalons() {
+        const snap = await getDocs(collection(db, 'salons'));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    },
+
+    // SuperAdmin — mettre à jour n'importe quel champ d'un salon
+    async updateSalon(username, data) {
+        if (!username) return;
+        await setDoc(doc(db, 'salons', username), data, { merge: true });
+    },
+
+    // SuperAdmin — supprimer un salon du registre
+    async deleteSalon(username) {
+        if (!username) return;
+        await deleteDoc(doc(db, 'salons', username));
+    }
+};
+
+// === CONTACTS (messages depuis le formulaire index.html) ===
+export const ContactAPI = {
+    async getAll() {
+        try {
+            const q = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
+            const snap = await getDocs(q);
+            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch {
+            const snap = await getDocs(collection(db, 'contacts'));
+            return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+                const ta = a.createdAt?.seconds || 0;
+                const tb = b.createdAt?.seconds || 0;
+                return tb - ta;
+            });
+        }
+    },
+    async markRead(id) {
+        await updateDoc(doc(db, 'contacts', id), { status: 'read' });
+    },
+    async markReplied(id) {
+        await updateDoc(doc(db, 'contacts', id), { status: 'replied', repliedAt: serverTimestamp() });
+    },
+    async delete(id) {
+        await deleteDoc(doc(db, 'contacts', id));
+    }
+};
+
+// Exposer les APIs Firestore sous le préfixe FS pour ne pas écraser les APIs localStorage de strandpro.html
+window.FSInvAPI        = InvAPI;
+window.FSStaffAPI      = StaffAPI;
+window.FSApptAPI       = ApptAPI;
+window.FSExpAPI        = ExpAPI;
+window.FSTaskAPI       = TaskAPI;
+window.FSAttAPI        = AttAPI;
+window.UserAPI         = UserAPI;
+window.SalonRegistryAPI = SalonRegistryAPI;
+window.ContactAPI      = ContactAPI;

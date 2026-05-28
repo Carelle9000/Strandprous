@@ -15,10 +15,10 @@
 <link rel="manifest" href="./manifest.json">
 
 <!-- Favicon for browser title bar -->
-<link rel="icon" type="image/jpeg" href="./icons/stradpro-logo.jpeg">
-<link rel="icon" type="image/png" sizes="96x96" href="./icons/icon-96x96.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512x512.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
-<link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="./icons/icon-96x96.png">
+<link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192x192.png">
 
 <!--
 if ('serviceWorker' in navigator) {
@@ -219,6 +219,207 @@ body {
 .perm-empty { text-align:center; padding:40px 16px; color:var(--text3); font-size:.82rem; }
 .perm-empty .e-icon { font-size:2rem; margin-bottom:8px; opacity:.4; }
 
+/* ── SUSPENDED SCREEN ── */
+#suspendedScreen { display:none; position:fixed; inset:0; background:var(--bg); z-index:2100; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px; }
+#suspendedScreen.show { display:flex; }
+.suspended-icon { font-size:4rem; margin-bottom:16px; }
+.suspended-title { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:700; color:#e74c3c; margin-bottom:10px; }
+.suspended-msg { color:var(--text3); font-size:.9rem; max-width:420px; line-height:1.6; margin-bottom:24px; }
+
+/* ── SUPERADMIN PAGE ── */
+#page-superadmin { padding:0; }
+.sa-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.sa-grid-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:700px){ .sa-grid-stats { grid-template-columns:1fr 1fr; } }
+.sa-stat { background:var(--surface); border:1px solid var(--border2); border-radius:10px; padding:16px; text-align:center; }
+.sa-stat-val { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:700; color:var(--gold-light); line-height:1; }
+.sa-stat-lbl { font-size:.72rem; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:.06em; }
+.sa-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+.sa-table th { text-align:left; padding:10px 12px; color:var(--text3); font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border2); }
+.sa-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.sa-table tr:last-child td { border-bottom:none; }
+.sa-table tr:hover td { background:var(--bg4); }
+.sa-badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:.7rem; font-weight:600; }
+.sa-badge.trial    { background:#2a1e08; color:var(--gold-light); }
+.sa-badge.active   { background:#0a2a1a; color:#2ecc71; }
+.sa-badge.expired  { background:#2a0a0a; color:#e74c3c; }
+.sa-badge.suspended{ background:#1a1a2a; color:#9b59b6; }
+.sa-actions { display:flex; gap:6px; }
+.sa-btn { border:none; border-radius:6px; padding:5px 10px; font-size:.72rem; font-weight:600; cursor:pointer; transition:opacity .15s; }
+.sa-btn:hover { opacity:.8; }
+.sa-btn-edit    { background:var(--gold); color:#000; }
+.sa-btn-suspend { background:#e67e22; color:#fff; }
+.sa-btn-restore { background:#2ecc71; color:#000; }
+.sa-btn-delete  { background:#e74c3c; color:#fff; }
+.sa-flag-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:.83rem; }
+.sa-flag-row:last-child { border-bottom:none; }
+.sa-toggle { position:relative; width:38px; height:20px; }
+.sa-toggle input { opacity:0; width:0; height:0; }
+.sa-toggle-slider { position:absolute; inset:0; background:#444; border-radius:20px; cursor:pointer; transition:.2s; }
+.sa-toggle input:checked + .sa-toggle-slider { background:var(--gold); }
+.sa-toggle-slider:before { content:''; position:absolute; width:14px; height:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+.sa-toggle input:checked + .sa-toggle-slider:before { transform:translateX(18px); }
+
+/* ── SA TABS ── */
+.sa-tabs { display:flex; gap:4px; background:var(--bg4); border-radius:10px; padding:4px; margin-bottom:20px; }
+.sa-tab-btn { flex:1; padding:9px 6px; border:none; background:transparent; color:var(--text3); border-radius:7px; cursor:pointer; font-size:.78rem; font-weight:600; transition:all .15s; white-space:nowrap; font-family:'DM Sans',sans-serif; }
+.sa-tab-btn.active { background:var(--surface2); color:var(--gold-light); box-shadow:0 1px 4px rgba(0,0,0,.3); }
+.sa-tab-pane { display:none; }
+.sa-tab-pane.active { display:block; }
+.sa-rev-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:700px){ .sa-rev-grid { grid-template-columns:1fr 1fr; } }
+.sa-mod-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+.sa-mod-table th { padding:8px 10px; text-align:center; color:var(--text3); font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border2); white-space:nowrap; }
+.sa-mod-table th:first-child { text-align:left; min-width:140px; }
+.sa-mod-table td { padding:8px 10px; border-bottom:1px solid var(--border); text-align:center; vertical-align:middle; }
+.sa-mod-table td:first-child { text-align:left; }
+.sa-mod-table tr:hover td { background:var(--bg4); }
+
+/* ── SA MESSAGES ── */
+.msg-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:700px){ .msg-stats-grid { grid-template-columns:1fr 1fr; } }
+.msg-filter-bar { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+.msg-filter-btn { padding:5px 14px; border:1px solid var(--border2); border-radius:20px; background:transparent; color:var(--text3); font-size:.78rem; cursor:pointer; transition:all .15s; font-family:inherit; }
+.msg-filter-btn.active { background:var(--gold); color:#0a0907; border-color:var(--gold); font-weight:600; }
+.msg-card { display:flex; gap:12px; padding:14px 16px; background:var(--surface); border:1px solid var(--border2); border-radius:10px; margin-bottom:8px; transition:border-color .15s; border-left:3px solid transparent; }
+.msg-card.unread  { border-left-color:var(--gold); }
+.msg-card.replied { border-left-color:var(--success); }
+.msg-card:hover { border-color:var(--border); }
+.msg-check { width:15px; height:15px; flex-shrink:0; margin-top:3px; cursor:pointer; accent-color:var(--gold); }
+.msg-body { flex:1; min-width:0; }
+.msg-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:2px; flex-wrap:wrap; }
+.msg-name { font-weight:600; font-size:.88rem; color:var(--text); }
+.msg-date { font-size:.7rem; color:var(--text4); white-space:nowrap; }
+.msg-email { font-size:.73rem; color:var(--text3); margin-bottom:5px; }
+.msg-subject-line { font-size:.78rem; color:var(--text2); font-weight:500; margin-bottom:5px; }
+.msg-subject-line em { background:var(--bg4); border:1px solid var(--border2); border-radius:4px; padding:1px 7px; font-style:normal; font-size:.68rem; color:var(--text3); }
+.msg-preview { font-size:.77rem; color:var(--text3); line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:8px; }
+.msg-full { display:none; font-size:.82rem; color:var(--text2); line-height:1.75; margin-bottom:10px; white-space:pre-wrap; background:var(--bg3); border-radius:6px; padding:10px 12px; }
+.msg-full.open { display:block; }
+.msg-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.msg-status { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.msg-status.unread  { background:rgba(201,146,42,.15); color:var(--gold-light); }
+.msg-status.read    { background:rgba(138,122,96,.12); color:var(--text3); }
+.msg-status.replied { background:rgba(39,174,96,.15);  color:#2ecc71; }
+.msg-actions-row { display:flex; gap:5px; flex-wrap:wrap; margin-left:auto; }
+.msg-btn { padding:3px 10px; border-radius:6px; border:1px solid var(--border2); background:transparent; color:var(--text3); font-size:.72rem; cursor:pointer; transition:all .15s; font-family:inherit; }
+.msg-btn:hover { background:var(--bg4); color:var(--text); }
+.msg-btn.primary { border-color:var(--gold-dim); color:var(--gold); }
+.msg-btn.primary:hover { background:var(--gold); color:#0a0907; }
+.msg-btn.danger:hover  { background:#c0392b; color:#fff; border-color:#c0392b; }
+.msg-bulk-bar { display:none; padding:10px 14px; background:var(--surface2); border:1px solid var(--gold-dim); border-radius:8px; margin-bottom:12px; align-items:center; gap:8px; flex-wrap:wrap; font-size:.8rem; color:var(--text2); }
+.msg-bulk-bar.show { display:flex; }
+.msg-empty { text-align:center; padding:52px 20px; color:var(--text3); }
+/* ── SA REPLY MODAL ── */
+#saReplyModal { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(7px); z-index:9999; display:none; align-items:center; justify-content:center; padding:20px; }
+#saReplyModal.open { display:flex; }
+.sa-reply-box { background:var(--surface2); border:1px solid var(--border2); border-radius:14px; padding:28px 28px 24px; width:100%; max-width:520px; position:relative; }
+.sa-reply-close { position:absolute; top:14px; right:16px; background:none; border:none; color:var(--text3); font-size:1.2rem; cursor:pointer; }
+.sa-reply-close:hover { color:var(--text); }
+.sa-reply-box h3 { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--gold-light); margin-bottom:4px; }
+.sa-reply-to   { font-size:.76rem; color:var(--text3); margin-bottom:16px; }
+.sa-reply-label { font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--text3); display:block; margin-bottom:5px; }
+.sa-reply-input { width:100%; background:var(--bg3); border:1px solid var(--border2); border-radius:7px; padding:9px 12px; color:var(--text); font-size:.85rem; font-family:inherit; outline:none; margin-bottom:12px; }
+.sa-reply-input:focus { border-color:var(--gold-dim); }
+.sa-reply-area  { width:100%; background:var(--bg3); border:1px solid var(--border2); border-radius:7px; padding:9px 12px; color:var(--text); font-size:.85rem; font-family:inherit; outline:none; resize:vertical; min-height:130px; margin-bottom:16px; }
+.sa-reply-area:focus  { border-color:var(--gold-dim); }
+
+/* ── SA DASHBOARD ── */
+.sa-welcome-card {
+  background: linear-gradient(135deg, #1a1508 0%, #0d0b07 60%, #0f1a10 100%);
+  border: 1px solid var(--gold-dim);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.sa-welcome-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(201,146,42,.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.sa-welcome-name { font-family:'Cormorant Garamond',serif; font-size:1.85rem; font-weight:700; color:var(--gold-light); line-height:1.1; }
+.sa-welcome-sub  { font-size:.82rem; color:var(--text3); margin-top:6px; }
+.sa-welcome-meta { text-align:right; }
+.sa-welcome-date { font-size:.78rem; color:var(--text3); }
+.sa-welcome-role { display:inline-flex; align-items:center; gap:6px; background:rgba(201,146,42,.1); border:1px solid var(--gold-dim); border-radius:20px; padding:4px 14px; font-size:.72rem; font-weight:700; color:var(--gold); margin-top:8px; letter-spacing:.05em; }
+.sa-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+@media(max-width:900px){ .sa-kpi-grid { grid-template-columns:1fr 1fr; } }
+.sa-kpi { background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:18px 20px; position:relative; overflow:hidden; transition:transform .2s,box-shadow .2s; }
+.sa-kpi:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,.3); }
+.sa-kpi-icon { font-size:1.5rem; margin-bottom:10px; }
+.sa-kpi-val  { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:700; line-height:1; }
+.sa-kpi-lbl  { font-size:.7rem; color:var(--text3); margin-top:5px; text-transform:uppercase; letter-spacing:.07em; }
+.sa-kpi-trend{ font-size:.7rem; margin-top:6px; }
+.sa-kpi.gold { border-color:var(--gold-dim); }
+.sa-kpi.gold .sa-kpi-val { color:var(--gold-light); }
+.sa-kpi.green .sa-kpi-val { color:#2ecc71; }
+.sa-kpi.blue  .sa-kpi-val { color:#5b8eff; }
+.sa-kpi.purple .sa-kpi-val { color:#a855f7; }
+.sa-kpi.red   .sa-kpi-val { color:#e74c3c; }
+.sa-dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+@media(max-width:800px){ .sa-dash-grid { grid-template-columns:1fr; } }
+.sa-dash-card { background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:20px; }
+.sa-dash-card-title { font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+.sa-dash-card-title a { font-size:.7rem; color:var(--gold); text-decoration:none; font-weight:600; text-transform:none; letter-spacing:0; }
+.sa-dash-card-title a:hover { text-decoration:underline; }
+.sa-dash-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.82rem; }
+.sa-dash-row:last-child { border-bottom:none; }
+.sa-dash-row-label { color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sa-dash-row-val   { font-weight:600; color:var(--text); white-space:nowrap; margin-left:12px; }
+.sa-quicklinks { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+@media(max-width:700px){ .sa-quicklinks { grid-template-columns:1fr 1fr; } }
+.sa-ql { background:var(--surface); border:1px solid var(--border2); border-radius:10px; padding:14px 10px; text-align:center; cursor:pointer; transition:all .15s; }
+.sa-ql:hover { border-color:var(--gold-dim); background:var(--surface2); transform:translateY(-2px); }
+.sa-ql-icon { font-size:1.4rem; margin-bottom:6px; }
+.sa-ql-lbl  { font-size:.72rem; color:var(--text3); font-weight:600; }
+.sa-plan-bar-wrap { margin-top:10px; }
+.sa-plan-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:.78rem; }
+.sa-plan-bar-row span:first-child { color:var(--text3); width:70px; flex-shrink:0; }
+.sa-plan-bar-bg { flex:1; background:var(--bg4); border-radius:6px; height:7px; overflow:hidden; }
+.sa-plan-bar-fill { height:100%; border-radius:6px; transition:width .6s ease; }
+.sa-plan-bar-count { color:var(--text2); font-weight:600; width:24px; text-align:right; }
+.sa-empty-dash { text-align:center; padding:32px; color:var(--text3); font-size:.85rem; }
+
+/* ── STORAGE BADGE ── */
+#storageBadge { display:none; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:.68rem; font-weight:600; letter-spacing:.03em; }
+#storageBadge.cloud { background:rgba(46,130,255,0.1); border:1px solid rgba(46,130,255,0.25); color:#5b8eff; display:flex; }
+#storageBadge.local { background:rgba(138,122,96,0.1); border:1px solid var(--border2); color:var(--text3); display:flex; }
+.storage-dot { width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
+.storage-dot.syncing { animation:dotPulse 1.2s ease-in-out infinite; }
+@keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+/* ── MIGRATION OVERLAY ── */
+#migrationOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+#migrationOverlay.show { display:flex; }
+.migration-box { background:var(--surface2); border:1px solid var(--border2); border-radius:14px; padding:32px 36px; text-align:center; max-width:380px; }
+.migration-bar-wrap { background:var(--bg4); border-radius:10px; height:6px; overflow:hidden; margin-top:16px; }
+.migration-bar { height:100%; background:var(--gold); border-radius:10px; transition:width .3s; width:0%; }
+/* ── TRIAL PLAN MODAL (après auth depuis index.html) ── */
+#spTrialModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); backdrop-filter:blur(8px); z-index:9998; align-items:center; justify-content:center; padding:20px; }
+#spTrialModal.open { display:flex; }
+.sp-trial-box { background:var(--surface2); border:1px solid var(--border2); border-radius:18px; padding:36px 32px; width:100%; max-width:460px; position:relative; }
+.sp-trial-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(39,174,96,.12); border:1px solid rgba(39,174,96,.25); color:#2ecc71; font-size:.7rem; border-radius:20px; padding:3px 10px; margin-bottom:16px; }
+.sp-trial-box h2 { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--text); margin-bottom:6px; }
+.sp-trial-box .sp-trial-sub { font-size:.82rem; color:var(--text3); margin-bottom:22px; }
+.sp-trial-plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px; }
+.sp-trial-opt { border:1px solid var(--border2); border-radius:10px; padding:16px 14px; cursor:pointer; transition:all .15s; text-align:center; background:var(--bg3); }
+.sp-trial-opt:hover { border-color:var(--gold-dim); }
+.sp-trial-opt.selected { border-color:var(--gold); background:var(--surface); box-shadow:0 0 18px rgba(201,146,42,.1); }
+.sp-trial-opt .spo-label { font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.sp-trial-opt .spo-price { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--gold-light); font-weight:700; line-height:1; }
+.sp-trial-opt .spo-save { display:inline-block; background:rgba(39,174,96,.15); color:#2ecc71; border:1px solid rgba(39,174,96,.25); border-radius:4px; font-size:.62rem; font-weight:600; padding:2px 7px; margin-top:5px; }
+.sp-trial-opt .spo-note { font-size:.65rem; color:var(--text4); margin-top:4px; }
+.sp-trial-info { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:20px; }
+.sp-trial-info li { font-size:.8rem; color:var(--text2); display:flex; align-items:flex-start; gap:8px; margin-bottom:6px; list-style:none; }
+.sp-trial-info li::before { content:'✓'; color:#2ecc71; font-weight:700; flex-shrink:0; }
 /* ── PAYWALL ── */
 #paywallScreen { display:none; position:fixed; inset:0; background:var(--bg); z-index:2000; overflow-y:auto; align-items:flex-start; justify-content:center; flex-direction:column; }
 #paywallScreen.show { display:flex; }
@@ -232,7 +433,12 @@ body {
 .plan-card { background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:24px 20px; position:relative; cursor:pointer; transition:border-color .2s, transform .2s; }
 .plan-card:hover { transform:translateY(-2px); }
 .plan-card.selected { border-color:var(--gold); background:linear-gradient(135deg,var(--surface),#221a09); box-shadow:0 0 32px var(--gold-glow); }
-.plan-card.popular::before { content:'★ BEST VALUE'; position:absolute; top:-1px; right:20px; background:var(--gold); color:#0d0b09; font-size:.58rem; font-weight:700; letter-spacing:.1em; padding:4px 10px; border-radius:0 0 7px 7px; }
+.plan-best-value { position:absolute; top:-1px; right:20px; background:var(--gold); color:#0d0b09; font-size:.58rem; font-weight:700; letter-spacing:.1em; padding:4px 10px; border-radius:0 0 7px 7px; }
+.plan-card.trial-card { grid-column:1 / -1; border-color:rgba(39,174,96,.3); background:linear-gradient(135deg,var(--surface),#071a0e); }
+.plan-card.trial-card::before { content:'🎁 14 DAYS FREE'; position:absolute; top:-1px; right:20px; background:#27ae60; color:#fff; font-size:.58rem; font-weight:700; letter-spacing:.1em; padding:4px 10px; border-radius:0 0 7px 7px; }
+.plan-card.trial-card .plan-price { color:#2ecc71; }
+.plan-card.trial-card .plan-features li::before { color:#2ecc71; }
+.plan-card.trial-card.selected { border-color:#2ecc71; box-shadow:0 0 32px rgba(39,174,96,.2); }
 .plan-name { font-family:'Cormorant Garamond',serif; font-size:1.2rem; font-weight:600; color:var(--text); margin-bottom:4px; }
 .plan-price { font-family:'Cormorant Garamond',serif; font-size:2.4rem; font-weight:700; color:var(--gold-light); line-height:1; margin-bottom:4px; }
 .plan-price span { font-size:.9rem; color:var(--text3); font-family:'DM Sans',sans-serif; font-weight:400; }
@@ -250,6 +456,15 @@ body {
 #manageSubModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:1500; align-items:center; justify-content:center; }
 #manageSubModal.open { display:flex; }
 .manage-sub-box { background:var(--bg3); border:1px solid var(--border2); border-radius:14px; padding:28px; width:440px; max-width:95vw; }
+/* ── Feature lock (Yearly only) ── */
+.feature-locked { position:relative; overflow:hidden; }
+.feature-lock-overlay { position:absolute; inset:0; background:rgba(13,11,9,.82); backdrop-filter:blur(3px); border-radius:inherit; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; z-index:10; cursor:pointer; }
+.feature-lock-icon { font-size:1.6rem; }
+.feature-lock-label { font-size:.75rem; font-weight:700; color:var(--gold-light); letter-spacing:.04em; text-align:center; }
+.feature-lock-sub { font-size:.68rem; color:var(--text3); text-align:center; }
+/* ── Export CSV button ── */
+.btn-export { display:inline-flex; align-items:center; gap:6px; background:transparent; border:1px solid var(--border2); color:var(--text2); border-radius:7px; padding:6px 12px; font-size:.78rem; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all .15s; }
+.btn-export:hover { border-color:var(--gold-dim); color:var(--gold-light); }
 .manage-sub-title { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:600; color:var(--gold-light); margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .sub-info-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:.83rem; }
 .sub-info-row .label { color:var(--text3); }
@@ -339,7 +554,7 @@ tr:hover td { background:var(--bg4); }
 .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
 .section-title  { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:600; color:var(--text); }
 .filter-bar { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-.filter-bar input, .filter-bar select { background:var(--bg4); border:1px solid var(--border2); border-radius:6px; color:var(--text); padding:7px 10px; font-size:.8rem; font-family:'DM Sans',sans-serif; outline:none; -webkit-appearance:none; }
+.filter-bar input, .filter-bar select { background:var(--bg4); border:1px solid var(--border2); border-radius:6px; color:var(--text); padding:7px 10px; font-size:.8rem; font-family:'DM Sans',sans-serif; outline:none; -webkit-appearance:none; appearance:none; }
 .quick-actions { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
 .quick-btn { display:flex; flex-direction:column; align-items:center; gap:5px; padding:14px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; cursor:pointer; color:var(--text2); font-size:.74rem; font-weight:500; transition:all .15s; text-align:center; }
 .quick-btn:hover { border-color:var(--gold-dim); color:var(--gold-light); background:var(--bg4); }
@@ -396,6 +611,9 @@ tr:hover td { background:var(--bg4); }
 .auth-logo-icon { font-size:2.2rem; margin-bottom:6px; }
 .auth-logo-name { font-family:'Cormorant Garamond',serif; font-size:1.55rem; font-weight:700; color:var(--gold-light); }
 .auth-logo-sub { font-size:.62rem; letter-spacing:.15em; text-transform:uppercase; color:var(--text3); margin-top:3px; }
+.plan-redirect-banner { display:none; background:linear-gradient(135deg,rgba(201,146,42,.1),rgba(201,146,42,.05)); border:1px solid var(--gold-dim); border-radius:10px; padding:13px 14px; margin-bottom:18px; font-size:.82rem; color:var(--text2); text-align:center; }
+.plan-redirect-banner strong { color:var(--gold-light); }
+.plan-banner-chip { display:inline-block; background:var(--gold); color:#0a0907; border-radius:5px; padding:2px 10px; font-size:.72rem; font-weight:700; margin:0 4px; vertical-align:middle; }
 .auth-tabs { display:flex; background:var(--bg4); border-radius:8px; padding:3px; margin-bottom:22px; }
 .auth-tab { flex:1; text-align:center; padding:8px; border-radius:6px; font-size:.83rem; font-weight:500; color:var(--text3); cursor:pointer; transition:all .15s; }
 .auth-tab.active { background:var(--surface2); color:var(--gold-light); }
@@ -430,6 +648,8 @@ tr:hover td { background:var(--bg4); }
 .user-dd-item:hover { background:var(--bg4); color:var(--text); }
 .user-dd-item.danger { color:#e74c3c; }
 .user-dd-item.danger:hover { background:var(--danger-dim); }
+.owner-only { display:none; }
+body.is-owner .owner-only { display:flex; }
 
 /* ── LANG SWITCHER ── */
 #langBtn { position:relative; cursor:pointer; height:36px; min-width:36px; padding:0 10px; display:flex; align-items:center; justify-content:center; gap:5px; border-radius:8px; border:1px solid var(--border2); background:var(--bg4); font-size:.75rem; font-weight:600; color:var(--text2); flex-shrink:0; transition:border-color .15s; user-select:none; }
@@ -486,6 +706,13 @@ tr:hover td { background:var(--bg4); }
       <div class="auth-logo-name">StrandPro</div>
       <div class="auth-logo-sub">Salon Management System</div>
     </div>
+    <!-- Banner shown when user arrives via a plan link from index.html -->
+    <div id="planRedirectBanner" class="plan-redirect-banner">
+      <div style="font-size:1.1rem;margin-bottom:5px">💳</div>
+      <div>Plan sélectionné : <span id="planBannerChip" class="plan-banner-chip">Monthly</span></div>
+      <div style="font-size:.74rem;color:var(--text3);margin-top:4px">Connecte-toi ou crée un compte pour continuer vers le paiement.</div>
+    </div>
+
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')" data-translate="Sign In">Sign In</div>
       <div class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')" data-translate="Sign Up">Sign Up</div>
@@ -496,7 +723,7 @@ tr:hover td { background:var(--bg4); }
       <div class="auth-panel-title" data-translate="Welcome back">Welcome back</div>
       <div class="auth-panel-sub" data-translate="Sign in to manage your salon.">Sign in to manage your salon.</div>
       <div class="auth-msg error" id="loginErr"></div>
-      <div class="auth-group"><label data-translate="Username">Username</label><input type="text" id="loginUser" placeholder="Enter your username" data-translate-placeholder="Enter your username" autocomplete="username"></div>
+      <div class="auth-group"><label data-translate="Email">Email</label><input type="email" id="loginUser" placeholder="ton@email.com" data-translate-placeholder="ton@email.com" autocomplete="email"></div>
       <div class="auth-group"><label data-translate="Password">Password</label><input type="password" id="loginPass" placeholder="Enter your password" data-translate-placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-btn" onclick="doLogin()" data-translate="Sign In →">Sign In →</button>
       <div style="text-align: center; margin-top: 16px;">
@@ -519,7 +746,6 @@ tr:hover td { background:var(--bg4); }
       <div class="auth-group"><label data-translate="Company Logo">Company Logo</label><input type="file" id="signupLogo" accept="image/*" onchange="previewLogo(this)" style="background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:8px 10px;font-size:.87rem;font-family:'DM Sans',sans-serif;outline:none;width:100%"><div id="logoPreview" style="margin-top:8px;display:none"><img id="logoPreviewImg" style="max-width:100px;max-height:100px;border-radius:8px;border:1px solid var(--border2)"></div></div>
       <div class="auth-group"><label data-translate="Your Full Name">Your Full Name</label><input type="text" id="signupName" placeholder="Owner's full name" data-translate-placeholder="Owner's full name" autocomplete="name"></div>
       <div class="auth-group"><label data-translate="Email">Email</label><input type="email" id="signupEmail" placeholder="your@email.com" data-translate-placeholder="your@email.com" autocomplete="email"></div>
-      <div class="auth-group"><label data-translate="Username">Username</label><input type="text" id="signupUser" placeholder="Choose a username" data-translate-placeholder="Choose a username" autocomplete="username"></div>
       <div class="auth-group"><label data-translate="Password">Password</label><input type="password" id="signupPass" placeholder="At least 6 characters" data-translate-placeholder="At least 6 characters" autocomplete="new-password" oninput="checkPwStrength(this.value)"><div class="pw-bar-wrap"><div class="pw-bar" id="pwBar"></div></div></div>
       <div class="auth-group"><label data-translate="Confirm Password">Confirm Password</label><input type="password" id="signupPass2" placeholder="Repeat password" data-translate-placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignup()"></div>
       <button class="auth-btn" onclick="doSignup()" data-translate="Create Owner Account →">Create Owner Account →</button>
@@ -595,8 +821,8 @@ tr:hover td { background:var(--bg4); }
   <button class="install-btn" id="installBtn">Install</button>
   <button class="install-dismiss" onclick="dismissInstall()">✕</button>
 </div>
-<div id="trialBanner">
-  <span class="banner-text" id="bannerText"><strong>7-day free trial</strong></span>
+<div id="trialBanner" class="owner-only">
+  <span class="banner-text" id="bannerText"><strong>14-day free trial</strong></span>
   <button class="banner-cta" onclick="showPaywall()">Upgrade Now</button>
 </div>
 
@@ -612,9 +838,16 @@ tr:hover td { background:var(--bg4); }
       <div class="brand-city"  id="sidebarCity"></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section" data-translate="Main">Main</div>
+      <!-- SuperAdmin nav — masqué pour owner/staff -->
+      <div class="superadmin-only" id="sa-nav-group" style="display:none">
+        <div class="nav-item" id="nav-sa-dashboard" onclick="navigate('sa-dashboard');closeSidebar()"><span class="nav-icon">🏠</span> <span data-translate="Dashboard">Dashboard</span></div>
+        <div class="nav-item" id="nav-sa-owners"   onclick="navigate('sa-owners');closeSidebar()"><span class="nav-icon">👥</span> <span data-translate="Owners">Owners</span></div>
+        <div class="nav-item" id="nav-sa-payments" onclick="navigate('sa-payments');closeSidebar()"><span class="nav-icon">💳</span> <span data-translate="Payments">Paiements</span></div>
+        <div class="nav-item" id="nav-sa-gforms"   onclick="navigate('sa-gforms');closeSidebar()"><span class="nav-icon">🔗</span> Google Forms</div>
+        <div class="nav-item" id="nav-sa-modules"  onclick="navigate('sa-modules');closeSidebar()"><span class="nav-icon">🧩</span> <span data-translate="Modules">Modules</span></div>
+        <div class="nav-item" id="nav-sa-messages" onclick="navigate('sa-messages');closeSidebar()"><span class="nav-icon">💬</span> <span data-translate="Messages">Messages</span> <span id="msgUnreadBadge" style="display:none;background:var(--gold);color:#0a0907;border-radius:10px;font-size:.6rem;font-weight:700;padding:1px 6px;margin-left:4px"></span></div>
+      </div>
       <div class="nav-item active" id="nav-dashboard"    onclick="navigate('dashboard');closeSidebar()"><span class="nav-icon">📊</span> <span data-translate="Dashboard">Dashboard</span></div>
-      <div class="nav-section" data-translate="Operations">Operations</div>
       <div class="nav-item" id="nav-inventory"           onclick="navigate('inventory');closeSidebar()"><span class="nav-icon">📦</span> <span data-translate="Inventory">Inventory</span></div>
       <div class="nav-item" id="nav-staff"               onclick="navigate('staff');closeSidebar()"><span class="nav-icon">👩‍💼</span> <span data-translate="Staff & Attendance">Staff & Attendance</span></div>
       <div class="nav-item" id="nav-appointments"        onclick="navigate('appointments');closeSidebar()"><span class="nav-icon">📅</span> <span data-translate="Appointments">Appointments</span></div>
@@ -629,7 +862,7 @@ tr:hover td { background:var(--bg4); }
            style="width:28px; height:28px; border-radius:6px; margin-bottom:4px;">
       <div class="brand-app" style="font-size:1.1rem; letter-spacing:0.5px;">StrandPro</div>
     </div>
-    <div class="sidebar-footer">
+    <div class="sidebar-footer owner-only" id="subPillWrapper">
       <div class="sub-status-pill" onclick="openManageSub()">
         <div class="sub-dot" id="subDot"></div>
         <div class="sub-pill-text">
@@ -649,6 +882,10 @@ tr:hover td { background:var(--bg4); }
         <div class="topbar-title" id="topbarTitle" data-translate="Dashboard">Dashboard</div>
       </div>
       <div class="topbar-right">
+        <div id="storageBadge" title="Mode de stockage des données">
+          <div class="storage-dot" id="storageDot"></div>
+          <span id="storageBadgeText">Local</span>
+        </div>
         <div class="topbar-date" id="topbarDate"></div>
         <div id="langBtn" onclick="toggleLangDropdown()"><span id="langFlag">🇺🇸</span><span id="langCode">EN</span></div>
         <div id="langDropdown">
@@ -668,7 +905,7 @@ tr:hover td { background:var(--bg4); }
             <div class="user-dd-role" id="ddRole">—</div>
           </div>
           <div class="user-dd-item" onclick="openChangePass()">🔑 Change Password</div>
-          <div class="user-dd-item danger" onclick="doLogout()">🚪 Sign Out</div>
+          <div class="user-dd-item danger" onclick="doLogout()" data-translate="🚪 Sign Out">🚪 Sign Out</div>
         </div>
       </div>
     </div>
@@ -685,6 +922,29 @@ tr:hover td { background:var(--bg4); }
     <!-- DASHBOARD -->
     <section class="page active" id="page-dashboard">
       <div class="grid-5 mb-16" id="dashStats"></div>
+
+      <!-- Google Form card — toujours visible en haut -->
+      <div class="card" style="margin-bottom:16px" id="googleFormCard">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div class="card-title" style="margin:0">🔗 Réservation Client via Google Form</div>
+          <button class="btn btn-outline btn-sm" onclick="openGoogleFormSettings()" style="font-size:.75rem">
+            ⚙️ Configurer
+          </button>
+        </div>
+        <div id="gfCardStatus" style="font-size:.78rem;color:var(--text3);margin-bottom:10px"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+          <button class="btn btn-gold" onclick="generateAppointmentLink()">
+            📋 Générer & Copier le Lien
+          </button>
+          <button class="btn btn-outline" onclick="syncGoogleFormResponses()">
+            🔄 Synchroniser les RDV
+          </button>
+        </div>
+        <div id="shareLinkContainer" style="margin-top:10px; display:none">
+          <input type="text" id="generatedLink" readonly style="width:100%; background:var(--bg4); padding:10px; border-radius:6px; font-size:0.8rem">
+        </div>
+      </div>
+
       <div class="grid-2 gap-10">
         <div class="card">
           <div class="card-title" data-translate="⚡ Quick Actions">⚡ Quick Actions</div>
@@ -695,30 +955,10 @@ tr:hover td { background:var(--bg4); }
             <div class="quick-btn" onclick="navigate('revenue')"><span class="quick-btn-icon">💰</span><span data-translate="Revenue">Revenue</span></div>
           </div>
         </div>
-        <div class="card"><div class="card-title" data-translate="📅 Today's Appointments">📅 Today's Appointments</div><div id="dashTodayAppts"></div></div>
+        <div class="card"><div class="card-title" data-translate="📅 Today’s Appointments">📅 Today’s Appointments</div><div id="dashTodayAppts"></div></div>
         <div class="card"><div class="card-title" data-translate="⚠️ Low Stock Alerts">⚠️ Low Stock Alerts</div><div id="dashLowStock"></div></div>
         <div class="card"><div class="card-title" data-translate="👥 Staff Present Today">👥 Staff Present Today</div><div id="dashStaffPresent"></div></div>
       </div>
-      <div class="card" style="margin-top:20px">
-  <div class="card-title">🔗 Lien de Prise de Rendez-vous Client</div>
-  <p style="font-size:0.85rem;color:var(--text3);margin-bottom:12px">
-    Partage ce lien avec tes clients pour qu’ils prennent rendez-vous directement.
-  </p>
-  
-  <div style="display:flex; gap:10px; flex-wrap:wrap">
-    <button class="btn btn-gold" onclick="generateAppointmentLink()">
-      📋 Générer & Copier le Lien
-    </button>
-    
-    <button class="btn btn-outline" onclick="syncGoogleFormResponses()">
-      🔄 Synchroniser les RDV
-    </button>
-  </div>
-  
-  <div id="shareLinkContainer" style="margin-top:12px; display:none">
-    <input type="text" id="generatedLink" readonly style="width:100%; background:var(--bg4); padding:10px; border-radius:6px; font-size:0.8rem">
-  </div>
-</div>
     </section>
 
     <!-- INVENTORY -->
@@ -811,7 +1051,10 @@ tr:hover td { background:var(--bg4); }
     <section class="page" id="page-revenue">
       <div class="section-header">
         <div class="section-title" data-translate="Revenue & Payments">Revenue & Payments</div>
-        <select id="revMonthFilter" onchange="renderRevenue()" style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:.8rem;font-family:'DM Sans',sans-serif;outline:none"></select>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="revMonthFilter" onchange="renderRevenue()" style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:6px 10px;font-size:.8rem;font-family:'DM Sans',sans-serif;outline:none"></select>
+          <button class="btn-export" onclick="exportRevenueCSV()" data-translate="⬇ Export CSV">⬇ Export CSV</button>
+        </div>
       </div>
       <div class="grid-4 mb-16" id="revStats"></div>
       <div class="grid-2 gap-10">
@@ -883,12 +1126,243 @@ tr:hover td { background:var(--bg4); }
       <div class="denied-title">Access Restricted</div>
       <div class="denied-sub">You don't have permission to view this section. Please contact your manager to request access.</div>
     </section>
+
+    <!-- SA — DASHBOARD -->
+    <section class="page" id="page-sa-dashboard">
+
+      <!-- Welcome card -->
+      <div class="sa-welcome-card">
+        <div>
+          <div class="sa-welcome-name" id="saWelcomeName">Bonjour !</div>
+          <div class="sa-welcome-sub" id="saWelcomeSub">Voici un aperçu global de StrandPro aujourd'hui.</div>
+        </div>
+        <div class="sa-welcome-meta">
+          <div class="sa-welcome-date" id="saWelcomeDate"></div>
+          <div class="sa-welcome-role">🛡 <span data-translate="Super Administrator">Super Administrateur</span></div>
+        </div>
+      </div>
+
+      <!-- KPIs principaux -->
+      <div class="sa-kpi-grid" id="saKpiGrid"></div>
+
+      <!-- Raccourcis rapides -->
+      <div class="sa-quicklinks">
+        <div class="sa-ql" onclick="navigate('sa-owners')">
+          <div class="sa-ql-icon">👥</div>
+          <div class="sa-ql-lbl" data-translate="Owners">Owners</div>
+        </div>
+        <div class="sa-ql" onclick="navigate('sa-payments')">
+          <div class="sa-ql-icon">💳</div>
+          <div class="sa-ql-lbl" data-translate="Payments">Paiements</div>
+        </div>
+        <div class="sa-ql" onclick="navigate('sa-messages')">
+          <div class="sa-ql-icon">💬</div>
+          <div class="sa-ql-lbl"><span data-translate="Messages">Messages</span> <span id="saQlMsgBadge" style="display:none;background:var(--gold);color:#0a0907;border-radius:8px;font-size:.6rem;padding:1px 5px;margin-left:3px;font-weight:700"></span></div>
+        </div>
+        <div class="sa-ql" onclick="navigate('sa-modules')">
+          <div class="sa-ql-icon">🧩</div>
+          <div class="sa-ql-lbl" data-translate="Modules">Modules</div>
+        </div>
+      </div>
+
+      <!-- Grille d'analyse -->
+      <div class="sa-dash-grid">
+
+        <!-- Répartition des plans -->
+        <div class="sa-dash-card">
+          <div class="sa-dash-card-title">
+            📊 <span data-translate="Plan distribution">Répartition des plans</span>
+            <a onclick="navigate('sa-payments')" data-translate="See all →">Voir tout →</a>
+          </div>
+          <div id="saPlanBreakdown"></div>
+        </div>
+
+        <!-- Expirations proches -->
+        <div class="sa-dash-card">
+          <div class="sa-dash-card-title">
+            ⏰ <span data-translate="Expiring in 7 days">Expirent dans les 7 jours</span>
+            <a onclick="navigate('sa-owners')" data-translate="See all →">Voir tout →</a>
+          </div>
+          <div id="saExpiringSoon"></div>
+        </div>
+
+        <!-- Inscriptions récentes -->
+        <div class="sa-dash-card">
+          <div class="sa-dash-card-title">
+            🆕 <span data-translate="New owners (30 days)">Nouveaux owners (30 jours)</span>
+            <a onclick="navigate('sa-owners')" data-translate="See all →">Voir tout →</a>
+          </div>
+          <div id="saRecentSignups"></div>
+        </div>
+
+        <!-- Répartition stockage -->
+        <div class="sa-dash-card">
+          <div class="sa-dash-card-title">
+            ☁ <span data-translate="Cloud vs Local Storage">Stockage Cloud vs Local</span>
+            <a onclick="navigate('sa-modules')" data-translate="See all →">Voir tout →</a>
+          </div>
+          <div id="saStorageSplit"></div>
+        </div>
+
+      </div>
+
+      <div style="text-align:right;margin-top:8px">
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('dashboard')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+
+    </section>
+
+    <!-- SA — OWNERS -->
+    <section class="page" id="page-sa-owners">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">👥 <span data-translate="Owners">Owners</span></div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px" data-translate="List and profiles of registered owners">Liste et profils des owners inscrits</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('owners')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+      <div class="sa-grid-stats" id="saStats"></div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div class="card-title" style="margin:0" data-translate="Owners Registry">Owners Registry</div>
+          <input type="text" id="saSearch" placeholder="Search owner / salon…" oninput="saFilterTable()" data-translate-placeholder="Search owner / salon…"
+                 style="padding:7px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:.82rem;width:220px">
+        </div>
+        <div style="overflow-x:auto">
+          <table class="sa-table">
+            <thead><tr>
+              <th data-translate="Salon / City">Salon / Ville</th><th>Email</th><th data-translate="Registered on">Inscrit le</th><th data-translate="Last activity">Dernière activité</th><th>Statut</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="saTableBody"></tbody>
+          </table>
+        </div>
+        <div id="saEmpty" style="text-align:center;padding:32px;color:var(--text3);display:none" data-translate="No owners registered.">Aucun owner enregistré.</div>
+      </div>
+    </section>
+
+    <!-- SA — PAIEMENTS -->
+    <section class="page" id="page-sa-payments">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">💳 <span data-translate="Payments">Paiements</span></div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px" data-translate="Manual subscription activation">Activation manuelle des abonnements</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('payments')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+      <div class="sa-rev-grid" id="saRevStats"></div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px" data-translate="Subscriptions by Owner">Abonnements par Owner</div>
+        <div style="overflow-x:auto">
+          <table class="sa-table">
+            <thead><tr>
+              <th>Owner / Salon</th><th data-translate="Current Plan">Plan actuel</th><th>Statut</th><th>Expiration</th><th data-translate="Days left">Jours restants</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="saPaymentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SA — GOOGLE FORMS -->
+    <section class="page" id="page-sa-gforms">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">🔗 Google Forms</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px" data-translate="Creation and management of booking forms">Création et gestion des formulaires de réservation</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('gforms')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="card-title" style="margin:0;font-size:.9rem">🔑 <span data-translate="Google Apps Script — API URL">Google Apps Script — URL de l'API</span></div>
+          <a href="https://script.google.com" target="_blank" style="font-size:.72rem;color:var(--gold);text-decoration:none">script.google.com ↗</a>
+        </div>
+        <div style="font-size:.75rem;color:var(--text3);margin-bottom:10px" data-translate="Paste the URL of your GAS web app deployed with public access.">Collez l'URL de votre web app GAS déployée en accès public.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="url" id="gasApiUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+                 style="flex:1;padding:8px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:.8rem;min-width:220px">
+          <button class="btn btn-gold btn-sm"    onclick="saveGasApiUrl()">💾 <span data-translate="Save">Sauvegarder</span></button>
+          <button class="btn btn-outline btn-sm" onclick="testGasApi()">🔌 <span data-translate="Test">Tester</span></button>
+        </div>
+        <div id="gasApiStatus" style="font-size:.75rem;margin-top:8px;display:none"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div class="card-title" style="margin:0" data-translate="Forms by Owner">Formulaires par Owner</div>
+          <div style="font-size:.75rem;color:var(--text3)" data-translate="URLs synced on every owner login">URLs synchronisées à chaque connexion owner</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="sa-table">
+            <thead><tr>
+              <th>Owner / Salon</th><th style="text-align:center">Form URL</th>
+              <th style="text-align:center">CSV URL</th><th style="text-align:center" data-translate="Active module">Module actif</th>
+              <th style="text-align:center" data-translate="Create">Créer</th><th style="text-align:center">URLs</th>
+            </tr></thead>
+            <tbody id="saGformsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SA — MESSAGES -->
+    <section class="page" id="page-sa-messages">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">💬 <span data-translate="Messages">Messages</span></div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px" data-translate="Messages received from the contact form">Messages reçus depuis le formulaire de contact</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('messages')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+      <div class="msg-stats-grid" id="msgStatsGrid"></div>
+      <!-- Bulk action bar -->
+      <div class="msg-bulk-bar" id="msgBulkBar">
+        <span id="msgBulkCount">0 sélectionné(s)</span>
+        <button class="btn btn-gold btn-sm"    onclick="saReplyBulk()">✉ <span data-translate="Reply to group">Répondre en groupe</span></button>
+        <button class="btn btn-outline btn-sm" onclick="saBulkMarkRead()">✓ <span data-translate="Mark as read">Marquer lus</span></button>
+        <button class="btn btn-outline btn-sm" style="color:#e74c3c;border-color:#c0392b" onclick="saBulkDelete()">🗑 Supprimer</button>
+        <button class="btn btn-outline btn-sm" onclick="saClearSelection()">✕ Annuler</button>
+      </div>
+      <!-- Filter bar -->
+      <div class="msg-filter-bar">
+        <button class="msg-filter-btn active" id="msgf-all"     onclick="filterMessages('all')"     data-translate="All">Tous</button>
+        <button class="msg-filter-btn"        id="msgf-unread"  onclick="filterMessages('unread')"  data-translate="Unread">Non lus</button>
+        <button class="msg-filter-btn"        id="msgf-read"    onclick="filterMessages('read')"    data-translate="Read">Lus</button>
+        <button class="msg-filter-btn"        id="msgf-replied" onclick="filterMessages('replied')" data-translate="Replied">Répondus</button>
+        <input type="text" id="msgSearch" placeholder="Search…" oninput="filterMessages()" data-translate-placeholder="Search…"
+               style="margin-left:auto;padding:5px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:20px;color:var(--text);font-size:.78rem;width:180px">
+      </div>
+      <div id="msgList"></div>
+    </section>
+
+    <!-- SA — MODULES -->
+    <section class="page" id="page-sa-modules">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">🧩 <span data-translate="Modules & Access">Modules & Accès</span></div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px" data-translate="Feature control per owner — immediate changes">Contrôle des fonctionnalités par owner — changements immédiats</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('modules')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
+      </div>
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table class="sa-mod-table">
+            <thead><tr>
+              <th>Owner</th>
+              <th>📦 Stock</th><th>👩‍💼 Staff</th><th>📅 Appts</th>
+              <th>💰 Revenue</th><th>💸 Dépenses</th><th>🔗 G.Form</th><th>🔐 Rôles</th>
+            </tr></thead>
+            <tbody id="saModulesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="mobile-nav">
   <div class="mobile-nav-inner">
+    <div class="mobile-nav-item superadmin-only" id="mn-sa-owners" onclick="navigate('sa-owners')"><span class="m-icon">🛡️</span>Admin</div>
     <div class="mobile-nav-item active" id="mn-dashboard"    onclick="navigate('dashboard')"><span class="m-icon">📊</span>Home</div>
     <div class="mobile-nav-item" id="mn-inventory"           onclick="navigate('inventory')"><span class="m-icon">📦</span>Stock</div>
     <div class="mobile-nav-item" id="mn-staff"               onclick="navigate('staff')"><span class="m-icon">👩‍💼</span>Staff</div>
@@ -899,7 +1373,63 @@ tr:hover td { background:var(--bg4); }
   </div>
 </div>
 
+<!-- SA REPLY MODAL -->
+<div id="saReplyModal">
+  <div class="sa-reply-box">
+    <button class="sa-reply-close" onclick="closeReplyModal()">✕</button>
+    <h3 id="saReplyTitle" data-translate="Reply">Répondre</h3>
+    <div class="sa-reply-to" id="saReplyTo"></div>
+    <label class="sa-reply-label" data-translate="Subject">Objet</label>
+    <input  class="sa-reply-input" id="saReplySubject" type="text">
+    <label class="sa-reply-label">Message</label>
+    <textarea class="sa-reply-area" id="saReplyBody" placeholder="Your reply…" data-translate-placeholder="Your reply…"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-outline btn-sm" onclick="closeReplyModal()">Annuler</button>
+      <button class="btn btn-gold  btn-sm"   onclick="sendReply()">✉ Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MIGRATION OVERLAY -->
+<div id="migrationOverlay">
+  <div class="migration-box">
+    <div style="font-size:2rem;margin-bottom:10px">☁</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold-light);margin-bottom:6px">Migration vers le Cloud</div>
+    <div style="font-size:.82rem;color:var(--text3);margin-bottom:16px" id="migrationStatus">Envoi de vos données vers Firestore…</div>
+    <div class="migration-bar-wrap"><div class="migration-bar" id="migrationBar"></div></div>
+  </div>
+</div>
+
 <div id="toastContainer"></div>
+
+<!-- TRIAL PLAN MODAL -->
+<div id="spTrialModal">
+  <div class="sp-trial-box">
+    <div class="sp-trial-badge" data-translate="🎁 14-Day Free Trial">🎁 14-Day Free Trial</div>
+    <h2 data-translate="Start Your Free Trial">Start Your Free Trial</h2>
+    <p class="sp-trial-sub" data-translate="Choose the plan that activates after your 14 days. No charge today.">Choose the plan that activates after your 14 days. No charge today.</p>
+    <div class="sp-trial-plan-grid">
+      <div class="sp-trial-opt selected" id="spto-monthly" onclick="selectSpTrial('monthly')">
+        <div class="spo-label" data-translate="Monthly">Monthly</div>
+        <div class="spo-price">$19.99</div>
+        <div class="spo-note" data-translate="per month after trial">per month after trial</div>
+      </div>
+      <div class="sp-trial-opt" id="spto-yearly" onclick="selectSpTrial('yearly')">
+        <div class="spo-label" data-translate="Yearly">Yearly</div>
+        <div class="spo-price">$150</div>
+        <div class="spo-save" data-translate="Save 37%">Save 37%</div>
+        <div class="spo-note" data-translate="per year after trial">per year after trial</div>
+      </div>
+    </div>
+    <ul class="sp-trial-info">
+      <li data-translate="14 days full access — completely free">14 days full access — completely free</li>
+      <li data-translate="Your card is saved by Stripe — not charged until day 15">Your card is saved by Stripe — not charged until day 15</li>
+      <li data-translate="Cancel anytime before the trial ends and pay nothing">Cancel anytime before the trial ends and pay nothing</li>
+    </ul>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startSpTrial()" data-translate="Continue to Stripe →">Continue to Stripe →</button>
+    <div style="text-align:center;font-size:.72rem;color:var(--text4);margin-top:10px" data-translate="🔒 Powered by Stripe. Bank-level encryption.">🔒 Powered by Stripe. Bank-level encryption.</div>
+  </div>
+</div>
 
 <!-- PAYWALL -->
 <div id="paywallScreen">
@@ -907,26 +1437,38 @@ tr:hover td { background:var(--bg4); }
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
       <div class="paywall-logo">
         <div class="paywall-logo-name">StrandPro</div>
-        <div class="paywall-logo-sub">Salon Management System</div>
+        <div class="paywall-logo-sub" data-translate="Salon Management System">Salon Management System</div>
       </div>
       <!--<button class="btn btn-outline btn-sm" onclick="hidePaywall(); navigate('dashboard')" data-translate="← Back to Dashboard">← Back to Dashboard</button>-->
     </div>
-    <div class="paywall-headline" data-translate="Continue with Full Access">Continue with Full Access</div>
-    <div class="paywall-sub" data-translate="Your 7-day free trial has ended. Choose a plan to keep all features.">Your 7-day free trial has ended. Choose a plan to keep all features.</div>
+    <div class="paywall-headline" data-translate="Choose Your Plan">Choose Your Plan</div>
+    <div class="paywall-sub" data-translate="Start with a 14-day free trial, or subscribe directly.">Start with a 14-day free trial, or subscribe directly.</div>
     <div class="plan-cards">
+      <div class="plan-card trial-card" id="planTrial" onclick="selectPlan('trial')">
+        <div class="plan-select-ring"></div>
+        <div class="plan-name" data-translate="14-Day Free Trial">14-Day Free Trial</div>
+        <div class="plan-price">$0<span data-translate=" today"> today</span></div>
+        <div class="plan-note" data-translate="Then Monthly or Yearly — cancel before day 15 and pay nothing">Then Monthly or Yearly — cancel before day 15 and pay nothing</div>
+        <ul class="plan-features">
+          <li data-translate="Full access to all features for 14 days">Full access to all features for 14 days</li>
+          <li data-translate="Your card is saved by Stripe — not charged until day 15">Your card is saved by Stripe — not charged until day 15</li>
+          <li data-translate="Cancel anytime before the trial ends and pay nothing">Cancel anytime before the trial ends and pay nothing</li>
+        </ul>
+      </div>
       <div class="plan-card" id="planMonthly" onclick="selectPlan('monthly')">
         <div class="plan-select-ring"></div>
         <div class="plan-name" data-translate="Monthly">Monthly</div>
-        <div class="plan-price">$19.99<span> /mo</span></div>
+        <div class="plan-price">$19.99<span data-translate="/mo"> /mo</span></div>
         <div class="plan-note" data-translate="Billed monthly · Cancel anytime">Billed monthly · Cancel anytime</div>
-        <ul class="plan-features"><li data-translate="All Modules">All Modules</li><li data-translate="Appointment Reminders">Appointment Reminders</li><li data-translate="Staff Notifications">Staff Notifications</li><li data-translate="Revenue Analytics">Revenue Analytics</li><li data-translate="Roles & Permissions">Roles & Permissions</li><li data-translate="PWA — works offline">PWA — works offline</li></ul>
+        <ul class="plan-features"><li data-translate="All Modules">All Modules</li><li data-translate="Appointment Reminders">Appointment Reminders</li><li data-translate="Staff Notifications">Staff Notifications</li><li data-translate="Revenue Analytics">Revenue Analytics</li><li data-translate="Roles & Permissions">Roles & Permissions</li><li data-translate="PWA — works offline">PWA — works offline</li><li style="color:var(--text4);text-decoration:line-through" data-translate="Google Form booking">Google Form booking</li><li style="color:var(--text4);text-decoration:line-through" data-translate="CSV Export">CSV Export</li></ul>
       </div>
       <div class="plan-card popular" id="planYearly" onclick="selectPlan('yearly')">
         <div class="plan-select-ring"></div>
+        <div class="plan-best-value" data-translate="★ BEST VALUE">★ BEST VALUE</div>
         <div class="plan-name" data-translate="Yearly">Yearly</div>
-        <div class="plan-price">$150<span> /yr</span></div>
+        <div class="plan-price">$150<span data-translate="/yr"> /yr</span></div>
         <div class="plan-note" data-translate="Only $12.50/mo · Save $89.88/year">Only $12.50/mo · Save $89.88/year</div>
-        <ul class="plan-features"><li data-translate="Everything in Monthly">Everything in Monthly</li><li data-translate="37% Savings">37% Savings</li><li data-translate="Priority Updates">Priority Updates</li><li data-translate="All Modules">All Modules</li><li data-translate="PWA — works offline">PWA — works offline</li></ul>
+        <ul class="plan-features"><li data-translate="Everything in Monthly">Everything in Monthly</li><li data-translate="🔗 Google Form booking">🔗 Google Form booking</li><li data-translate="⬇ CSV Export (revenue & appts)">⬇ CSV Export (revenue & appts)</li><li data-translate="☁ Cloud sync — all devices">☁ Cloud sync — all devices</li><li data-translate="37% Savings vs Monthly">37% Savings vs Monthly</li></ul>
       </div>
     </div>
     <button class="paywall-subscribe-btn" id="subscribeBtn" onclick="confirmSubscribe()" data-translate="Subscribe — Monthly · $19.99/mo">Subscribe — Monthly · $19.99/mo</button>
@@ -1069,6 +1611,301 @@ tr:hover td { background:var(--bg4); }
       <div class="form-group"><label>Confirm Password</label><input type="password" id="mrpPass2" placeholder="Repeat password"></div>
     </div>
     <div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeModal('mgrResetPassModal')">Cancel</button><button class="btn btn-gold btn-sm" onclick="managerResetPass()">Reset Password</button></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUSPENDED SCREEN
+═══════════════════════════════════════════════════════ -->
+<div id="suspendedScreen">
+  <div class="suspended-icon">🚫</div>
+  <div class="suspended-title">Compte suspendu</div>
+  <div class="suspended-msg">
+    Votre compte a été suspendu par l'administrateur de la plateforme.<br>
+    Contactez le support pour plus d'informations.
+  </div>
+  <a href="mailto:support@strandpro.app" class="btn btn-outline" style="margin-top:8px">
+    📧 Contacter le support
+  </a>
+  <button class="btn btn-outline btn-sm" style="margin-top:12px;opacity:.5" onclick="doLogout()">
+    Se déconnecter
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUPERADMIN EDIT MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="saEditModal">
+  <div class="modal slide-up" style="max-width:460px">
+    <div class="modal-title" id="saEditTitle">✏️ Profil du salon</div>
+    <input type="hidden" id="saEditUsername">
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Nom du salon</label>
+        <input type="text" id="saEditBusinessName" placeholder="Ex: Beauty Studio">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ville</label>
+        <input type="text" id="saEditCity" placeholder="Ex: Paris">
+      </div>
+      <div class="form-group">
+        <label>Email (lecture seule)</label>
+        <input type="email" id="saEditEmail" readonly style="opacity:.6;cursor:not-allowed">
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border2);margin:14px 0"></div>
+
+    <div style="font-weight:600;font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Réinitialiser le mot de passe</div>
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Nouveau mot de passe temporaire</label>
+        <input type="password" id="saNewPassword" placeholder="Laisser vide pour ne pas changer" autocomplete="new-password">
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);margin-top:-8px;margin-bottom:12px">Le owner devra changer ce mot de passe à sa prochaine connexion.</div>
+
+    <div class="auth-msg error"   id="saEditErr"></div>
+    <div class="auth-msg success" id="saEditOk"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saEditModal')">Annuler</button>
+      <button class="btn btn-gold   btn-sm" onclick="saveSaProfile()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUPERADMIN — PAYMENT ACTIVATION MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="saActivateModal">
+  <div class="modal slide-up" style="max-width:420px">
+    <div class="modal-title" id="saActivateTitle">💳 Activer / Modifier l'abonnement</div>
+    <input type="hidden" id="saActivateUsername">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Plan</label>
+        <select id="saActivatePlan">
+          <option value="">— Aucun (trial) —</option>
+          <option value="monthly">Monthly · $19.99/mo</option>
+          <option value="yearly">Yearly · $150/yr</option>
+          <option value="free">Free (offert)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Statut</label>
+        <select id="saActivateStatus">
+          <option value="trial">⏳ Trial</option>
+          <option value="active">✅ Active</option>
+          <option value="expired">❌ Expired</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Date d'expiration</label>
+        <input type="date" id="saActivateExpiry">
+        <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Laisser vide = trial sans date.</div>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:var(--text3);margin-bottom:8px">Raccourcis rapides</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn btn-outline btn-sm" onclick="saSetActivationPreset('monthly',1)">+1 mois</button>
+      <button class="btn btn-outline btn-sm" onclick="saSetActivationPreset('monthly',3)">+3 mois</button>
+      <button class="btn btn-outline btn-sm" onclick="saSetActivationPreset('monthly',6)">+6 mois</button>
+      <button class="btn btn-outline btn-sm" onclick="saSetActivationPreset('yearly',12)">+1 an</button>
+    </div>
+
+    <div class="auth-msg error"   id="saActivateErr"></div>
+    <div class="auth-msg success" id="saActivateOk"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saActivateModal')">Annuler</button>
+      <button class="btn btn-gold   btn-sm" onclick="saveSaActivation()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUPERADMIN — GOOGLE FORM URLS MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="saGformModal">
+  <div class="modal slide-up" style="max-width:500px">
+    <div class="modal-title" id="saGformTitle">🔗 Google Form — URLs</div>
+    <input type="hidden" id="saGformUsername">
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>URL du Google Form (lien partagé)</label>
+        <input type="url" id="saGformUrl" placeholder="https://forms.google.com/...">
+      </div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>URL CSV Google Sheets (publication web)</label>
+        <input type="url" id="saGformCsvUrl" placeholder="https://docs.google.com/spreadsheets/...">
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:var(--text3);margin-bottom:12px">Ces URLs seront synchronisées dans le profil de l'owner et actives à sa prochaine connexion.</div>
+
+    <div class="auth-msg error"   id="saGformErr"></div>
+    <div class="auth-msg success" id="saGformOk"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saGformModal')">Annuler</button>
+      <button class="btn btn-gold   btn-sm" onclick="saveSaGformUrls()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUPERADMIN — CREATE GOOGLE FORM MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="saCreateFormModal">
+  <div class="modal slide-up" style="max-width:520px">
+    <div class="modal-title" id="sacfTitle">🪄 Créer le formulaire Google</div>
+    <input type="hidden" id="sacfUsername">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nom du salon</label>
+        <input type="text" id="sacfSalonName" placeholder="Ex: Beauty Studio Dakar">
+      </div>
+      <div class="form-group">
+        <label>Email du owner</label>
+        <input type="email" id="sacfOwnerEmail" placeholder="owner@email.com">
+        <div style="font-size:.7rem;color:var(--text3);margin-top:3px">Le formulaire + la sheet seront partagés avec cet email.</div>
+      </div>
+    </div>
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Services proposés <span style="font-weight:400;color:var(--text3)">(séparés par des virgules)</span></label>
+        <textarea id="sacfServices" rows="3"
+          style="width:100%;padding:9px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:.83rem;resize:vertical;font-family:'DM Sans',sans-serif"
+          >Tresses classiques,Box braids,Cornrows,Feed-in braids,Vanilles,Crochets,Nattes collées,Locks,Autre</textarea>
+      </div>
+    </div>
+
+    <!-- Status / result area -->
+    <div id="sacfStatus" style="display:none;border-radius:8px;padding:12px;margin-bottom:4px"></div>
+
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:12px">
+      ⚠️ Une fenêtre popup va s'ouvrir pour exécuter la création. Autorisez les popups si le navigateur les bloque.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saCreateFormModal')">Fermer</button>
+      <button class="btn btn-gold btn-sm" id="sacfCreateBtn" onclick="saCreateForm()">🚀 Lancer la création</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     LOGOUT CONFIRMATION MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal slide-up" style="max-width:360px;text-align:center">
+    <div style="font-size:2.8rem;margin-bottom:8px">🚪</div>
+    <div class="modal-title" style="justify-content:center" data-translate="Sign out?">Se déconnecter ?</div>
+    <p style="color:var(--text3);font-size:.85rem;margin:0 0 22px" data-translate="You will be redirected to the login screen.">
+      Tu seras redirigé vers l'écran de connexion.
+    </p>
+    <div class="modal-actions" style="justify-content:center;gap:12px">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('logoutModal')" data-translate="Cancel">Annuler</button>
+      <button class="btn btn-gold   btn-sm" onclick="confirmLogout()" data-translate="🚪 Sign out">🚪 Se déconnecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     GOOGLE FORM SETUP MODAL
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="googleFormSettingsModal">
+  <div class="modal slide-up" style="max-width:520px">
+    <div class="modal-title">⚙️ Configurer la Réservation Google Form</div>
+
+    <!-- BANDEAU SA — affiché si URLs déjà configurées -->
+    <div id="gfsSaNote" style="display:none;background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.82rem;color:var(--text3)">
+      <span style="color:var(--success);font-weight:600">✅ Formulaire déjà configuré</span> — les URLs ont été renseignées par votre administrateur. Vous pouvez les modifier ci-dessous si nécessaire.
+    </div>
+
+    <!-- GUIDE ÉTAPE PAR ÉTAPE -->
+    <div id="gfsSetupGuide" style="background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:.83rem;line-height:1.7">
+      <div style="font-weight:600;color:var(--gold-light);margin-bottom:10px">📋 Guide de configuration (3 étapes)</div>
+
+      <!-- ÉTAPE 1 -->
+      <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start">
+        <div style="min-width:24px;height:24px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem">1</div>
+        <div>
+          <div style="font-weight:600;color:var(--text1)">Crée ton Google Form</div>
+          <div style="color:var(--text3);font-size:.78rem;margin-top:2px">
+            Crée un formulaire avec les champs : <em>Nom, Téléphone, WhatsApp, Email, Service, Date, Heure</em>
+          </div>
+          <a href="https://forms.google.com/create" target="_blank" rel="noopener"
+             style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:5px 12px;background:var(--gold);color:#000;border-radius:6px;font-size:.78rem;font-weight:600;text-decoration:none">
+            🔗 Ouvrir Google Forms
+          </a>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 -->
+      <div style="display:flex;gap:10px;margin-bottom:12px;align-items:flex-start">
+        <div style="min-width:24px;height:24px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem">2</div>
+        <div>
+          <div style="font-weight:600;color:var(--text1)">Lie les réponses à Google Sheets</div>
+          <div style="color:var(--text3);font-size:.78rem;margin-top:2px">
+            Dans ton formulaire → onglet <strong>Réponses</strong> → icône Google Sheets → crée une nouvelle feuille.
+          </div>
+          <a href="https://sheets.google.com" target="_blank" rel="noopener"
+             style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:5px 12px;background:#0f9d58;color:#fff;border-radius:6px;font-size:.78rem;font-weight:600;text-decoration:none">
+            📊 Ouvrir Google Sheets
+          </a>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 -->
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:24px;height:24px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem">3</div>
+        <div>
+          <div style="font-weight:600;color:var(--text1)">Publie la feuille en CSV</div>
+          <div style="color:var(--text3);font-size:.78rem;margin-top:2px">
+            Dans Google Sheets →
+            <strong>Fichier → Partager → Publier sur le Web</strong> →
+            choisir <strong>Feuille 1</strong> + format <strong>CSV</strong> →
+            cliquer <strong>Publier</strong> → copier le lien.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAMPS URL -->
+    <div class="auth-msg error" id="gfsErr"></div>
+    <div class="auth-msg success" id="gfsOk"></div>
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>🔗 URL de ton Google Form (lien client)</label>
+        <input type="url" id="gfsFormUrl" placeholder="https://docs.google.com/forms/d/…/viewform">
+        <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Le lien que tu envoies à tes clients pour réserver.</div>
+      </div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>📊 URL CSV Google Sheets (pour l'import auto)</label>
+        <input type="url" id="gfsCsvUrl" placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv">
+        <div style="font-size:.72rem;color:var(--text3);margin-top:3px">Le lien obtenu après "Publier sur le Web → CSV".</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('googleFormSettingsModal')">Annuler</button>
+      <button class="btn btn-gold btn-sm" onclick="saveGoogleFormSettings()">💾 Enregistrer</button>
+    </div>
   </div>
 </div>
 
@@ -1280,6 +2117,116 @@ const ExpAPI = {
     }
 };
 
+// ══════════════════════════════════════════════════════════════
+// ── CLOUD / LOCAL DATA ROUTING ────────────────────────────────
+// Monthly ($19.99) → localStorage  |  Yearly ($150) → Firestore
+// ══════════════════════════════════════════════════════════════
+
+function isCloudPlan() {
+  return S.getObj('sp_sub')?.plan === 'yearly';
+}
+
+async function _tryCloud(fsName, method, ...args) {
+  try {
+    const api = window[fsName];
+    if(!api || typeof api[method] !== 'function') return { ok:false };
+    const data = await api[method](...args);
+    return { ok:true, data };
+  } catch(e) {
+    console.warn(`[Cloud] ${fsName}.${method} échoué — cache local utilisé`, e);
+    return { ok:false };
+  }
+}
+
+// Patch transparent : chaque API locale devient un routeur Cloud/Local
+(function _routeAPIs(){
+  const map = [
+    [InvAPI,   'FSInvAPI',   'inv'],
+    [StaffAPI, 'FSStaffAPI', 'staff'],
+    [ApptAPI,  'FSApptAPI',  'appts'],
+    [ExpAPI,   'FSExpAPI',   'expenses'],
+    [TaskAPI,  'FSTaskAPI',  'tasks'],
+    [AttAPI,   'FSAttAPI',   'att'],
+  ];
+  map.forEach(([api, fsName, lsKey]) => {
+    const _get = api.getAll.bind(api);
+    const _save = api.save.bind(api);
+    const _del = api.delete ? api.delete.bind(api) : null;
+
+    api.getAll = async function() {
+      if(isCloudPlan()) {
+        const r = await _tryCloud(fsName, 'getAll');
+        if(r.ok) { S.set(lsKey, r.data); return r.data; } // rafraîchit le cache local
+      }
+      return _get();
+    };
+
+    api.save = async function(item) {
+      const saved = await _save(item);         // toujours en local (cache offline)
+      if(isCloudPlan()) _tryCloud(fsName, 'save', saved); // async, sans bloquer
+      return saved;
+    };
+
+    if(_del) {
+      api.delete = async function(id) {
+        await _del(id);
+        if(isCloudPlan()) _tryCloud(fsName, 'delete', id);
+      };
+    }
+  });
+})();
+
+// ── Badge topbar ──────────────────────────────────────────────
+function updateStorageBadge() {
+  const badge = document.getElementById('storageBadge');
+  if(!badge) return;
+  const cloud = isCloudPlan();
+  badge.className = cloud ? 'cloud' : 'local';
+  document.getElementById('storageBadgeText').textContent = cloud ? 'Cloud' : 'Local';
+}
+
+// ── Migration localStorage → Firestore ───────────────────────
+async function migrateToCloud() {
+  if(!isCloudPlan()) return;
+  const overlay = document.getElementById('migrationOverlay');
+  const bar     = document.getElementById('migrationBar');
+  const status  = document.getElementById('migrationStatus');
+  if(overlay) overlay.classList.add('show');
+
+  const map = [
+    ['FSInvAPI',   'inv',      'Stock'],
+    ['FSStaffAPI', 'staff',    'Staff'],
+    ['FSApptAPI',  'appts',    'Rendez-vous'],
+    ['FSExpAPI',   'expenses', 'Dépenses'],
+    ['FSTaskAPI',  'tasks',    'Tâches'],
+    ['FSAttAPI',   'att',      'Présences'],
+  ];
+
+  let total = 0, done = 0;
+  map.forEach(([, lsKey]) => { total += S.get(lsKey).length; });
+
+  for(const [fsName, lsKey, label] of map) {
+    const items = S.get(lsKey);
+    if(status) status.textContent = `Migration : ${label} (${items.length} entrées)…`;
+    for(const item of items) {
+      await _tryCloud(fsName, 'save', item);
+      done++;
+      if(bar) bar.style.width = Math.round((done / Math.max(total,1)) * 100) + '%';
+    }
+  }
+
+  S.setObj('sp_cloud_migrated', true);
+  if(overlay) overlay.classList.remove('show');
+  showToast(`☁ Migration terminée — ${done} entrée(s) maintenant dans le cloud.`);
+}
+
+// ── Check et déclenche la migration si besoin ─────────────────
+function checkCloudMigration() {
+  if(isCloudPlan() && !S.getObj('sp_cloud_migrated')) {
+    setTimeout(migrateToCloud, 1200);
+  }
+}
+
 // ── UTILS ──
 const uid      = () => Math.random().toString(36).slice(2,9);
 const today    = () => new Date().toISOString().split('T')[0];
@@ -1306,137 +2253,1194 @@ function showToast(msg) {
 
 // ==================== GOOGLE FORM INTEGRATION ====================
 
-let googleFormUrl = "https://forms.gle/zySXzi44DGgpeYct7"; // ← À remplacer par ton vrai lien
+// Lit l'URL du formulaire depuis localStorage, avec fallback Firestore
+async function getOwnerGoogleFormUrl() {
+    const session = getCurrentUser();
+    if (!session?.username) return '';
+    const users = getUsers();
+    let url = users?.[session.username]?.googleFormUrl?.trim() || '';
+    if (!url && window.SalonRegistryAPI) {
+        const salon = await window.SalonRegistryAPI.getSalon(session.username).catch(() => null);
+        if (salon?.googleFormUrl) {
+            url = salon.googleFormUrl.trim();
+            if (users[session.username]) { users[session.username].googleFormUrl = url; setUsers(users); }
+        }
+    }
+    return url;
+}
 
-function generateAppointmentLink() {
-  if (!googleFormUrl) {
-    alert("Tu dois d'abord créer un Google Form et mettre son lien ici.");
-    return;
-  }
+// Lit l'URL CSV depuis localStorage, avec fallback Firestore
+async function getOwnerCsvUrl() {
+    const session = getCurrentUser();
+    if (!session?.username) return '';
+    const users = getUsers();
+    let url = users?.[session.username]?.csvUrl?.trim() || '';
+    if (!url && window.SalonRegistryAPI) {
+        const salon = await window.SalonRegistryAPI.getSalon(session.username).catch(() => null);
+        if (salon?.csvUrl) {
+            url = salon.csvUrl.trim();
+            if (users[session.username]) { users[session.username].csvUrl = url; setUsers(users); }
+        }
+    }
+    return url;
+}
 
-  const link = googleFormUrl;
-  const container = document.getElementById('shareLinkContainer');
-  const input = document.getElementById('generatedLink');
-
-  input.value = link;
-  container.style.display = 'block';
-
-  // Copier automatiquement
-  input.select();
-  document.execCommand('copy');
-  
-  showToast("✅ Lien copié ! Partage-le avec tes clients.");
-  addNotif("🔗 Nouveau lien de RDV client généré");
+async function generateAppointmentLink() {
+    try {
+        const googleFormUrl = await getOwnerGoogleFormUrl();
+        if (!googleFormUrl) {
+            showToast("❌ Aucun formulaire configuré — contacte ton administrateur.");
+            return;
+        }
+        const container = document.getElementById('shareLinkContainer');
+        const input = document.getElementById('generatedLink');
+        if (!container || !input) return;
+        input.value = googleFormUrl;
+        container.style.display = 'block';
+        await navigator.clipboard.writeText(googleFormUrl);
+        showToast("✅ Lien client copié ! Envoie-le à tes clients.");
+        addNotif("🔗 Lien de réservation copié");
+    } catch (error) {
+        console.error(error);
+        showToast("❌ Impossible de copier le lien.");
+    }
 }
 
 // ==================== SYNCHRONISATION ====================
 
-async function syncGoogleFormResponses() {
-    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT65jxb_ZMoLhH_DH-Kg5vtLNoXfSBLWqk7CE_ibiA4UTpoDhUvbpeRymDreQnUQseKoEcNl7p1jv42/pubhtml"
+const INVALID_VALUES = new Set(['', 'undefined', 'null', 'n/a', '-']);
 
-    if (!confirm("Importer les nouveaux rendez-vous ?")) return;
+// Normalise les dates Google Forms (YYYY/MM/DD ou M/D/YYYY) vers YYYY-MM-DD
+function normalizeGasDate(raw) {
+    if (!raw) return '';
+    raw = raw.trim();
+    // Déjà au bon format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    // YYYY/MM/DD
+    if (/^\d{4}\/\d{2}\/\d{2}$/.test(raw)) return raw.replace(/\//g, '-');
+    // M/D/YYYY ou MM/DD/YYYY
+    const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdy) return `${mdy[3]}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
+    return raw;
+}
+
+async function syncGoogleFormResponses() {
+    if (!confirm("Importer les nouveaux rendez-vous depuis Google Forms ?")) return;
+
+    const session = getCurrentUser();
+    if (!session?.username) { showToast("Session invalide."); return; }
+
+    const csvUrl = await getOwnerCsvUrl();
+    if (!csvUrl) {
+        showToast("❌ Aucun lien CSV configuré — contacte ton administrateur.");
+        return;
+    }
 
     showToast("🔄 Importation en cours...");
 
+    const ctrl      = new AbortController();
+    const timeoutId = setTimeout(() => ctrl.abort(), 15000);
+
     try {
-        const response = await fetch(sheetCsvUrl);
-        if (!response.ok) throw new Error("Erreur CSV");
+        const response = await fetch(csvUrl, { method: 'GET', cache: 'no-cache', signal: ctrl.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`Erreur HTTP ${response.status}`);
 
         const csvText = await response.text();
-        const rows = parseCSV(csvText);
-        let imported = 0;
+        if (!csvText?.trim()) throw new Error("Le fichier CSV est vide.");
+        if (csvText.includes('<html') || csvText.includes('<!DOCTYPE'))
+            throw new Error("Le lien CSV est invalide — la feuille Google Sheets doit être partagée en accès public.");
 
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const clientName = row["What is your name ?"] || row["What is your name"] || "";
+        const rows = parseCSVImproved(csvText);
+        if (!rows.length) { showToast("Aucune réponse dans le fichier."); return; }
 
-            if (!clientName.trim()) continue;
+        const existingAppts = await ApptAPI.getAll();
+        const existingIds   = new Set(existingAppts.map(a => a.id));
+        let imported = 0, skipped = 0;
 
-            const appt = {
-                id: 'gform_' + Date.now().toString(36) + i,
-                client: clientName.trim(),
-                phone: (row["What is your phone number ?"] || "").trim(),
-                wa: (row["What is your whatsapp number ?"] || "").trim(),
-                email: (row["What is your email address ?"] || "").trim(),
-                service: (row["What are services do you want ?"] || "Service non spécifié").trim(),
-                stylist: "",
-                date: row["Date"] || today(),
-                time: (row["Time"] || "").trim(),
-                duration: 2,
-                price: 0,
-                deposit: 30,
-                payMethod: row["Payment Method"] || "Cash",
-                status: "Pending"
+        for (const row of rows) {
+            // ── Champs du formulaire GAS (Code.gs) ──
+            // Colonne 1 (auto) : Horodateur
+            // Colonne 2        : Prénom et Nom
+            // Colonne 3        : Numéro de téléphone / WhatsApp
+            // Colonne 4        : Service souhaité
+            // Colonne 5        : Date souhaitée
+            // Colonne 6        : Heure souhaitée
+            // Colonne 7        : Notes ou informations complémentaires
+
+            const clientName = sanitizeString(row["Prénom et Nom"] || "");
+            if (!clientName) { skipped++; continue; }
+
+            const phone   = sanitizeString(row["Numéro de téléphone / WhatsApp"] || "");
+            const service = sanitizeString(row["Service souhaité"] || "Service non spécifié");
+            const date    = normalizeGasDate(row["Date souhaitée"] || "");
+            const time    = sanitizeString(row["Heure souhaitée"] || "");
+            const notes   = sanitizeString(row["Notes ou informations complémentaires"] || "");
+
+            if (INVALID_VALUES.has(date.toLowerCase()) || INVALID_VALUES.has(time.toLowerCase())) {
+                skipped++; continue;
+            }
+
+            const uniqueKey = `${clientName}_${date}_${time}_${service}`;
+            const apptId    = 'gform_' + uniqueKey.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 80);
+
+            if (existingIds.has(apptId)) { skipped++; continue; }
+
+            const appointment = {
+                id:        apptId,
+                client:    clientName,
+                phone:     phone,
+                wa:        phone,
+                email:     "",
+                service,
+                stylist:   "",
+                date,
+                time,
+                duration:  2,
+                price:     0,
+                deposit:   0,
+                payMethod: "Cash",
+                status:    "Pending",
+                notes,
+                source:    "Google Form",
+                createdAt: new Date().toISOString()
             };
 
-            await ApptAPI.save(appt);
+            await ApptAPI.save(appointment);
+            existingIds.add(apptId);
             imported++;
         }
 
-        // Rechargement forcé
-        await loadAllData();
-
-        // Aller sur la page Appointments et forcer l'affichage
-        navigate('appointments');
-        
-        // Double sécurité : re-rendre après 300ms
-        setTimeout(() => {
-            if (typeof renderAppts === 'function') renderAppts();
-        }, 400);
-
         if (imported > 0) {
-            showToast(`✅ ${imported} rendez-vous importés avec succès !`);
+            await loadAllData();
+            navigate('appointments');
+            renderAppts();
+            showToast(`✅ ${imported} rendez-vous importés !`);
             addNotif(`📥 ${imported} RDV Google Form importés`);
         } else {
-            showToast("Aucune nouvelle réponse trouvée.");
+            showToast(`Aucun nouveau rendez-vous.${skipped ? ` (${skipped} ignorés)` : ''}`);
         }
 
-    } catch (e) {
-        console.error(e);
-        alert("Erreur : " + e.message);
+    } catch (error) {
+        clearTimeout(timeoutId);
+        console.error(error);
+        if (error.name === 'AbortError') {
+            showToast("❌ Délai dépassé — vérifie ta connexion.");
+            return;
+        }
+        showToast("❌ " + error.message);
     }
 }
-// Fonction de parsing CSV simple (sans PapaParse)
-function parseCSV(csvText) {
-    const lines = csvText.trim().split('\n');
+
+// ==================== CSV PARSING ====================
+
+function parseCSVImproved(csvText) {
+    const lines = csvText
+        .replace(/\r/g, '')
+        .split('\n')
+        .filter(line => line.trim() !== '');
+
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+    const delim   = lines[0].includes('\t') ? '\t' : ',';
+    const headers = parseCSVLine(lines[0], delim).map(h => h.trim());
+    const data    = [];
 
-    return lines.slice(1).map(line => {
-        const values = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let char of line) {
-            if (char === '"' && !inQuotes) {
-                inQuotes = true;
-                continue;
-            }
-            if (char === '"' && inQuotes) {
-                inQuotes = false;
-                continue;
-            }
-            if (char === ',' && !inQuotes) {
-                values.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        values.push(current.trim());
-
-        const obj = {};
-        headers.forEach((header, index) => {
-            obj[header] = values[index] || '';
-        });
-        return obj;
-    });
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i], delim);
+        const obj    = {};
+        headers.forEach((header, index) => { obj[header] = values[index]?.trim() || ''; });
+        data.push(obj);
+    }
+    return data;
 }
+
+function parseCSVLine(line, delim = ',') {
+    const result = [];
+    let current  = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' && inQuotes && line[i + 1] === '"') { current += '"'; i++; continue; }
+        if (char === '"') { inQuotes = !inQuotes; continue; }
+        if (char === delim && !inQuotes) { result.push(current); current = ''; continue; }
+        current += char;
+    }
+    result.push(current);
+    return result;
+}
+
+// ==================== SANITIZE INPUT ====================
+
+function sanitizeString(value) {
+    return String(value || '')
+        .replace(/<script.*?>.*?<\/script>/gi, '')
+        .replace(/[<>]/g, '')
+        .trim();
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — SYNC & CONFIG
+// ══════════════════════════════════════════════════════
+
+function syncSalonToFirestore(user){
+  if(!window.SalonRegistryAPI) return;
+  const sub   = S.getObj('sp_sub') || {};
+  const users = getUsers();
+  const u     = users[user.username] || user;
+  window.SalonRegistryAPI.syncSalon({
+    username:      user.username,
+    businessName:  user.businessName || '',
+    city:          user.city         || '',
+    email:         user.email        || '',
+    plan:          sub.plan          || null,
+    status:        sub.status        || 'inactive',
+    trialStart:    sub.trialStart    || null,
+    expiry:        sub.expiry        || null,
+    createdAt:     user.createdAt    || null,
+    googleFormUrl: u.googleFormUrl   || '',
+    csvUrl:        u.csvUrl          || ''
+  }).catch(e => console.warn('syncSalon error:', e));
+}
+
+async function readSalonConfig(username){
+  if(!window.SalonRegistryAPI) return;
+  try {
+    const salon = await window.SalonRegistryAPI.getSalon(username);
+    if(!salon) return;
+    // Apply temp password reset set by SuperAdmin
+    if(salon.tempPassword){
+      const users = getUsers();
+      if(users[username]){
+        users[username].pw = salon.tempPassword;
+        users[username].mustChangePassword = true;
+        setUsers(users);
+      }
+      window.SalonRegistryAPI.updateSalon(username, { tempPassword: null }).catch(()=>{});
+    }
+    // Apply Google Form URLs set by SuperAdmin
+    if(salon.googleFormUrl || salon.csvUrl){
+      const users = getUsers();
+      if(users[username]){
+        if(salon.googleFormUrl) users[username].googleFormUrl = salon.googleFormUrl;
+        if(salon.csvUrl)        users[username].csvUrl        = salon.csvUrl;
+        setUsers(users);
+        updateGfCardStatus();
+      }
+    }
+    // Sync subscription from Firestore (SA-activated plans)
+    if(salon.plan || salon.status || salon.expiry){
+      const sub = S.getObj('sp_sub') || {};
+      if(salon.plan)   sub.plan   = salon.plan;
+      if(salon.status) sub.status = salon.status;
+      if(salon.expiry) sub.expiry = salon.expiry;
+      if(salon.trialStart) sub.trialStart = salon.trialStart;
+      S.setObj('sp_sub', sub);
+      updateSubUI();
+    }
+    if(salon.suspended){ showSuspendedScreen(); return; }
+    if(salon.featureFlags) applyFeatureFlags(salon.featureFlags);
+  } catch(e){ console.warn('readSalonConfig error:', e); }
+}
+
+function applyFeatureFlags(flags){
+  const map = {
+    inventory:    ['nav-inventory',    'mn-inventory'],
+    staff:        ['nav-staff',        'mn-staff'],
+    appointments: ['nav-appointments', 'mn-appointments'],
+    revenue:      ['nav-revenue',      'mn-revenue'],
+    expenses:     ['nav-expenses',     'mn-expenses'],
+    permissions:  ['nav-permissions',  'mn-permissions']
+  };
+  Object.entries(map).forEach(([key, ids]) => {
+    const enabled = flags[key] !== false;
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = enabled ? '' : 'none';
+    });
+  });
+  const gfCard = document.getElementById('googleFormCard');
+  if(gfCard){
+    const saEnabled = flags.googleForm !== false;
+    if(!saEnabled){ gfCard.style.display='none'; return; }
+    gfCard.style.display = '';
+    gfCard.classList.toggle('feature-locked', !isCloudPlan());
+    // Ajouter/retirer l'overlay de verrouillage
+    let overlay = gfCard.querySelector('.feature-lock-overlay');
+    if(!isCloudPlan()){
+      if(!overlay){
+        overlay = document.createElement('div');
+        overlay.className = 'feature-lock-overlay';
+        overlay.innerHTML = `<div class="feature-lock-icon">🔒</div>
+          <div class="feature-lock-label" data-translate="Yearly Plan Required">Yearly Plan Required</div>
+          <div class="feature-lock-sub" data-translate="Upgrade to Yearly to unlock online booking">Upgrade to Yearly to unlock online booking</div>
+          <button class="btn btn-gold btn-sm" style="margin-top:6px" onclick="showPaywall()" data-translate="Upgrade →">Upgrade →</button>`;
+        gfCard.appendChild(overlay);
+      }
+    } else {
+      if(overlay) overlay.remove();
+    }
+  }
+}
+
+function showSuspendedScreen(){ document.getElementById('suspendedScreen').classList.add('show'); }
+function hideSuspendedScreen(){ document.getElementById('suspendedScreen').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — DATA LOADER + REFRESH
+// ══════════════════════════════════════════════════════
+
+let _saAllSalons = [];
+
+async function loadSaData(force = false){
+  if(!window.SalonRegistryAPI) return;
+  if(!force && _saAllSalons.length) return;
+  try {
+    _saAllSalons = await window.SalonRegistryAPI.getAllSalons();
+  } catch(e){ console.error('loadSaData:', e); }
+}
+
+async function saRefresh(page){
+  if(page==='messages'){ await saLoadMessages(true); showToast('🔄 Messages actualisés.'); return; }
+  await loadSaData(true);
+  if(page==='dashboard'){ saRenderDashboard(_saAllSalons); showToast('🔄 Dashboard actualisé.'); return; }
+  if(page==='owners')   { saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons); }
+  if(page==='payments') saRenderPayments(_saAllSalons);
+  if(page==='gforms')   saRenderGoogleForms(_saAllSalons);
+  if(page==='modules')  saRenderModules(_saAllSalons);
+  showToast('🔄 Données actualisées.');
+}
+
+// ── MESSAGES ────────────────────────────────────────────────────────────────
+let _allMessages   = [];
+let _msgFilter     = 'all';
+let _replyIds      = [];   // ids involved in current reply (1 or many)
+
+async function saLoadMessages(force = false){
+  if(!window.ContactAPI){ document.getElementById('msgList').innerHTML='<div class="msg-empty">ContactAPI non disponible.</div>'; return; }
+  try {
+    _allMessages = await window.ContactAPI.getAll();
+  } catch(e){ console.error('saLoadMessages:', e); _allMessages=[]; }
+  msgRenderStats();
+  filterMessages(_msgFilter);
+  updateUnreadBadge();
+}
+
+function msgRenderStats(){
+  const total   = _allMessages.length;
+  const unread  = _allMessages.filter(m=>m.status==='unread').length;
+  const replied = _allMessages.filter(m=>m.status==='replied').length;
+  const today   = _allMessages.filter(m=>{
+    const d = m.createdAt?.seconds ? new Date(m.createdAt.seconds*1000) : new Date(m.createdAt||0);
+    return d.toDateString()===new Date().toDateString();
+  }).length;
+  document.getElementById('msgStatsGrid').innerHTML=`
+    <div class="sa-stat"><div class="sa-stat-val">${total}</div><div class="sa-stat-lbl">Total</div></div>
+    <div class="sa-stat" style="border-color:var(--gold-dim)"><div class="sa-stat-val" style="color:var(--gold-light)">${unread}</div><div class="sa-stat-lbl">Non lus</div></div>
+    <div class="sa-stat" style="border-color:rgba(39,174,96,.3)"><div class="sa-stat-val" style="color:#2ecc71">${replied}</div><div class="sa-stat-lbl">Répondus</div></div>
+    <div class="sa-stat"><div class="sa-stat-val">${today}</div><div class="sa-stat-lbl">Aujourd'hui</div></div>`;
+}
+
+function updateUnreadBadge(){
+  const n   = _allMessages.filter(m=>m.status==='unread').length;
+  const el  = document.getElementById('msgUnreadBadge');
+  if(!el) return;
+  if(n>0){ el.textContent=n; el.style.display='inline'; }
+  else   { el.style.display='none'; }
+}
+
+function filterMessages(filter){
+  if(filter) _msgFilter = filter;
+  document.querySelectorAll('.msg-filter-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('msgf-'+_msgFilter);
+  if(btn) btn.classList.add('active');
+  const q = (document.getElementById('msgSearch')?.value||'').toLowerCase();
+  let msgs = _allMessages;
+  if(_msgFilter!=='all') msgs = msgs.filter(m=>m.status===_msgFilter);
+  if(q) msgs = msgs.filter(m=>`${m.firstName} ${m.lastName} ${m.email} ${m.subject} ${m.message}`.toLowerCase().includes(q));
+  renderMsgList(msgs);
+  saClearSelection();
+}
+
+function renderMsgList(msgs){
+  const el = document.getElementById('msgList');
+  if(!msgs.length){ el.innerHTML='<div class="msg-empty">Aucun message correspondant.</div>'; return; }
+  el.innerHTML = msgs.map(m=>{
+    const d   = m.createdAt?.seconds ? new Date(m.createdAt.seconds*1000) : new Date(m.createdAt||0);
+    const dt  = isNaN(d)?'—':d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const st  = m.status||'unread';
+    const lbl = st==='unread'?'Non lu':st==='replied'?'Répondu':'Lu';
+    const preview = (m.message||'').slice(0,120).replace(/\n/g,' ');
+    return `<div class="msg-card ${st}" id="msgcard-${m.id}">
+  <input type="checkbox" class="msg-check" value="${m.id}" onchange="updateMsgBulkBar()">
+  <div class="msg-body">
+    <div class="msg-top">
+      <span class="msg-name">${esc(m.firstName)} ${esc(m.lastName)}</span>
+      <span class="msg-date">${dt}</span>
+    </div>
+    <div class="msg-email">${esc(m.email)}</div>
+    <div class="msg-subject-line"><em>${esc(m.subject)}</em></div>
+    <div class="msg-preview" id="prev-${m.id}">${esc(preview)}${(m.message||'').length>120?'…':''}</div>
+    <div class="msg-full"   id="full-${m.id}">${esc(m.message||'')}</div>
+    <div class="msg-meta">
+      <span class="msg-status ${st}">${lbl}</span>
+      <div class="msg-actions-row">
+        <button class="msg-btn" onclick="toggleMsgFull('${m.id}')">Voir</button>
+        <button class="msg-btn primary" onclick="openReplyModal(['${m.id}'])">✉ Répondre</button>
+        ${st!=='read'&&st!=='replied'?`<button class="msg-btn" onclick="saMarkMsgRead('${m.id}')">✓ Lu</button>`:''}
+        <button class="msg-btn danger" onclick="saDeleteMsg('${m.id}')">🗑</button>
+      </div>
+    </div>
+  </div>
+</div>`; }).join('');
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toggleMsgFull(id){
+  const prev = document.getElementById('prev-'+id);
+  const full = document.getElementById('full-'+id);
+  const open = full.classList.toggle('open');
+  if(prev) prev.style.display = open?'none':'';
+  const btn = full.closest('.msg-card')?.querySelector('.msg-btn');
+  if(btn) btn.textContent = open?'Réduire':'Voir';
+  if(open){ const m=_allMessages.find(x=>x.id===id); if(m&&m.status==='unread') saMarkMsgRead(id,true); }
+}
+
+async function saMarkMsgRead(id, silent=false){
+  try { await window.ContactAPI.markRead(id); } catch{}
+  const m = _allMessages.find(x=>x.id===id);
+  if(m){ m.status='read'; }
+  const card = document.getElementById('msgcard-'+id);
+  if(card){ card.classList.remove('unread','replied'); card.classList.add('read'); }
+  msgRenderStats(); updateUnreadBadge();
+  if(!silent) showToast('✓ Message marqué comme lu.');
+}
+
+async function saDeleteMsg(id){
+  if(!confirm('Supprimer ce message définitivement ?')) return;
+  try { await window.ContactAPI.delete(id); } catch{}
+  _allMessages = _allMessages.filter(x=>x.id!==id);
+  filterMessages(); msgRenderStats(); updateUnreadBadge();
+  showToast('🗑 Message supprimé.');
+}
+
+// ── Reply modal ──
+function openReplyModal(ids){
+  _replyIds = ids;
+  const msgs = ids.map(id=>_allMessages.find(m=>m.id===id)).filter(Boolean);
+  if(!msgs.length) return;
+  if(ids.length===1){
+    const m = msgs[0];
+    document.getElementById('saReplyTitle').textContent = 'Répondre à '+m.firstName+' '+m.lastName;
+    document.getElementById('saReplyTo').textContent    = 'À : '+m.email;
+    document.getElementById('saReplySubject').value     = 'Re: '+m.subject;
+  } else {
+    document.getElementById('saReplyTitle').textContent = 'Répondre en groupe ('+ids.length+' messages)';
+    document.getElementById('saReplyTo').textContent    = 'À : '+msgs.map(m=>m.email).join(', ');
+    document.getElementById('saReplySubject').value     = 'Re: StrandPro — Votre message';
+  }
+  document.getElementById('saReplyBody').value = '';
+  document.getElementById('saReplyModal').classList.add('open');
+}
+
+function closeReplyModal(){
+  document.getElementById('saReplyModal').classList.remove('open');
+  _replyIds=[];
+}
+
+async function sendReply(){
+  const subject = document.getElementById('saReplySubject').value.trim();
+  const body    = document.getElementById('saReplyBody').value.trim();
+  if(!body){ showToast('Veuillez rédiger un message.'); return; }
+  const msgs    = _replyIds.map(id=>_allMessages.find(m=>m.id===id)).filter(Boolean);
+  const emails  = msgs.map(m=>m.email).join(',');
+  const mailto  = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  // Mark all as replied
+  for(const m of msgs){
+    try { await window.ContactAPI.markReplied(m.id); m.status='replied'; } catch{}
+  }
+  closeReplyModal();
+  filterMessages(); msgRenderStats(); updateUnreadBadge();
+  showToast('✉ Ouverture de votre messagerie…');
+}
+
+// ── Bulk actions ──
+function updateMsgBulkBar(){
+  const checked = [...document.querySelectorAll('.msg-check:checked')];
+  const bar = document.getElementById('msgBulkBar');
+  if(checked.length){ bar.classList.add('show'); document.getElementById('msgBulkCount').textContent=checked.length+' sélectionné(s)'; }
+  else { bar.classList.remove('show'); }
+}
+
+function saClearSelection(){
+  document.querySelectorAll('.msg-check:checked').forEach(c=>c.checked=false);
+  document.getElementById('msgBulkBar')?.classList.remove('show');
+}
+
+function saReplyBulk(){
+  const ids = [...document.querySelectorAll('.msg-check:checked')].map(c=>c.value);
+  if(!ids.length) return;
+  openReplyModal(ids);
+}
+
+async function saBulkMarkRead(){
+  const ids = [...document.querySelectorAll('.msg-check:checked')].map(c=>c.value);
+  for(const id of ids){ try{ await window.ContactAPI.markRead(id); const m=_allMessages.find(x=>x.id===id); if(m) m.status='read'; }catch{} }
+  filterMessages(); msgRenderStats(); updateUnreadBadge(); saClearSelection();
+  showToast('✓ Messages marqués comme lus.');
+}
+
+async function saBulkDelete(){
+  const ids = [...document.querySelectorAll('.msg-check:checked')].map(c=>c.value);
+  if(!ids.length || !confirm(`Supprimer ${ids.length} message(s) ?`)) return;
+  for(const id of ids){ try{ await window.ContactAPI.delete(id); }catch{} }
+  _allMessages = _allMessages.filter(m=>!ids.includes(m.id));
+  filterMessages(); msgRenderStats(); updateUnreadBadge(); saClearSelection();
+  showToast('🗑 Messages supprimés.');
+}
+
+// Close reply modal on backdrop click
+document.getElementById('saReplyModal')?.addEventListener('click',function(e){ if(e.target===this) closeReplyModal(); });
+
+// ── END MESSAGES ─────────────────────────────────────────────────────────────
+
+// ── SA DASHBOARD ─────────────────────────────────────────────────────────────
+function saRenderDashboard(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  const user = getCurrentUser();
+
+  // ── Welcome card ──
+  const hours = new Date().getHours();
+  const greeting = t(hours < 12 ? 'Good morning' : hours < 18 ? 'Good afternoon' : 'Good evening');
+  const el_name = document.getElementById('saWelcomeName');
+  const el_sub  = document.getElementById('saWelcomeSub');
+  const el_date = document.getElementById('saWelcomeDate');
+  if(el_name) el_name.textContent = `${greeting}, ${user?.name || 'SuperAdmin'} !`;
+  if(el_sub)  el_sub.textContent  = salons.length
+    ? `${salons.length} ${t('salon(s) registered — StrandPro overview.')}`
+    : t('No salons registered yet.');
+  const locale = _lang === 'fr' ? 'fr-FR' : _lang === 'es' ? 'es-ES' : 'en-US';
+  if(el_date) el_date.textContent = new Date().toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // ── Calculs ──
+  const total     = salons.length;
+  const active    = salons.filter(s => s.status==='active' && !s.suspended).length;
+  const trial     = salons.filter(s => s.status==='trial'  && !s.suspended).length;
+  const suspended = salons.filter(s => s.suspended).length;
+  const expired   = salons.filter(s => s.status==='expired').length;
+  const yearly    = salons.filter(s => s.plan==='yearly').length;
+  const monthly   = salons.filter(s => s.plan==='monthly').length;
+  const withForm  = salons.filter(s => s.googleFormUrl).length;
+
+  // MRR
+  const mrr = salons.reduce((acc, s) => {
+    if(s.suspended || s.status==='expired') return acc;
+    if(s.plan==='yearly')  return acc + 12.50;  // $150/yr ÷ 12
+    if(s.plan==='monthly') return acc + 19.99;
+    return acc;
+  }, 0);
+  const arr = mrr * 12;
+
+  // Messages non lus
+  const unreadMsgs = _allMessages.filter(m => m.status==='unread').length;
+
+  // Nouveaux owners (30 jours)
+  const now30 = Date.now() - 30*24*3600*1000;
+  const recentSalons = salons.filter(s => {
+    const ts = s.createdAt?.seconds ? s.createdAt.seconds*1000 : (s.createdAt || 0);
+    return ts > now30;
+  }).sort((a,b) => {
+    const ta = a.createdAt?.seconds ? a.createdAt.seconds*1000 : (a.createdAt||0);
+    const tb = b.createdAt?.seconds ? b.createdAt.seconds*1000 : (b.createdAt||0);
+    return tb - ta;
+  });
+
+  // Expirations dans 7 jours
+  const expiring = salons.filter(s => {
+    if(s.suspended || !s.expiry) return false;
+    const ms = s.expiry?.seconds ? s.expiry.seconds*1000 : s.expiry;
+    const days = (ms - Date.now()) / 86400000;
+    return days >= 0 && days <= 7;
+  }).sort((a,b) => {
+    const ta = a.expiry?.seconds ? a.expiry.seconds*1000 : a.expiry;
+    const tb = b.expiry?.seconds ? b.expiry.seconds*1000 : b.expiry;
+    return ta - tb;
+  });
+
+  // ── KPIs ──
+  const kpiEl = document.getElementById('saKpiGrid');
+  if(kpiEl) kpiEl.innerHTML = `
+    <div class="sa-kpi gold">
+      <div class="sa-kpi-icon">👥</div>
+      <div class="sa-kpi-val">${total}</div>
+      <div class="sa-kpi-lbl">${t('Total Salons')}</div>
+      <div class="sa-kpi-trend" style="color:var(--text3)">${trial} ${t('in trial')} · ${suspended} ${t('suspended')}</div>
+    </div>
+    <div class="sa-kpi green">
+      <div class="sa-kpi-icon">💰</div>
+      <div class="sa-kpi-val">$${mrr.toFixed(0)}</div>
+      <div class="sa-kpi-lbl">${t('Estimated MRR')}</div>
+      <div class="sa-kpi-trend" style="color:var(--text3)">${t('ARR:')} $${arr.toFixed(0)}${t('/yr')}</div>
+    </div>
+    <div class="sa-kpi blue">
+      <div class="sa-kpi-icon">✅</div>
+      <div class="sa-kpi-val">${active}</div>
+      <div class="sa-kpi-lbl">${t('Active subscribers')}</div>
+      <div class="sa-kpi-trend" style="color:var(--text3)">${yearly} ${t('cloud')} · ${monthly} ${t('local')}</div>
+    </div>
+    <div class="sa-kpi ${unreadMsgs>0?'red':''}">
+      <div class="sa-kpi-icon">💬</div>
+      <div class="sa-kpi-val" style="${unreadMsgs>0?'color:#e74c3c':''};cursor:pointer" onclick="navigate('sa-messages')">${unreadMsgs}</div>
+      <div class="sa-kpi-lbl">${t('Unread messages')}</div>
+      <div class="sa-kpi-trend" style="color:var(--text3)">${_allMessages.length} ${t('total')}</div>
+    </div>
+  `;
+
+  // ── Badge message dans les quicklinks ──
+  const qlBadge = document.getElementById('saQlMsgBadge');
+  if(qlBadge){ qlBadge.textContent=unreadMsgs; qlBadge.style.display=unreadMsgs?'inline':'none'; }
+
+  // ── Répartition des plans ──
+  const planEl = document.getElementById('saPlanBreakdown');
+  if(planEl){
+    const planData = [
+      { label:'Yearly ☁',         count:yearly,  color:'#5b8eff', pct: total ? Math.round(yearly/total*100) : 0 },
+      { label:'Monthly 💾',        count:monthly, color:'var(--gold)', pct: total ? Math.round(monthly/total*100) : 0 },
+      { label:'Trial ⏳',          count:trial,   color:'#a855f7', pct: total ? Math.round(trial/total*100) : 0 },
+      { label:t('Expired ❌'),     count:expired, color:'#e74c3c', pct: total ? Math.round(expired/total*100) : 0 },
+    ];
+    planEl.innerHTML = total ? `<div class="sa-plan-bar-wrap">${
+      planData.map(p=>`
+      <div class="sa-plan-bar-row">
+        <span>${p.label}</span>
+        <div class="sa-plan-bar-bg"><div class="sa-plan-bar-fill" style="width:${p.pct}%;background:${p.color}"></div></div>
+        <span class="sa-plan-bar-count">${p.count}</span>
+      </div>`).join('')
+    }</div>
+    <div style="margin-top:12px;font-size:.75rem;color:var(--text3)">${withForm} ${t('salon(s) with Google Form configured')}</div>`
+    : `<div class="sa-empty-dash">${t('No salons registered.')}</div>`;
+  }
+
+  // ── Expirations proches ──
+  const expEl = document.getElementById('saExpiringSoon');
+  if(expEl) expEl.innerHTML = expiring.length
+    ? expiring.slice(0,5).map(s => {
+        const ms   = s.expiry?.seconds ? s.expiry.seconds*1000 : s.expiry;
+        const days = Math.ceil((ms-Date.now())/86400000);
+        const col  = days<=2?'#e74c3c':days<=4?'#e67e22':'var(--gold-light)';
+        return `<div class="sa-dash-row">
+          <span class="sa-dash-row-label">${s.businessName||s.username||'—'}</span>
+          <span class="sa-dash-row-val" style="color:${col}">J-${days}</span>
+        </div>`;
+      }).join('')
+    : `<div class="sa-empty-dash">${t('No upcoming expirations 🎉')}</div>`;
+
+  // ── Nouveaux owners (30 j) ──
+  const newEl = document.getElementById('saRecentSignups');
+  if(newEl) newEl.innerHTML = recentSalons.length
+    ? recentSalons.slice(0,5).map(s => {
+        const ts  = s.createdAt?.seconds ? s.createdAt.seconds*1000 : (s.createdAt||0);
+        const dt  = ts ? new Date(ts).toLocaleDateString(locale,{day:'2-digit',month:'short'}) : '—';
+        return `<div class="sa-dash-row">
+          <span class="sa-dash-row-label">${s.businessName||s.username||'—'} <span style="font-size:.68rem;color:var(--text3)">${s.city||''}</span></span>
+          <span class="sa-dash-row-val" style="color:var(--text3)">${dt}</span>
+        </div>`;
+      }).join('')
+    : `<div class="sa-empty-dash">${t('No new salons this month.')}</div>`;
+
+  // ── Stockage Cloud vs Local ──
+  const stEl = document.getElementById('saStorageSplit');
+  if(stEl){
+    const cloudPct = total ? Math.round(yearly/total*100) : 0;
+    const localPct = 100 - cloudPct;
+    stEl.innerHTML = `
+      <div class="sa-plan-bar-wrap">
+        <div class="sa-plan-bar-row">
+          <span>☁ Cloud</span>
+          <div class="sa-plan-bar-bg"><div class="sa-plan-bar-fill" style="width:${cloudPct}%;background:#5b8eff"></div></div>
+          <span class="sa-plan-bar-count">${yearly}</span>
+        </div>
+        <div class="sa-plan-bar-row">
+          <span>💾 Local</span>
+          <div class="sa-plan-bar-bg"><div class="sa-plan-bar-fill" style="width:${localPct}%;background:var(--gold)"></div></div>
+          <span class="sa-plan-bar-count">${total-yearly}</span>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:.75rem;color:var(--text3)">
+        ${t('The Yearly ($150) plan uses Firestore multi-device cloud storage.')}<br>
+        ${t('The Monthly ($19.99) plan stores data locally.')}
+      </div>`;
+  }
+}
+// ── END SA DASHBOARD ──────────────────────────────────────────────────────────
+
+function saRenderStats(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  const total     = salons.length;
+  const active    = salons.filter(s => s.status==='active').length;
+  const trial     = salons.filter(s => s.status==='trial').length;
+  const suspended = salons.filter(s => s.suspended).length;
+  document.getElementById('saStats').innerHTML = `
+    <div class="sa-stat"><div class="sa-stat-val">${total}</div><div class="sa-stat-lbl">${t('Total Owners')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:#2ecc71">${active}</div><div class="sa-stat-lbl">${t('Active')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:var(--gold)">${trial}</div><div class="sa-stat-lbl">${t('In Trial')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:#9b59b6">${suspended}</div><div class="sa-stat-lbl">${t('Suspended')}</div></div>
+  `;
+}
+
+function sDaysLeft(s){
+  if(s.status==='trial' && s.trialStart){
+    const ms = s.trialStart?.toDate ? s.trialStart.toDate().getTime() : s.trialStart;
+    return Math.max(0, 7 - Math.floor((Date.now()-ms)/86400000));
+  }
+  if(s.expiry){
+    const ms = s.expiry?.toDate ? s.expiry.toDate().getTime() : s.expiry;
+    return Math.max(0, Math.ceil((ms-Date.now())/86400000));
+  }
+  return null;
+}
+
+// ── TAB 1: OWNERS ──
+function saRenderOwners(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  const locale = _lang === 'fr' ? 'fr-FR' : _lang === 'es' ? 'es-ES' : 'en-US';
+  const tbody = document.getElementById('saTableBody');
+  const empty = document.getElementById('saEmpty');
+  if(!salons.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = salons.map(s => {
+    const statusClass = s.suspended ? 'suspended' : (s.status||'trial');
+    const statusLabel = s.suspended ? t('🔒 Suspended') : ({trial:'⏳ Trial',active:t('✅ Active'),expired:t('❌ Expired')}[s.status]||s.status);
+    const created  = s.createdAt?.toDate  ? new Date(s.createdAt.toDate()).toLocaleDateString(locale)  : '—';
+    const lastSeen = s.lastSeen?.toDate   ? timeAgo(s.lastSeen.toDate().getTime())                     : '—';
+    const uid = s.username||s.id;
+    return `<tr>
+      <td><strong>${s.businessName||'—'}</strong><br><span style="font-size:.72rem;color:var(--text3)">${s.city||''}</span></td>
+      <td style="font-size:.78rem">${s.email||'—'}</td>
+      <td style="font-size:.75rem;color:var(--text3)">${created}</td>
+      <td style="font-size:.75rem;color:var(--text3)">${lastSeen}</td>
+      <td><span class="sa-badge ${statusClass}">${statusLabel}</span></td>
+      <td><div class="sa-actions">
+        <button class="sa-btn sa-btn-edit" onclick="openSaEditModal('${uid}')">✏️</button>
+        <button class="sa-btn ${s.suspended?'sa-btn-restore':'sa-btn-suspend'}" onclick="saToggleSuspend('${uid}',${!s.suspended})">${s.suspended?'✅':'🔒'}</button>
+        <button class="sa-btn sa-btn-delete" onclick="saDeleteOwner('${uid}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function saFilterTable(){
+  const q = document.getElementById('saSearch').value.toLowerCase();
+  const filtered = _saAllSalons.filter(s =>
+    (s.username||'').toLowerCase().includes(q) ||
+    (s.businessName||'').toLowerCase().includes(q) ||
+    (s.email||'').toLowerCase().includes(q) ||
+    (s.city||'').toLowerCase().includes(q)
+  );
+  saRenderOwners(filtered);
+}
+
+// ── TAB 2: PAYMENTS ──
+function saRenderPayments(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  const locale = _lang === 'fr' ? 'fr-FR' : _lang === 'es' ? 'es-ES' : 'en-US';
+  const monthly = salons.filter(s => s.plan==='monthly'&&s.status==='active').length;
+  const yearly  = salons.filter(s => s.plan==='yearly' &&s.status==='active').length;
+  const expired = salons.filter(s => s.status==='expired'&&!s.suspended).length;
+  const mrr     = (monthly*19.99 + yearly*150/12).toFixed(2);
+  document.getElementById('saRevStats').innerHTML = `
+    <div class="sa-stat"><div class="sa-stat-val">$${mrr}</div><div class="sa-stat-lbl">${t('Estimated MRR')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:#2ecc71">${monthly}</div><div class="sa-stat-lbl">${t('Active Monthly')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:var(--gold)">${yearly}</div><div class="sa-stat-lbl">${t('Active Yearly')}</div></div>
+    <div class="sa-stat"><div class="sa-stat-val" style="color:#e74c3c">${expired}</div><div class="sa-stat-lbl">${t('Expired')}</div></div>
+  `;
+  const tbody = document.getElementById('saPaymentsBody');
+  if(!salons.length){ tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">${t('No owners.')}</td></tr>`; return; }
+  tbody.innerHTML = salons.map(s => {
+    const daysLeft  = sDaysLeft(s);
+    const expiryStr = s.expiry
+      ? new Date(s.expiry?.toDate ? s.expiry.toDate() : s.expiry).toLocaleDateString(locale)
+      : (s.status==='trial' ? t('Trial ongoing') : '—');
+    const planLabel = s.plan
+      ? `<span style="color:var(--gold-light)">${s.plan==='monthly'?'Monthly $19.99/mo':s.plan==='yearly'?'Yearly $150/yr':'Free'}</span>`
+      : '<span style="color:var(--text3)">— Trial —</span>';
+    const statusClass = s.suspended?'suspended':(s.status||'trial');
+    const statusLabel = s.suspended?t('🔒 Suspended'):({trial:'⏳ Trial',active:t('✅ Active'),expired:t('❌ Expired')}[s.status]||s.status);
+    const daysHtml = daysLeft!==null
+      ? `<span style="color:${daysLeft<=3?'#e74c3c':daysLeft<=7?'var(--warn)':'var(--text2)'}">${daysLeft}j</span>` : '—';
+    const uid = s.username||s.id;
+    return `<tr>
+      <td><strong>${s.businessName||uid}</strong><br><span style="font-size:.72rem;color:var(--text3)">${uid}</span></td>
+      <td>${planLabel}</td>
+      <td><span class="sa-badge ${statusClass}">${statusLabel}</span></td>
+      <td style="font-size:.78rem;color:var(--text3)">${expiryStr}</td>
+      <td style="text-align:center">${daysHtml}</td>
+      <td><button class="sa-btn sa-btn-edit" onclick="openSaActivateModal('${uid}')">${t('💳 Activate')}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── TAB 3: GOOGLE FORMS ──
+function saRenderGoogleForms(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  // Restore saved GAS URL in input
+  const gasInput = document.getElementById('gasApiUrlInput');
+  if(gasInput && !gasInput.value) gasInput.value = localStorage.getItem('sp_sa_gasUrl') || '';
+
+  const tbody = document.getElementById('saGformsBody');
+  if(!salons.length){ tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">${t('No owners.')}</td></tr>`; return; }
+  tbody.innerHTML = salons.map(s => {
+    const hasForm = s.googleFormUrl
+      ? `<a href="${s.googleFormUrl}" target="_blank" title="${s.googleFormUrl}" style="color:#2ecc71;text-decoration:none">✅</a>`
+      : '<span style="color:var(--text3)">❌</span>';
+    const hasCsv  = s.csvUrl
+      ? `<a href="${s.csvUrl}" target="_blank" title="${s.csvUrl}" style="color:#2ecc71;text-decoration:none">✅</a>`
+      : '<span style="color:var(--text3)">❌</span>';
+    const formOn  = s.featureFlags?.googleForm !== false;
+    const uid     = s.username||s.id;
+    return `<tr>
+      <td><strong>${s.businessName||'—'}</strong><br><span style="font-size:.72rem;color:var(--text3)">${uid}</span></td>
+      <td style="text-align:center;font-size:1.1rem">${hasForm}</td>
+      <td style="text-align:center;font-size:1.1rem">${hasCsv}</td>
+      <td style="text-align:center"><label class="sa-toggle"><input type="checkbox" ${formOn?'checked':''} onchange="saToggleModule('${uid}','googleForm',this.checked)"><span class="sa-toggle-slider"></span></label></td>
+      <td><button class="sa-btn sa-btn-edit" onclick="openSaCreateFormModal('${uid}')" title="Créer un formulaire Google via Apps Script">🪄</button></td>
+      <td><button class="sa-btn sa-btn-edit" onclick="openSaGformModal('${uid}')" title="Modifier les URLs manuellement">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── TAB 4: MODULES ──
+function saRenderModules(salons){
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  const tbody = document.getElementById('saModulesBody');
+  if(!salons.length){ tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px">${t('No owners.')}</td></tr>`; return; }
+  const mods = ['inventory','staff','appointments','revenue','expenses','googleForm','permissions'];
+  tbody.innerHTML = salons.map(s => {
+    const flags = s.featureFlags || {};
+    const uid   = s.username||s.id;
+    const cells = mods.map(m => {
+      const on = flags[m] !== false;
+      return `<td style="text-align:center"><label class="sa-toggle"><input type="checkbox" ${on?'checked':''} onchange="saToggleModule('${uid}','${m}',this.checked)"><span class="sa-toggle-slider"></span></label></td>`;
+    }).join('');
+    return `<tr><td><strong>${s.businessName||uid}</strong><br><span style="font-size:.72rem;color:var(--text3)">${uid}</span></td>${cells}</tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — GOOGLE FORMS API (GAS)
+// ══════════════════════════════════════════════════════
+
+function saveGasApiUrl(){
+  const url = (document.getElementById('gasApiUrlInput')?.value || '').trim();
+  if(!url){ showGasApiStatus('❌ URL vide.', false); return; }
+  localStorage.setItem('sp_sa_gasUrl', url);
+  showGasApiStatus('✅ URL sauvegardée.', true);
+}
+
+function testGasApi(){
+  const url = (document.getElementById('gasApiUrlInput')?.value || '').trim()
+            || localStorage.getItem('sp_sa_gasUrl') || '';
+  if(!url){ showGasApiStatus('❌ Aucune URL configurée.', false); return; }
+  showGasApiStatus('⏳ Test en cours…', null);
+  // Listen for postMessage from the popup
+  const onMsg = (e) => {
+    if(!e.data || typeof e.data !== 'object' || !('ping' in e.data)) return;
+    window.removeEventListener('message', onMsg);
+    showGasApiStatus(e.data.status === 'ok' ? '✅ API joignable !' : '❌ Réponse inattendue.', e.data.status === 'ok');
+  };
+  window.addEventListener('message', onMsg);
+  const popup = window.open(url + '?action=ping', 'sp_gas_ping', 'width=400,height=300');
+  if(!popup){ showGasApiStatus('❌ Popup bloquée — autorisez les popups et réessayez.', false); window.removeEventListener('message', onMsg); }
+  setTimeout(() => { window.removeEventListener('message', onMsg); }, 15000);
+}
+
+function showGasApiStatus(msg, ok){
+  const el = document.getElementById('gasApiStatus');
+  if(!el) return;
+  el.style.display = 'block';
+  el.style.color = ok === true ? '#2ecc71' : ok === false ? '#e74c3c' : 'var(--text3)';
+  el.textContent = msg;
+}
+
+function openSaCreateFormModal(username){
+  const salon = _saAllSalons.find(s => s.id===username || s.username===username);
+  if(!salon) return;
+  document.getElementById('sacfUsername').value    = username;
+  document.getElementById('sacfTitle').textContent = `🪄 Créer le formulaire — ${salon.businessName||username}`;
+  document.getElementById('sacfSalonName').value   = salon.businessName || '';
+  document.getElementById('sacfOwnerEmail').value  = salon.email        || '';
+  const statusEl = document.getElementById('sacfStatus');
+  statusEl.style.display = 'none'; statusEl.innerHTML = '';
+  document.getElementById('sacfCreateBtn').disabled = false;
+  openModal('saCreateFormModal');
+}
+
+function saCreateForm(){
+  const gasUrl = (document.getElementById('gasApiUrlInput')?.value || '').trim()
+               || localStorage.getItem('sp_sa_gasUrl') || '';
+  if(!gasUrl){
+    closeModal('saCreateFormModal');
+    navigate('sa-gforms');
+    setTimeout(()=>showGasApiStatus('❌ URL GAS non configurée — renseignez-la dans l\'encart ci-dessus.', false), 200);
+    return;
+  }
+  const username   = document.getElementById('sacfUsername').value;
+  const salonName  = document.getElementById('sacfSalonName').value.trim()  || 'Mon Salon';
+  const ownerEmail = document.getElementById('sacfOwnerEmail').value.trim();
+  const services   = document.getElementById('sacfServices').value.trim()
+                   || 'Tresses classiques,Box braids,Cornrows,Vanilles,Crochets,Autre';
+
+  const statusEl = document.getElementById('sacfStatus');
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'var(--bg4)';
+  statusEl.innerHTML = '<span style="color:var(--text3)">⏳ Création en cours… (10 à 30 secondes)</span>';
+  document.getElementById('sacfCreateBtn').disabled = true;
+
+  // Listen for result via postMessage
+  let done = false;
+  const onMsg = (e) => {
+    if(!e.data || typeof e.data !== 'object' || !('success' in e.data)) return;
+    if(done) return;
+    done = true;
+    window.removeEventListener('message', onMsg);
+    document.getElementById('sacfCreateBtn').disabled = false;
+
+    if(e.data.success){
+      const { formUrl, csvUrl, spreadsheetUrl } = e.data;
+      // Save to Firestore + update local cache
+      if(window.SalonRegistryAPI && username){
+        window.SalonRegistryAPI.updateSalon(username, { googleFormUrl: formUrl, csvUrl })
+          .then(() => {
+            const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+            if(idx>-1) Object.assign(_saAllSalons[idx], { googleFormUrl: formUrl, csvUrl });
+            saRenderGoogleForms(_saAllSalons);
+          }).catch(console.error);
+      }
+      statusEl.style.background = 'var(--success-dim)';
+      statusEl.innerHTML = `
+        <div style="color:#2ecc71;font-weight:600;margin-bottom:8px">✅ Formulaire créé avec succès !</div>
+        <div style="font-size:.8rem;margin-bottom:4px">🔗 <a href="${formUrl}" target="_blank" style="color:var(--gold-light)">Lien du formulaire (à envoyer aux clients)</a></div>
+        <div style="font-size:.8rem;margin-bottom:4px">📊 <a href="${spreadsheetUrl}" target="_blank" style="color:var(--gold-light)">Feuille de réponses</a></div>
+        <div style="font-size:.78rem;color:#7ecba1;margin-top:4px">URLs sauvegardées automatiquement pour ${username}.</div>`;
+    } else {
+      statusEl.style.background = 'var(--danger-dim)';
+      statusEl.innerHTML = `<span style="color:#e74c3c">❌ Erreur GAS : ${e.data.error||'Inconnue'}</span>`;
+    }
+  };
+  window.addEventListener('message', onMsg);
+
+  // Open GAS popup
+  const params = new URLSearchParams({ action:'createForm', salonName, ownerEmail, services });
+  const popup  = window.open(gasUrl + '?' + params.toString(), 'sp_gas_create', 'width=520,height=380,scrollbars=yes');
+
+  if(!popup || popup.closed){
+    window.removeEventListener('message', onMsg);
+    document.getElementById('sacfCreateBtn').disabled = false;
+    statusEl.style.background = 'var(--danger-dim)';
+    statusEl.innerHTML = `<span style="color:#e74c3c">❌ Popup bloquée. Autorisez les popups dans votre navigateur et réessayez.</span>`;
+    return;
+  }
+  // Timeout après 60 s
+  setTimeout(() => {
+    if(done) return;
+    window.removeEventListener('message', onMsg);
+    if(document.getElementById('sacfCreateBtn').disabled){
+      document.getElementById('sacfCreateBtn').disabled = false;
+      statusEl.style.background = 'var(--warn-dim)';
+      statusEl.innerHTML = `<span style="color:var(--warn)">⚠️ Délai dépassé. Vérifiez si la popup a répondu ou consultez les logs GAS.</span>`;
+    }
+  }, 60000);
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — MODULE TOGGLE (Tabs 3 & 4)
+// ══════════════════════════════════════════════════════
+
+async function saToggleModule(username, module, value){
+  if(!window.SalonRegistryAPI) return;
+  const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+  if(idx===-1) return;
+  const flags = Object.assign({
+    inventory:true,staff:true,appointments:true,revenue:true,expenses:true,googleForm:true,permissions:true
+  }, _saAllSalons[idx].featureFlags||{});
+  flags[module] = value;
+  try {
+    await window.SalonRegistryAPI.updateSalon(username, { featureFlags: flags });
+    _saAllSalons[idx].featureFlags = flags;
+    showToast(`${value?'✅':'❌'} Module ${module} ${value?'activé':'désactivé'} — ${username}`);
+  } catch(e){
+    showToast('Erreur : '+e.message);
+    saRenderGoogleForms(_saAllSalons);
+    saRenderModules(_saAllSalons);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — PROFILE EDIT (Tab 1)
+// ══════════════════════════════════════════════════════
+
+function openSaEditModal(username){
+  const salon = _saAllSalons.find(s => s.id===username || s.username===username);
+  if(!salon) return;
+  document.getElementById('saEditUsername').value      = username;
+  document.getElementById('saEditTitle').textContent   = `✏️ ${salon.businessName||username}`;
+  document.getElementById('saEditBusinessName').value  = salon.businessName || '';
+  document.getElementById('saEditCity').value          = salon.city         || '';
+  document.getElementById('saEditEmail').value         = salon.email        || '';
+  document.getElementById('saNewPassword').value       = '';
+  ['saEditErr','saEditOk'].forEach(id=>{ const el=document.getElementById(id); if(el){el.className='auth-msg';el.textContent='';} });
+  openModal('saEditModal');
+}
+
+async function saveSaProfile(){
+  const username = document.getElementById('saEditUsername').value;
+  const okEl  = document.getElementById('saEditOk');
+  const errEl = document.getElementById('saEditErr');
+  if(!username||!window.SalonRegistryAPI) return;
+  const newPw = document.getElementById('saNewPassword').value.trim();
+  const updateData = {
+    businessName: document.getElementById('saEditBusinessName').value.trim(),
+    city:         document.getElementById('saEditCity').value.trim()
+  };
+  if(newPw){
+    if(newPw.length < 6){ errEl.textContent='Mot de passe trop court (min 6 caractères).'; errEl.className='auth-msg error show'; return; }
+    updateData.tempPassword = hashPw(newPw);
+  }
+  try {
+    await window.SalonRegistryAPI.updateSalon(username, updateData);
+    okEl.textContent='✓ Profil mis à jour !'; okEl.className='auth-msg success show';
+    const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+    if(idx>-1) Object.assign(_saAllSalons[idx], updateData);
+    saRenderOwners(_saAllSalons);
+    setTimeout(()=>closeModal('saEditModal'),1200);
+  } catch(e){ errEl.textContent='Erreur : '+e.message; errEl.className='auth-msg error show'; }
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — PAYMENT ACTIVATION (Tab 2)
+// ══════════════════════════════════════════════════════
+
+function openSaActivateModal(username){
+  const salon = _saAllSalons.find(s => s.id===username || s.username===username);
+  if(!salon) return;
+  document.getElementById('saActivateUsername').value = username;
+  document.getElementById('saActivateTitle').textContent = `💳 ${salon.businessName||username}`;
+  document.getElementById('saActivatePlan').value   = salon.plan   || '';
+  document.getElementById('saActivateStatus').value = salon.status || 'trial';
+  if(salon.expiry){
+    const ms = salon.expiry?.toDate ? salon.expiry.toDate().getTime() : salon.expiry;
+    document.getElementById('saActivateExpiry').value = new Date(ms).toISOString().split('T')[0];
+  } else {
+    document.getElementById('saActivateExpiry').value = '';
+  }
+  ['saActivateErr','saActivateOk'].forEach(id=>{ const el=document.getElementById(id); if(el){el.className='auth-msg';el.textContent='';} });
+  openModal('saActivateModal');
+}
+
+function saSetActivationPreset(plan, months){
+  document.getElementById('saActivatePlan').value   = plan;
+  document.getElementById('saActivateStatus').value = 'active';
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  document.getElementById('saActivateExpiry').value = d.toISOString().split('T')[0];
+}
+
+async function saveSaActivation(){
+  const username = document.getElementById('saActivateUsername').value;
+  const okEl  = document.getElementById('saActivateOk');
+  const errEl = document.getElementById('saActivateErr');
+  if(!username||!window.SalonRegistryAPI) return;
+  const expiryVal = document.getElementById('saActivateExpiry').value;
+  const plan      = document.getElementById('saActivatePlan').value   || null;
+  const status    = document.getElementById('saActivateStatus').value || 'trial';
+  try {
+    await window.SalonRegistryAPI.updateSalon(username, {
+      plan, status, expiry: expiryVal ? new Date(expiryVal).getTime() : null
+    });
+    okEl.textContent='✓ Abonnement mis à jour !'; okEl.className='auth-msg success show';
+    const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+    if(idx>-1) Object.assign(_saAllSalons[idx], { plan, status, expiry: expiryVal ? new Date(expiryVal).getTime() : null });
+    saRenderStats(_saAllSalons); saRenderPayments(_saAllSalons);
+    setTimeout(()=>closeModal('saActivateModal'),1200);
+  } catch(e){ errEl.textContent='Erreur : '+e.message; errEl.className='auth-msg error show'; }
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — GOOGLE FORM URLS (Tab 3)
+// ══════════════════════════════════════════════════════
+
+function openSaGformModal(username){
+  const salon = _saAllSalons.find(s => s.id===username || s.username===username);
+  if(!salon) return;
+  document.getElementById('saGformUsername').value         = username;
+  document.getElementById('saGformTitle').textContent      = `🔗 ${salon.businessName||username}`;
+  document.getElementById('saGformUrl').value              = salon.googleFormUrl || '';
+  document.getElementById('saGformCsvUrl').value           = salon.csvUrl        || '';
+  ['saGformErr','saGformOk'].forEach(id=>{ const el=document.getElementById(id); if(el){el.className='auth-msg';el.textContent='';} });
+  openModal('saGformModal');
+}
+
+async function saveSaGformUrls(){
+  const username = document.getElementById('saGformUsername').value;
+  const okEl  = document.getElementById('saGformOk');
+  const errEl = document.getElementById('saGformErr');
+  if(!username||!window.SalonRegistryAPI) return;
+  const googleFormUrl = document.getElementById('saGformUrl').value.trim();
+  const csvUrl        = document.getElementById('saGformCsvUrl').value.trim();
+  try {
+    await window.SalonRegistryAPI.updateSalon(username, { googleFormUrl, csvUrl });
+    okEl.textContent='✓ URLs enregistrées !'; okEl.className='auth-msg success show';
+    const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+    if(idx>-1) Object.assign(_saAllSalons[idx], { googleFormUrl, csvUrl });
+    saRenderGoogleForms(_saAllSalons);
+    setTimeout(()=>closeModal('saGformModal'),1200);
+  } catch(e){ errEl.textContent='Erreur : '+e.message; errEl.className='auth-msg error show'; }
+}
+
+// ══════════════════════════════════════════════════════
+// SUPERADMIN — SUSPEND / DELETE OWNER
+// ══════════════════════════════════════════════════════
+
+async function saToggleSuspend(username, suspend){
+  if(!window.SalonRegistryAPI) return;
+  if(suspend && !confirm(`Suspendre le compte "${username}" ?`)) return;
+  await window.SalonRegistryAPI.updateSalon(username, { suspended: suspend });
+  const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
+  if(idx>-1) _saAllSalons[idx].suspended = suspend;
+  saRenderOwners(_saAllSalons);
+  showToast(suspend ? `🔒 ${username} suspendu.` : `✅ ${username} réactivé.`);
+}
+
+async function saDeleteOwner(username){
+  if(!window.SalonRegistryAPI) return;
+  if(!confirm(`Supprimer définitivement "${username}" du registre ?`)) return;
+  await window.SalonRegistryAPI.deleteSalon(username);
+  _saAllSalons = _saAllSalons.filter(s=>s.username!==username&&s.id!==username);
+  saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons);
+  showToast(`🗑️ ${username} supprimé du registre.`);
+}
+
 // ── LANG ──
 let _lang = localStorage.getItem('selectedLanguage')||localStorage.getItem('sp_lang') || 'en';
+
+// Initialise le bouton de langue au chargement (évite le 🇺🇸 EN hardcodé si la langue stockée est FR ou ES)
+(function initLangBtn(){
+  const flags={en:'🇺🇸',fr:'🇫🇷',es:'🇪🇸'}, codes={en:'EN',fr:'FR',es:'ES'};
+  const flagEl=document.getElementById('langFlag'), codeEl=document.getElementById('langCode');
+  if(flagEl) flagEl.textContent = flags[_lang]||'🇺🇸';
+  if(codeEl) codeEl.textContent = codes[_lang]||'EN';
+  ['en','fr','es'].forEach(l=>{
+    const el=document.getElementById('lang-'+l);
+    if(el) el.classList.toggle('active', l===_lang);
+  });
+})();
+
 function setLang(lang) {
-  _lang=lang; 
+  _lang=lang;
   // Save language in both keys for consistency between index.html and strandpro.html
   localStorage.setItem('sp_lang',lang);
   localStorage.setItem('selectedLanguage',lang);
@@ -1444,9 +3448,19 @@ function setLang(lang) {
   document.getElementById('langFlag').textContent=flags[lang];
   document.getElementById('langCode').textContent=codes[lang];
   ['en','fr','es'].forEach(l=>document.getElementById('lang-'+l).classList.toggle('active',l===lang));
-  // Apply translations when language changes
-  if (typeof applyTranslations === 'function') {
-    applyTranslations(lang);
+  // Apply translations to static elements
+  if (typeof applyTranslations === 'function') applyTranslations(lang);
+  // Resync subscribe button text if paywall is visible
+  if(document.getElementById('paywallScreen')?.classList.contains('show')) selectPlan(selectedPlan);
+  // Re-render active SA page (JS-rendered content)
+  const activePage = document.querySelector('.page.active');
+  if(activePage){
+    const pageId = activePage.id.replace('page-','');
+    if(pageId==='sa-dashboard') saRenderDashboard(_saAllSalons);
+    else if(pageId==='sa-owners')   { saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons); }
+    else if(pageId==='sa-payments') saRenderPayments(_saAllSalons);
+    else if(pageId==='sa-gforms')   saRenderGoogleForms(_saAllSalons);
+    else if(pageId==='sa-modules')  saRenderModules(_saAllSalons);
   }
   closeLangDropdown();
 }
@@ -1536,11 +3550,15 @@ const PLANS={monthly:{label:'Monthly',price:19.99,cycle:'month',days:30},yearly:
 let selectedPlan='monthly';
 function initSubscription(){
   let sub=S.getObj('sp_sub');
-  if(!sub){sub={status:'trial',trialStart:Date.now(),plan:null,expiry:null};S.setObj('sp_sub',sub);}
+  if(!sub){sub={status:'inactive',plan:null,expiry:null};S.setObj('sp_sub',sub);}
   return sub;
 }
 function getDaysLeft(sub){
-  if(sub.status==='trial')return Math.max(0,7-Math.floor((Date.now()-sub.trialStart)/86400000));
+  if(sub.status==='trial'){
+    if(sub.expiry)return Math.max(0,Math.ceil((sub.expiry-Date.now())/86400000));
+    if(sub.trialStart)return Math.max(0,14-Math.floor((Date.now()-sub.trialStart)/86400000));
+    return 0;
+  }
   if((sub.status==='active'||sub.status==='cancelled')&&sub.expiry)return Math.max(0,Math.ceil((sub.expiry-Date.now())/86400000));
   return 0;
 }
@@ -1568,59 +3586,99 @@ function updateSubUI(){
   else{dot.className='sub-dot expired';pill.textContent='Expired';banner.classList.remove('show');}
 }
 function checkAccess(forceShow = true){if(!isAccessAllowed() && forceShow)showPaywall();else{hidePaywall();updateSubUI();}}
-function showPaywall(){document.getElementById('paywallScreen').classList.add('show');selectPlan('monthly');}
+function showPaywall(){
+  document.getElementById('paywallScreen').classList.add('show');
+  const sub = S.getObj('sp_sub');
+  const trialCard = document.getElementById('planTrial');
+  const alreadyTrialed = sub?.trialStart || sub?.status === 'trial';
+  if(trialCard) trialCard.style.display = alreadyTrialed ? 'none' : '';
+  selectPlan(alreadyTrialed ? 'monthly' : 'trial');
+  if(typeof applyTranslations === 'function') applyTranslations(_lang);
+}
 function hidePaywall(){document.getElementById('paywallScreen').classList.remove('show');}
 function selectPlan(p){
+  const t=key=>(typeof getTranslation==='function')?getTranslation(key,_lang):key;
   selectedPlan=p;
+  document.getElementById('planTrial')?.classList.toggle('selected',p==='trial');
   document.getElementById('planMonthly').classList.toggle('selected',p==='monthly');
   document.getElementById('planYearly').classList.toggle('selected',p==='yearly');
-  document.getElementById('subscribeBtn').textContent=p==='monthly'?'Subscribe — Monthly · $19.99/mo':'Subscribe — Yearly · $150/year (Save $89.88)';
+  const btn=document.getElementById('subscribeBtn');
+  if(p==='trial') btn.textContent=t('Start Free Trial →');
+  else if(p==='monthly') btn.textContent=t('Subscribe — Monthly · $19.99/mo');
+  else btn.textContent=t('Subscribe — Yearly · $150/year (Save $89.88)');
 }
 function confirmSubscribe(){
-    const planInfo = PLANS[selectedPlan];
-    if (!planInfo) return;
-
-    const links = {
-        monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00',
-        yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'
-    };
-
-    // Mise à jour du statut
-    S.setObj('sp_sub', {
-        status: 'pending',           // Important : en attente de paiement
-        plan: selectedPlan,
-        trialStart: S.getObj('sp_sub')?.trialStart || Date.now()
-    });
-
+  if(selectedPlan==='trial'){
     hidePaywall();
-    updateSubUI();
-
-    // Redirection
-    window.location.href = links[selectedPlan];
-
-    // Option bonus : on peut aussi vider le cache de navigation
-    // history.replaceState(null, '', window.location.href);
+    openSpTrialModal();
+    return;
+  }
+  const planInfo = PLANS[selectedPlan];
+  if (!planInfo) return;
+  const links = {
+    monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00',
+    yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'
+  };
+  S.setObj('sp_sub', {
+    status: 'pending',
+    plan: selectedPlan,
+    trialStart: S.getObj('sp_sub')?.trialStart || Date.now()
+  });
+  hidePaywall();
+  updateSubUI();
+  window.location.href = links[selectedPlan];
 }
 function openManageSub(){
   const sub=S.getObj('sp_sub');if(!sub)return;
+  const t=key=>(typeof getTranslation==='function')?getTranslation(key,_lang):key;
   const d=getDaysLeft(sub),body=document.getElementById('manageSubBody');
   const upgradeBtn=document.getElementById('upgradeBtn'),cancelBtn=document.getElementById('cancelBtn');
   if(sub.status==='trial'){
-    body.innerHTML=`<div class="sub-info-row"><span class="label">Status</span><span class="value"><span class="badge badge-warn">Free Trial</span></span></div><div class="sub-info-row"><span class="label">Days Left</span><span class="value" style="color:var(--warn)">${d}</span></div>`;
+    body.innerHTML=`<div class="sub-info-row"><span class="label">${t('Status')}</span><span class="value"><span class="badge badge-warn">${t('Free Trial')}</span></span></div><div class="sub-info-row"><span class="label">${t('Days Left')}</span><span class="value" style="color:var(--warn)">${d}</span></div>`;
     upgradeBtn.style.display='inline-flex';cancelBtn.style.display='none';
   } else if(sub.status==='active'||sub.status==='cancelled'){
     const p=PLANS[sub.plan];
-    body.innerHTML=`<div class="sub-info-row"><span class="label">Status</span><span class="value"><span class="badge badge-success">${sub.status==='cancelled'?'Active (Cancels)':'Active'}</span></span></div><div class="sub-info-row"><span class="label">Plan</span><span class="value">${p?.label} — $${p?.price}/${p?.cycle}</span></div><div class="sub-info-row"><span class="label">Days Left</span><span class="value" style="color:var(--success)">${d}</span></div>`;
+    body.innerHTML=`<div class="sub-info-row"><span class="label">${t('Status')}</span><span class="value"><span class="badge badge-success">${sub.status==='cancelled'?t('Active (Cancels)'):t('Active')}</span></span></div><div class="sub-info-row"><span class="label">${t('Plan')}</span><span class="value">${p?.label} — $${p?.price}/${p?.cycle}</span></div><div class="sub-info-row"><span class="label">${t('Days Left')}</span><span class="value" style="color:var(--success)">${d}</span></div>`;
     upgradeBtn.style.display='inline-flex';cancelBtn.style.display=sub.status==='cancelled'?'none':'inline-flex';
   }
   document.getElementById('manageSubModal').classList.add('open');
 }
 function closeManageSub(){document.getElementById('manageSubModal').classList.remove('open');}
 function cancelSub(){
-  if(!confirm('Cancel subscription? Access continues until current period ends.'))return;
+  const t=key=>(typeof getTranslation==='function')?getTranslation(key,_lang):key;
+  if(!confirm(t('Cancel subscription? Access continues until current period ends.')))return;
   const sub=S.getObj('sp_sub');sub.status='cancelled';S.setObj('sp_sub',sub);
-  closeManageSub();updateSubUI();showToast('Subscription cancelled. Access continues until expiry.');
+  closeManageSub();updateSubUI();showToast(t('Subscription cancelled. Access continues until expiry.'));
 }
+
+// ── TRIAL PLAN MODAL ──
+let _spTrialPlan = 'monthly';
+const STRIPE_TRIAL_LINKS = {
+  monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00', // TODO: remplacer par lien trial Stripe
+  yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'  // TODO: remplacer par lien trial Stripe
+};
+function openSpTrialModal(){
+  _spTrialPlan = 'monthly';
+  selectSpTrial('monthly');
+  document.getElementById('spTrialModal').classList.add('open');
+  if(typeof applyTranslations==='function') applyTranslations(_lang);
+}
+function closeSpTrialModal(){
+  document.getElementById('spTrialModal').classList.remove('open');
+}
+function selectSpTrial(plan){
+  _spTrialPlan = plan;
+  document.getElementById('spto-monthly').classList.toggle('selected', plan==='monthly');
+  document.getElementById('spto-yearly').classList.toggle('selected',  plan==='yearly');
+}
+function startSpTrial(){
+  const link = STRIPE_TRIAL_LINKS[_spTrialPlan];
+  if(!link){ showToast('Trial link not configured yet.'); return; }
+  closeSpTrialModal();
+  showToast(`💳 Redirection vers Stripe — Essai ${_spTrialPlan}…`);
+  setTimeout(()=>{ window.location.href = link; }, 800);
+}
+document.getElementById('spTrialModal').addEventListener('click', function(e){ if(e.target===this) closeSpTrialModal(); });
 
 // ── SIDEBAR ──
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('show');}
@@ -1637,9 +3695,13 @@ function clearCurrentUser(){localStorage.removeItem('sp_session');}
 function ensureAdminExists(){
   const users=getUsers();
   if(!users['admin']){
-    users['admin']={username:'admin',name:'Admin',role:'owner',pw:hashPw('admin123'),email:'',businessName:'',city:'',mustChangePassword:true};
-    setUsers(users);
+    users['admin']={username:'admin',name:'Admin',role:'owner',pw:hashPw('admin123'),email:'admin@strandpro.app',businessName:'',city:'',mustChangePassword:true,googleFormUrl:'',csvUrl:''};
   }
+  // Compte SuperAdmin — credentials hardcodés
+  if(!users['ChristianSuperAdmin']){
+    users['ChristianSuperAdmin']={username:'ChristianSuperAdmin',name:'Christian',role:'superAdmin',pw:hashPw('SuperSecret2026!'),email:'christian@strandpro.app',mustChangePassword:false};
+  }
+  setUsers(users);
 }
 
 function switchAuthTab(tab){
@@ -1661,24 +3723,68 @@ function checkPwStrength(pw,barId='pwBar'){
 }
 
 function doLogin(){
-  const username=document.getElementById('loginUser').value.trim().toLowerCase();
-  const pw=document.getElementById('loginPass').value;
-  if(!username||!pw){showAuthMsg('loginErr','Please enter username and password.');return;}
-  const users=getUsers(),user=users[username];
-  if(!user||user.pw!==hashPw(pw)){showAuthMsg('loginErr','Incorrect username or password.');return;}
-  setCurrentUser({username:user.username,name:user.name,role:user.role});
+  const email = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pw    = document.getElementById('loginPass').value;
+  if(!email||!pw){showAuthMsg('loginErr','Saisis ton email et ton mot de passe.');return;}
+
+  const users = getUsers();
+  // Recherche par email (insensible à la casse)
+  let user = Object.values(users).find(u => u.email && u.email.toLowerCase()===email);
+  // Fallback : compatibilité comptes sans email (ex: admin legacy)
+  if(!user) user = users[email];
+  if(!user||user.pw!==hashPw(pw)){showAuthMsg('loginErr','Email ou mot de passe incorrect.');return;}
+  // Pour le staff d'un owner Yearly : inclure le namespace Firestore de l'owner
+  const _session = {username:user.username, name:user.name, role:user.role};
+  if(user.role==='staff' && user.ownerUsername) _session.salonId = user.ownerUsername;
+  setCurrentUser(_session);
   document.getElementById('loginPass').value='';
+
+  // ── SuperAdmin : accès direct, pas de paywall ni subscription ──
+  if(user.role==='superAdmin'){
+    hideAuthScreen();
+    updateUserUI();
+    applyRoleUI();
+    navigate('sa-dashboard');
+    showToast(`🛡️ Bienvenue, ${user.name} !`);
+    return;
+  }
+
   // Check forced password change
   if(user.mustChangePassword){
     hideAuthScreen();
     showForcedPwScreen();
     return;
   }
+
+  // ── Plan en attente depuis index.html → Stripe ou modal trial ──
+  const _pendingPlan = localStorage.getItem('sp_pending_plan');
+  if(_pendingPlan && user.role==='owner' && (STRIPE_PLANS[_pendingPlan] || _pendingPlan === 'trial')){
+    localStorage.removeItem('sp_pending_plan');
+    hideAuthScreen();
+    updateUserUI();
+    applyRoleUI();
+    syncSalonToFirestore(user);
+    if(_pendingPlan === 'trial'){
+      setTimeout(openSpTrialModal, 400);
+    } else {
+      showToast(`💳 Redirection vers Stripe — Plan ${_pendingPlan}…`);
+      setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pendingPlan]; }, 900);
+    }
+    return;
+  }
+
   hideAuthScreen();
   updateUserUI();
   updateSidebarBranding();
   applyRoleUI();
   initSubscription();checkAccess();seedData();
+
+  // Sync le salon vers Firestore + vérifier suspension / feature flags
+  syncSalonToFirestore(user);
+  readSalonConfig(user.username);
+
+  updateStorageBadge();
+  if(user.role==='owner') checkCloudMigration();
   navigate(user.role==='owner'?'dashboard':'staff');
   showToast(`👋 Welcome back, ${user.name}!`);
   setTimeout(()=>requestNotifPermission(),3000);
@@ -1689,27 +3795,25 @@ function doLogin(){
 
 async function doSignup() {
     const business = document.getElementById('signupBusiness').value.trim();
-    const city = document.getElementById('signupCity').value.trim();
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const username = document.getElementById('signupUser').value.trim().toLowerCase();
-    const pw = document.getElementById('signupPass').value;
-    const pw2 = document.getElementById('signupPass2').value;
+    const city     = document.getElementById('signupCity').value.trim();
+    const name     = document.getElementById('signupName').value.trim();
+    const email    = document.getElementById('signupEmail').value.trim().toLowerCase();
+    const pw       = document.getElementById('signupPass').value;
+    const pw2      = document.getElementById('signupPass2').value;
 
     // Récupération du logo
     const logoInput = document.getElementById('signupLogo');
     let logoBase64 = null;
-
     if (logoInput.files && logoInput.files[0]) {
         logoBase64 = await fileToBase64(logoInput.files[0]);
     }
 
-    if (!business || !city || !name || !username || !pw) {
+    if (!business || !city || !name || !email || !pw) {
         showAuthMsg('signupErr', 'Tous les champs obligatoires doivent être remplis.');
         return;
     }
-    if (username.length < 3) {
-        showAuthMsg('signupErr', 'Le nom d\'utilisateur doit faire au moins 3 caractères.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAuthMsg('signupErr', 'Adresse email invalide.');
         return;
     }
     if (pw.length < 6) {
@@ -1722,36 +3826,46 @@ async function doSignup() {
     }
 
     const users = getUsers();
-    if (users[username]) {
-        showAuthMsg('signupErr', 'Ce nom d\'utilisateur est déjà pris.');
+
+    // Vérifier unicité de l'email
+    if (Object.values(users).some(u => u.email && u.email.toLowerCase() === email)) {
+        showAuthMsg('signupErr', 'Un compte avec cet email existe déjà.');
         return;
     }
 
-    // Création du compte avec le logo
+    // Auto-générer un username interne depuis l'email
+    const username = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30)
+        + '_' + Date.now().toString(36);
+
     users[username] = {
         username,
         name,
-        role: 'owner',
-        pw: hashPw(pw),
+        role:             'owner',
+        pw:               hashPw(pw),
         email,
-        businessName: business,
+        businessName:     business,
         city,
-        logo: logoBase64,           // ← Ajout du logo
-        mustChangePassword: false
+        logo:             logoBase64,
+        mustChangePassword: false,
+        googleFormUrl:    '',
+        csvUrl:           '',
+        createdAt:        Date.now()
     };
 
     setUsers(users);
-    
-    showAuthMsg('signupOk', `✓ Compte créé avec succès ! Connecte-toi avec "${username}".`, 'success');
-    
+
+    // Sync vers Firestore — visible immédiatement dans le SA Dashboard
+    syncSalonToFirestore(users[username]);
+
+    showAuthMsg('signupOk', `✓ Compte créé ! Connecte-toi avec ${email}.`, 'success');
+
     // Réinitialiser le formulaire
     document.getElementById('signupBusiness').value = '';
-    document.getElementById('signupCity').value = '';
-    document.getElementById('signupName').value = '';
-    document.getElementById('signupEmail').value = '';
-    document.getElementById('signupUser').value = '';
-    document.getElementById('signupPass').value = '';
-    document.getElementById('signupPass2').value = '';
+    document.getElementById('signupCity').value     = '';
+    document.getElementById('signupName').value     = '';
+    document.getElementById('signupEmail').value    = '';
+    document.getElementById('signupPass').value     = '';
+    document.getElementById('signupPass2').value    = '';
     document.getElementById('logoPreview').style.display = 'none';
 
     setTimeout(() => switchAuthTab('login'), 1800);
@@ -1905,9 +4019,14 @@ function submitForcedPw(){
 }
 
 function doLogout(){
-  if(!confirm('Sign out?'))return;
-  clearCurrentUser();
   document.getElementById('userDropdown').classList.remove('open');
+  openModal('logoutModal');
+  if(typeof applyTranslations === 'function') applyTranslations(_lang);
+}
+function confirmLogout(){
+  closeModal('logoutModal');
+  clearCurrentUser();
+  hideSuspendedScreen();
   showAuthScreen();
 }
 function showAuthScreen(){document.getElementById('authScreen').classList.add('show');}
@@ -1933,6 +4052,60 @@ function doChangePass(){
   user.pw=hashPw(nw);setUsers(users);
   cpOk.textContent='✓ Password changed!';cpOk.className='auth-msg success show';
   setTimeout(()=>closeModal('changePwModal'),1500);
+}
+
+function openGoogleFormSettings(){
+  document.getElementById('userDropdown').classList.remove('open');
+  const session=getCurrentUser();if(!session)return;
+  const users=getUsers(),user=users[session.username];
+  const formUrl=(user?.googleFormUrl||'').trim();
+  const csvUrl=(user?.csvUrl||'').trim();
+  document.getElementById('gfsFormUrl').value=formUrl;
+  document.getElementById('gfsCsvUrl').value=csvUrl;
+  // Show/hide the setup guide depending on whether URLs are already set
+  const guide=document.getElementById('gfsSetupGuide');
+  const saNote=document.getElementById('gfsSaNote');
+  if(guide) guide.style.display=(formUrl||csvUrl)?'none':'block';
+  if(saNote) saNote.style.display=(formUrl||csvUrl)?'block':'none';
+  ['gfsErr','gfsOk'].forEach(id=>{const e=document.getElementById(id);if(e){e.className='auth-msg';e.textContent='';}});
+  openModal('googleFormSettingsModal');
+}
+
+function saveGoogleFormSettings(){
+  const session=getCurrentUser();if(!session)return;
+  const users=getUsers(),user=users[session.username];
+  const gfsErr=document.getElementById('gfsErr'),gfsOk=document.getElementById('gfsOk');
+  const showErr=msg=>{gfsErr.textContent=msg;gfsErr.className='auth-msg error show';};
+  const formUrl=document.getElementById('gfsFormUrl').value.trim();
+  const csvUrl=document.getElementById('gfsCsvUrl').value.trim();
+  if(!formUrl&&!csvUrl){showErr('Saisis au moins un URL.');return;}
+  user.googleFormUrl=formUrl;
+  user.csvUrl=csvUrl;
+  setUsers(users);
+  updateGfCardStatus();
+  // Sync to Firestore so SA dashboard reflects owner's form URLs
+  if(window.SalonRegistryAPI && session.username){
+    window.SalonRegistryAPI.updateSalon(session.username, { googleFormUrl: formUrl, csvUrl }).catch(()=>{});
+  }
+  gfsOk.textContent='✓ Configuration enregistrée !';gfsOk.className='auth-msg success show';
+  setTimeout(()=>closeModal('googleFormSettingsModal'),1500);
+}
+
+function updateGfCardStatus(){
+  const el=document.getElementById('gfCardStatus');
+  if(!el)return;
+  const session=getCurrentUser();if(!session)return;
+  const users=getUsers(),user=users[session.username];
+  const formUrl=(user?.googleFormUrl||'').trim();
+  const csvUrl=(user?.csvUrl||'').trim();
+  const hasForm=!!formUrl, hasCsv=!!csvUrl;
+  if(hasForm&&hasCsv){
+    el.innerHTML=`<span style="color:var(--success)">✅ Configuré</span> — <a href="${formUrl}" target="_blank" rel="noopener" style="color:var(--gold-light);font-size:.75rem;word-break:break-all">${formUrl}</a>`;
+  } else if(hasForm||hasCsv){
+    el.innerHTML='<span style="color:var(--warn)">⚠️ Partiel</span> — '+(hasForm?'Form ✓':'Form ✗')+' · '+(hasCsv?'CSV ✓':'CSV ✗')+'. Clique <strong>⚙️ Configurer</strong> pour compléter.';
+  } else {
+    el.innerHTML='<span style="color:var(--danger,#e74c3c)">❌ Non configuré</span> — clique <strong>⚙️ Configurer</strong> pour démarrer.';
+  }
 }
 
 function updateUserUI(){
@@ -1965,7 +4138,9 @@ function updateSidebarBranding() {
 
     // Nom du salon
     const salonEl = document.getElementById('sidebarSalonName');
-    if (user?.businessName) {
+    if (user?.role === 'superAdmin') {
+        salonEl.innerHTML = `<span style="font-size:.82rem;letter-spacing:.3px">Centrale Administration StrandproUs</span>`;
+    } else if (user?.businessName) {
         salonEl.innerHTML = `<span>${user.businessName}</span>`;
     } else {
         salonEl.innerHTML = `<span class="brand-placeholder">Your Salon Name</span>`;
@@ -2037,15 +4212,43 @@ function resolvePermKey(username){
 
 function applyRoleUI(){
   const user=getCurrentUser();if(!user)return;
-  const isOwner=user.role==='owner';
+  const isOwner     = user.role==='owner';
+  const isSuperAdmin= user.role==='superAdmin';
+
+  document.body.classList.toggle('is-owner',      isOwner);
+  document.body.classList.toggle('is-superadmin', isSuperAdmin);
+
+  // Éléments owner-only & superadmin-only
   document.querySelectorAll('.owner-only').forEach(el=>el.style.display=isOwner?'':'none');
+  document.querySelectorAll('.superadmin-only').forEach(el=>{
+    if(!isSuperAdmin){ el.style.display='none'; return; }
+    // nav-items et mobile-nav-items s'affichent en flex ; les wrappers génériques en block
+    el.style.display = (el.classList.contains('nav-item')||el.classList.contains('mobile-nav-item')) ? 'flex' : 'block';
+  });
+
+  // Pour le superAdmin : masquer tous les modules normaux
   const allModules=['dashboard','inventory','staff','appointments','revenue','expenses','permissions'];
   allModules.forEach(mod=>{
     const navEl=document.getElementById('nav-'+mod),mobEl=document.getElementById('mn-'+mod);
+    if(isSuperAdmin){
+      if(navEl) navEl.style.display='none';
+      if(mobEl) mobEl.style.display='none';
+      return;
+    }
     const access=canAccess(mod);
     if(navEl){if(mod==='permissions'){navEl.style.display=isOwner?'':'none';}else{navEl.classList.toggle('locked',!access&&!isOwner);}}
     if(mobEl){if(mod==='permissions'){mobEl.classList.toggle('hidden-nav',!isOwner);}else{mobEl.classList.toggle('hidden-nav',!access&&!isOwner);}}
   });
+
+  // Le groupe nav SA est géré par la boucle .superadmin-only ci-dessus
+
+  // SuperAdmin : masquer tout ce qui touche au paiement
+  if(isSuperAdmin){
+    const trialBanner=document.getElementById('trialBanner');
+    if(trialBanner){ trialBanner.classList.remove('show'); trialBanner.style.display='none'; }
+    const subPillWrapper=document.getElementById('subPillWrapper');
+    if(subPillWrapper) subPillWrapper.style.display='none';
+  }
 }
 
 async function renderPermissions() {
@@ -2161,7 +4364,8 @@ function createStaffAccount(){
   const users=getUsers();
   if(users[username]){showErr('That username is already taken.');return;}
   // Create staff account — flagged mustChangePassword
-  users[username]={username,name:staffName,role:'staff',pw:hashPw(pw),email,jobRole,businessName:'',city:'',mustChangePassword:true};
+  const ownerUsername = getCurrentUser()?.username || '';
+  users[username]={username,name:staffName,role:'staff',pw:hashPw(pw),email,jobRole,businessName:'',city:'',mustChangePassword:true,ownerUsername};
   setUsers(users);
   // Migrate roster-keyed perms
   if(rosterKey.startsWith('roster__')){
@@ -2209,8 +4413,26 @@ function managerResetPass(){
 }
 
 // ── NAVIGATION ──
-const PAGE_TITLES={dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',permissions:'Roles & Permissions',denied:'Access Restricted'};
+const PAGE_TITLES={
+  dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',
+  appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',
+  permissions:'Roles & Permissions',denied:'Access Restricted',
+  'sa-dashboard':'Dashboard','sa-owners':'Owners','sa-payments':'Paiements','sa-gforms':'Google Forms','sa-modules':'Modules & Accès','sa-messages':'Messages'
+};
 async function navigate(page){
+  const user = getCurrentUser();
+  if(user?.role==='superAdmin'){
+    _activatePage(page);
+    document.getElementById('topbarTitle').textContent = PAGE_TITLES[page]||page;
+    if(page==='sa-dashboard'){ await loadSaData(); saRenderDashboard(_saAllSalons); }
+    if(page==='sa-owners')   { await loadSaData(); saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons); }
+    if(page==='sa-payments') { await loadSaData(); saRenderPayments(_saAllSalons); }
+    if(page==='sa-gforms')   { await loadSaData(); saRenderGoogleForms(_saAllSalons); }
+    if(page==='sa-modules')  { await loadSaData(); saRenderModules(_saAllSalons); }
+    if(page==='sa-messages') { await saLoadMessages(); }
+    if(typeof applyTranslations === 'function') applyTranslations(_lang);
+    return;
+  }
   if(!isAccessAllowed()){
         showPaywall();
         return;
@@ -2372,6 +4594,9 @@ async function renderDashboard() {
     if (typeof applyTranslations === 'function') {
         applyTranslations(_lang);
     }
+
+    // Refresh Google Form card status
+    updateGfCardStatus();
 }
 
 // ── INVENTORY ──
@@ -3059,6 +5284,40 @@ async function renderRevenue() {
     renderLedger(monthAppts);
 }
 
+function exportRevenueCSV() {
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  if(!isCloudPlan()){
+    showToast('⭐ ' + t('Export CSV requires the Yearly plan.'));
+    setTimeout(() => showPaywall(), 600);
+    return;
+  }
+  const appts = (window.appData?.appts || []).filter(a => a.status !== 'Cancelled');
+  if(!appts.length){ showToast(t('No data to export.')); return; }
+
+  const headers = ['Client','Service','Date','Price','Deposit','Balance','Method','Status'];
+  const rows = appts.map(a => [
+    `"${(a.clientName||'').replace(/"/g,'""')}"`,
+    `"${(a.service||'').replace(/"/g,'""')}"`,
+    a.date || '',
+    (a.price||0).toFixed(2),
+    (a.deposit||0).toFixed(2),
+    ((a.price||0)-(a.deposit||0)).toFixed(2),
+    `"${(a.payMethod||'').replace(/"/g,'""')}"`,
+    a.status || ''
+  ].join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const month = document.getElementById('revMonthFilter')?.value || 'all';
+  link.href = url;
+  link.download = `strandpro-revenue-${month}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ ' + t('CSV exported successfully.'));
+}
+
 function renderLedger(monthAppts) {
     const tbody = document.getElementById('ledgerBody');
     tbody.innerHTML = [...monthAppts].sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1).map(a => {
@@ -3271,8 +5530,38 @@ function checkLowStock(){
 // ── INIT ──
 // ====================== INIT PRINCIPALE ======================
 
+const STRIPE_PLANS = {
+  monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00',
+  yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'
+};
+
+function _applyPendingPlanBanner(){
+  const plan   = localStorage.getItem('sp_pending_plan');
+  const banner = document.getElementById('planRedirectBanner');
+  const chip   = document.getElementById('planBannerChip');
+  if(!banner) return;
+  if(plan){
+    const labels = { monthly:'Monthly · $19.99/mo', yearly:'Yearly · $150/yr', trial:'Free Trial · 14 days free' };
+    chip.textContent     = labels[plan] || plan;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 async function init() {
     console.log("🚀 Initialisation de StrandPro...");
+
+    // ── Détecter ?plan= depuis index.html et sauvegarder ──
+    const _urlPlan = new URLSearchParams(window.location.search).get('plan');
+    if(_urlPlan && (STRIPE_PLANS[_urlPlan] || _urlPlan === 'trial')){
+      localStorage.setItem('sp_pending_plan', _urlPlan);
+      history.replaceState({}, '', window.location.pathname);
+    }
+    _applyPendingPlanBanner();
+
+    // ── SEEDER : crée les comptes système au démarrage ──
+    ensureAdminExists();
 
     // Date dans la topbar
     document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-US', {
@@ -3290,8 +5579,18 @@ async function init() {
     const session = getCurrentUser();
 
     if (session) {
-        const users = getUsers(); // Garde ta logique locale pour l'authentification
-        const user = users[session.username];
+        const users = getUsers();
+        const user  = users[session.username];
+
+        // ── SuperAdmin : bypass total ──
+        if (session.role === 'superAdmin') {
+            hideAuthScreen();
+            updateUserUI();
+            applyRoleUI();
+            if(typeof applyTranslations === 'function') applyTranslations(_lang);
+            navigate('sa-dashboard');
+            return;
+        }
 
         // Vérification du changement forcé de mot de passe
         if (user?.mustChangePassword) {
@@ -3301,20 +5600,36 @@ async function init() {
         }
 
         hideAuthScreen();
-
-        // Mise à jour de l'interface utilisateur
         updateUserUI();
         updateSidebarBranding();
         applyRoleUI();
+
+        // ── Utilisateur déjà connecté + plan en attente → Stripe ou modal trial ──
+        const _pendingOnInit = localStorage.getItem('sp_pending_plan');
+        if(_pendingOnInit && session.role==='owner' && (STRIPE_PLANS[_pendingOnInit] || _pendingOnInit === 'trial')){
+          localStorage.removeItem('sp_pending_plan');
+          syncSalonToFirestore(users[session.username]);
+          if(_pendingOnInit === 'trial'){
+            setTimeout(openSpTrialModal, 400);
+          } else {
+            showToast(`💳 Redirection vers Stripe — Plan ${_pendingOnInit}…`);
+            setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pendingOnInit]; }, 900);
+          }
+          return;
+        }
+
         initSubscription();
         checkAccess(false);
+        updateStorageBadge();
+        if(session.role==='owner'){
+          checkCloudMigration();
+          readSalonConfig(session.username);
+        }
 
         // Navigation selon le rôle et l'accès
         if (isAccessAllowed()) {
             navigate(session.role === 'owner' ? 'dashboard' : 'staff');
             showToast(`👋 Bienvenue ${session.name}!`);
-            
-            // Vérifications initiales (uniquement si utilisateur connecté)
             checkLowStock();
             checkDueTasks();
             checkUpcomingAppts();
@@ -3324,6 +5639,7 @@ async function init() {
 
     } else {
         // Aucun utilisateur connecté → écran de connexion
+        if(typeof applyTranslations === 'function') applyTranslations(_lang);
         showAuthScreen();
     }
 

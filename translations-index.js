@@ -2420,6 +2420,44 @@ const translations = {
   'Email <a href="mailto:support@strandprous.com">support@strandprous.com</a> with any questions about the free trial.': {
     'fr': 'Envoyez un email à <a href="mailto:support@strandprous.com">support@strandprous.com</a> avec toutes les questions sur l\'essai gratuit.',
     'es': 'Envíe un correo electrónico a <a href="mailto:support@strandprous.com">support@strandprous.com</a> con cualquier pregunta sobre la prueba gratuita.'
+  },
+
+  // ── 14-Day Trial keys (updated from 7-day) ──
+  '14-Day Free Trial': {
+    'fr': 'Essai gratuit de 14 jours',
+    'es': 'Prueba gratuita de 14 días'
+  },
+  'All plans include a <strong>14-day free trial</strong>. No credit card required to start.': {
+    'fr': 'Tous les plans incluent un <strong>essai gratuit de 14 jours</strong>. Aucune carte de crédit requise pour commencer.',
+    'es': 'Todos los planes incluyen una <strong>prueba gratuita de 14 días</strong>. No se requiere tarjeta de crédito para comenzar.'
+  },
+  'All new accounts receive a <strong>14-day free trial</strong> with full access to all features. Your payment method is saved by Stripe but not charged during the trial period. You will only be charged on day 15, according to the plan you selected.': {
+    'fr': 'Tous les nouveaux comptes reçoivent un <strong>essai gratuit de 14 jours</strong> avec un accès complet à toutes les fonctionnalités. Votre méthode de paiement est enregistrée par Stripe mais ne sera pas débitée pendant la période d\'essai. Vous ne serez facturé qu\'au 15e jour, selon le plan que vous avez sélectionné.',
+    'es': 'Todas las cuentas nuevas reciben una <strong>prueba gratuita de 14 días</strong> con acceso completo a todas las funciones. Su método de pago es guardado por Stripe pero no se cobra durante el período de prueba. Solo se le cobrará el día 15, según el plan que seleccionó.'
+  },
+  'StrandPro is offered on a subscription basis. After your 14-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).': {
+    'fr': 'StrandPro est offert sur une base d\'abonnement. Après votre essai gratuit de 14 jours, l\'accès nécessite un abonnement payant actif. Le paiement est traité en toute sécurité via Stripe. En vous abonnant, vous autorisez Kamel Tech Solutions LLC à facturer votre méthode de paiement de manière récurrente selon votre plan choisi (mensuel ou annuel).',
+    'es': 'StrandPro se ofrece sobre una base de suscripción. Después de su prueba gratuita de 14 días, el acceso requiere una suscripción de pago activa. El pago se procesa de forma segura a través de Stripe. Al suscribirse, autoriza a Kamel Tech Solutions LLC a cobrar su método de pago de forma recurrente según su plan elegido (mensual o anual).'
+  },
+  'StrandPro offers a 14-day free trial to new accounts. These terms govern the free trial offer.': {
+    'fr': 'StrandPro offre un essai gratuit de 14 jours aux nouveaux comptes. Ces conditions régissent l\'offre d\'essai gratuit.',
+    'es': 'StrandPro ofrece una prueba gratuita de 14 días a las nuevas cuentas. Estos términos rigen la oferta de prueba gratuita.'
+  },
+  'A valid payment method (credit or debit card) is required to start the trial via Stripe — no charge is made until day 15': {
+    'fr': 'Un moyen de paiement valide (carte de crédit ou de débit) est requis pour démarrer l\'essai via Stripe — aucun débit n\'est effectué avant le 15e jour',
+    'es': 'Se requiere un método de pago válido (tarjeta de crédito o débito) para iniciar la prueba a través de Stripe — no se realiza ningún cargo hasta el día 15'
+  },
+  '<strong>Automatic charge on day 15:</strong> Your card saved with Stripe will be automatically charged on day 15 according to your selected plan. Cancel before day 15 to avoid any charge — no partial refunds for unused trial days.': {
+    'fr': '<strong>Débit automatique au jour 15 :</strong> Votre carte enregistrée chez Stripe sera automatiquement débitée au 15e jour selon votre plan sélectionné. Annulez avant le jour 15 pour éviter tout débit — aucun remboursement partiel pour les jours d\'essai non utilisés.',
+    'es': '<strong>Cargo automático el día 15:</strong> Su tarjeta guardada en Stripe se cargará automáticamente el día 15 según su plan seleccionado. Cancele antes del día 15 para evitar cualquier cargo — no hay reembolsos parciales por días de prueba no utilizados.'
+  },
+  'Choose the plan that activates after your 14-day trial. No charge today.': {
+    'fr': 'Choisissez le plan qui s\'active après votre essai de 14 jours. Aucun frais aujourd\'hui.',
+    'es': 'Elija el plan que se activa después de su prueba de 14 días. Sin cargo hoy.'
+  },
+  'Your card is saved by Stripe — not charged until day 15': {
+    'fr': 'Votre carte est enregistrée par Stripe — aucun débit avant le jour 15',
+    'es': 'Su tarjeta es guardada por Stripe — sin cargo hasta el día 15'
   }
 };
 

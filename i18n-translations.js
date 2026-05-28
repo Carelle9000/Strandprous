@@ -1129,9 +1129,172 @@ const i18nTranslations = {
     error: 'Erreur',
     success: 'Succès',
     warning: 'Avertissement',
-    info: 'Info'
+    info: 'Info',
+
+    // ── SuperAdmin Dashboard ──
+    'Refresh': 'Rafraîchir',
+    'Plan distribution': 'Répartition des plans',
+    'See all →': 'Voir tout →',
+    'Expiring in 7 days': 'Expirent dans 7 jours',
+    'New owners (30 days)': 'Nouveaux owners (30 jours)',
+    'Cloud vs Local Storage': 'Stockage Cloud vs Local',
+    'Super Administrator': 'Super Administrateur',
+    'Payments': 'Paiements',
+    'Modules': 'Modules',
+    'Owners': 'Owners',
+
+    // ── SA Owners ──
+    'Owners Registry': 'Registre des Owners',
+    'Search owner / salon…': 'Rechercher owner / salon…',
+    'List and profiles of registered owners': 'Liste et profils des owners inscrits',
+    'Salon / City': 'Salon / Ville',
+    'Registered on': 'Inscrit le',
+    'Last activity': 'Dernière activité',
+    'No owners registered.': 'Aucun owner enregistré.',
+
+    // ── SA Payments ──
+    'Manual subscription activation': 'Activation manuelle des abonnements',
+    'Subscriptions by Owner': 'Abonnements par Owner',
+    'Current Plan': 'Plan actuel',
+    'Days left': 'Jours restants',
+
+    // ── SA Google Forms ──
+    'Creation and management of booking forms': 'Création et gestion des formulaires de réservation',
+    'Google Apps Script — API URL': 'Google Apps Script — URL de l\'API',
+    'Paste the URL of your GAS web app deployed with public access.': 'Collez l\'URL de votre web app GAS déployée en accès public.',
+    'Save': 'Sauvegarder',
+    'Test': 'Tester',
+    'Forms by Owner': 'Formulaires par Owner',
+    'URLs synced on every owner login': 'URLs synchronisées à chaque connexion owner',
+    'Active module': 'Module actif',
+    'Create': 'Créer',
+
+    // ── SA Messages ──
+    'Messages received from the contact form': 'Messages reçus depuis le formulaire de contact',
+    'Reply to group': 'Répondre en groupe',
+    'Mark as read': 'Marquer lus',
+    'All': 'Tous',
+    'Unread': 'Non lus',
+    'Read': 'Lus',
+    'Replied': 'Répondus',
+    'Search…': 'Rechercher…',
+
+    // ── SA Modules ──
+    'Modules & Access': 'Modules & Accès',
+    'Feature control per owner — immediate changes': 'Contrôle des fonctionnalités par owner — changements immédiats',
+
+    // ── SA Reply Modal ──
+    'Reply': 'Répondre',
+    'Subject': 'Objet',
+    'Your reply…': 'Votre réponse…',
+
+    // ── Logout Modal ──
+    'Sign out?': 'Se déconnecter ?',
+    'You will be redirected to the login screen.': 'Tu seras redirigé vers l\'écran de connexion.',
+    'Cancel': 'Annuler',
+    '🚪 Sign out': '🚪 Se déconnecter',
+    '🚪 Sign Out': '🚪 Se déconnecter',
+
+    // ── SA Dynamic Content (JS-rendered) ──
+    'Good morning': 'Bonjour',
+    'Good afternoon': 'Bon après-midi',
+    'Good evening': 'Bonsoir',
+    'salon(s) registered — StrandPro overview.': 'salon(s) enregistré(s) — aperçu StrandPro.',
+    'No salons registered yet.': 'Aucun salon enregistré pour le moment.',
+    'Total Salons': 'Total Salons',
+    'in trial': 'en trial',
+    'suspended': 'suspendus',
+    'Estimated MRR': 'MRR estimé',
+    'ARR': 'ARR',
+    '/yr': '/an',
+    'Active subscribers': 'Abonnés actifs',
+    'cloud': 'cloud',
+    'local': 'local',
+    'Unread messages': 'Messages non lus',
+    'total': 'au total',
+    'Expired ❌': 'Expiré ❌',
+    'salon(s) with Google Form configured': 'salon(s) avec Google Form configuré',
+    'No salons registered.': 'Aucun salon enregistré.',
+    'No upcoming expirations 🎉': 'Aucune expiration imminente 🎉',
+    'No new salons this month.': 'Aucun nouveau salon ce mois-ci.',
+    'The Yearly ($150) plan uses Firestore multi-device cloud storage.': 'Le plan Yearly ($150) bénéficie du stockage Firestore multi-appareils.',
+    'The Monthly ($19.99) plan stores data locally.': 'Le plan Monthly ($19.99) stocke les données en local.',
+    'Total Owners': 'Total Owners',
+    'Active': 'Actifs',
+    'In Trial': 'En Trial',
+    'Suspended': 'Suspendus',
+    '🔒 Suspended': '🔒 Suspendu',
+    '✅ Active': '✅ Actif',
+    '❌ Expired': '❌ Expiré',
+    'Active Monthly': 'Monthly actifs',
+    'Active Yearly': 'Yearly actifs',
+    'Expired': 'Expirés',
+    'Trial ongoing': 'Trial en cours',
+    'No owners.': 'Aucun owner.',
+    '💳 Activate': '💳 Activer',
+    'ARR:': 'ARR :',
+
+    // ── Paywall ──
+    'Choose Your Plan': 'Choisissez votre plan',
+    'Start with a 14-day free trial, or subscribe directly.': 'Commencez avec un essai gratuit de 14 jours, ou abonnez-vous directement.',
+    'Then Monthly or Yearly — cancel before day 15 and pay nothing': 'Puis Monthly ou Yearly — annulez avant le jour 15 et ne payez rien',
+    'Full access to all features for 14 days': 'Accès complet à toutes les fonctionnalités pendant 14 jours',
+    ' today': ' aujourd\'hui',
+    'Start Free Trial →': 'Commencer l\'essai gratuit →',
+    'Subscribe — Monthly · $19.99/mo': 'S\'abonner — Monthly · 19,99 $/mois',
+    'Subscribe — Yearly · $150/year (Save $89.88)': 'S\'abonner — Yearly · 150 $/an (Économisez 89,88 $)',
+    // ── Feature gates ──
+    'Yearly Plan Required': 'Plan Yearly requis',
+    'Upgrade to Yearly to unlock online booking': 'Passez au plan Yearly pour débloquer la réservation en ligne',
+    'Upgrade →': 'Passer →',
+    'Export CSV requires the Yearly plan.': 'L\'export CSV nécessite le plan Yearly.',
+    'No data to export.': 'Aucune donnée à exporter.',
+    'CSV exported successfully.': 'CSV exporté avec succès.',
+    '⬇ Export CSV': '⬇ Exporter CSV',
+    'Google Form booking': 'Réservation Google Form',
+    'CSV Export': 'Export CSV',
+    '🔗 Google Form booking': '🔗 Réservation Google Form',
+    '⬇ CSV Export (revenue & appts)': '⬇ Export CSV (revenus & RDV)',
+    '☁ Cloud sync — all devices': '☁ Sync cloud — tous appareils',
+    '37% Savings vs Monthly': '37 % d\'économies vs Monthly',
+    'Billed monthly · Cancel anytime': 'Facturé mensuellement · Annulable à tout moment',
+    'All Modules': 'Tous les modules',
+    'Appointment Reminders': 'Rappels de rendez-vous',
+    'Staff Notifications': 'Notifications du personnel',
+    'Revenue Analytics': 'Analytique des revenus',
+    'PWA — works offline': 'PWA — fonctionne hors ligne',
+    'Only $12.50/mo · Save $89.88/year': 'Seulement 12,50 $/mois · Économisez 89,88 $/an',
+    'Everything in Monthly': 'Tout ce qui est dans Monthly',
+    '37% Savings': '37 % d\'économies',
+    'Priority Updates': 'Mises à jour prioritaires',
+    'Salon Management System': 'Système de gestion de salon',
+    '/mo': ' /mois',
+    '/yr': ' /an',
+    '★ BEST VALUE': '★ MEILLEURE OFFRE',
+    'No real charge is made (demo). Cancel anytime from the sidebar.': 'Aucun vrai débit (démo). Annulez à tout moment depuis la barre latérale.',
+
+    // ── Trial Modal ──
+    '🎁 14-Day Free Trial': '🎁 Essai Gratuit 14 Jours',
+    'Start Your Free Trial': 'Démarrez votre essai gratuit',
+    'Choose the plan that activates after your 14 days. No charge today.': 'Choisissez le plan qui s\'active après vos 14 jours. Aucun frais aujourd\'hui.',
+    'per month after trial': 'par mois après l\'essai',
+    'Save 37%': 'Économisez 37 %',
+    'per year after trial': 'par an après l\'essai',
+    '14 days full access — completely free': '14 jours d\'accès complet — entièrement gratuit',
+    'Your card is saved by Stripe — not charged until day 15': 'Votre carte est enregistrée par Stripe — sans débit avant le jour 15',
+    'Cancel anytime before the trial ends and pay nothing': 'Annulez avant la fin de l\'essai et ne payez rien',
+    'Continue to Stripe →': 'Continuer vers Stripe →',
+    '🔒 Powered by Stripe. Bank-level encryption.': '🔒 Propulsé par Stripe. Chiffrement bancaire.',
+
+    // ── Manage Sub Modal (JS-rendered) ──
+    'Free Trial': 'Essai Gratuit',
+    'Days Left': 'Jours Restants',
+    'Active (Cancels)': 'Actif (Annulation prévue)',
+    'Plan': 'Plan',
+    'Cancel subscription? Access continues until current period ends.': 'Annuler l\'abonnement ? L\'accès continue jusqu\'à la fin de la période en cours.',
+    'Subscription cancelled. Access continues until expiry.': 'Abonnement annulé. L\'accès continue jusqu\'à l\'expiration.'
   },
-  
+
   es: {
     // Navigation & Menu
     dashboard: 'Panel de Control',
@@ -1732,16 +1895,196 @@ const i18nTranslations = {
     error: 'Error',
     success: 'Éxito',
     warning: 'Advertencia',
-    info: 'Info'
+    info: 'Info',
+
+    // ── SuperAdmin Dashboard ──
+    'Refresh': 'Actualizar',
+    'Plan distribution': 'Distribución de planes',
+    'See all →': 'Ver todo →',
+    'Expiring in 7 days': 'Expiran en 7 días',
+    'New owners (30 days)': 'Nuevos owners (30 días)',
+    'Cloud vs Local Storage': 'Almacenamiento Cloud vs Local',
+    'Super Administrator': 'Super Administrador',
+    'Payments': 'Pagos',
+    'Modules': 'Módulos',
+    'Owners': 'Owners',
+
+    // ── SA Owners ──
+    'Owners Registry': 'Registro de Owners',
+    'Search owner / salon…': 'Buscar owner / salón…',
+    'List and profiles of registered owners': 'Lista y perfiles de owners registrados',
+    'Salon / City': 'Salón / Ciudad',
+    'Registered on': 'Registrado el',
+    'Last activity': 'Última actividad',
+    'No owners registered.': 'Ningún owner registrado.',
+
+    // ── SA Payments ──
+    'Manual subscription activation': 'Activación manual de suscripciones',
+    'Subscriptions by Owner': 'Suscripciones por Owner',
+    'Current Plan': 'Plan actual',
+    'Days left': 'Días restantes',
+
+    // ── SA Google Forms ──
+    'Creation and management of booking forms': 'Creación y gestión de formularios de reserva',
+    'Google Apps Script — API URL': 'Google Apps Script — URL de la API',
+    'Paste the URL of your GAS web app deployed with public access.': 'Pega la URL de tu web app GAS desplegada con acceso público.',
+    'Save': 'Guardar',
+    'Test': 'Probar',
+    'Forms by Owner': 'Formularios por Owner',
+    'URLs synced on every owner login': 'URLs sincronizadas en cada inicio de sesión del owner',
+    'Active module': 'Módulo activo',
+    'Create': 'Crear',
+
+    // ── SA Messages ──
+    'Messages received from the contact form': 'Mensajes recibidos del formulario de contacto',
+    'Reply to group': 'Responder al grupo',
+    'Mark as read': 'Marcar como leídos',
+    'All': 'Todos',
+    'Unread': 'No leídos',
+    'Read': 'Leídos',
+    'Replied': 'Respondidos',
+    'Search…': 'Buscar…',
+
+    // ── SA Modules ──
+    'Modules & Access': 'Módulos y Acceso',
+    'Feature control per owner — immediate changes': 'Control de funciones por owner — cambios inmediatos',
+
+    // ── SA Reply Modal ──
+    'Reply': 'Responder',
+    'Subject': 'Asunto',
+    'Your reply…': 'Tu respuesta…',
+
+    // ── Logout Modal ──
+    'Sign out?': '¿Cerrar sesión?',
+    'You will be redirected to the login screen.': 'Serás redirigido a la pantalla de inicio de sesión.',
+    'Cancel': 'Cancelar',
+    '🚪 Sign out': '🚪 Cerrar sesión',
+    '🚪 Sign Out': '🚪 Cerrar sesión',
+
+    // ── SA Dynamic Content (JS-rendered) ──
+    'Good morning': 'Buenos días',
+    'Good afternoon': 'Buenas tardes',
+    'Good evening': 'Buenas noches',
+    'salon(s) registered — StrandPro overview.': 'salón/salones registrado(s) — resumen StrandPro.',
+    'No salons registered yet.': 'Ningún salón registrado por el momento.',
+    'Total Salons': 'Total Salones',
+    'in trial': 'en prueba',
+    'suspended': 'suspendidos',
+    'Estimated MRR': 'MRR estimado',
+    'ARR': 'ARR',
+    '/yr': '/año',
+    'Active subscribers': 'Suscriptores activos',
+    'cloud': 'cloud',
+    'local': 'local',
+    'Unread messages': 'Mensajes no leídos',
+    'total': 'en total',
+    'Expired ❌': 'Expirado ❌',
+    'salon(s) with Google Form configured': 'salón/salones con Google Form configurado',
+    'No salons registered.': 'Ningún salón registrado.',
+    'No upcoming expirations 🎉': 'Sin expiraciones próximas 🎉',
+    'No new salons this month.': 'Ningún salón nuevo este mes.',
+    'The Yearly ($150) plan uses Firestore multi-device cloud storage.': 'El plan Yearly ($150) usa almacenamiento Firestore en la nube para múltiples dispositivos.',
+    'The Monthly ($19.99) plan stores data locally.': 'El plan Monthly ($19.99) almacena los datos localmente.',
+    'Total Owners': 'Total Owners',
+    'Active': 'Activos',
+    'In Trial': 'En Prueba',
+    'Suspended': 'Suspendidos',
+    '🔒 Suspended': '🔒 Suspendido',
+    '✅ Active': '✅ Activo',
+    '❌ Expired': '❌ Expirado',
+    'Active Monthly': 'Monthly activos',
+    'Active Yearly': 'Yearly activos',
+    'Expired': 'Expirados',
+    'Trial ongoing': 'Trial en curso',
+    'No owners.': 'Ningún owner.',
+    '💳 Activate': '💳 Activar',
+    'ARR:': 'ARR:',
+
+    // ── Paywall ──
+    'Choose Your Plan': 'Elige tu plan',
+    'Start with a 14-day free trial, or subscribe directly.': 'Comienza con una prueba gratuita de 14 días, o suscríbete directamente.',
+    'Then Monthly or Yearly — cancel before day 15 and pay nothing': 'Luego Monthly o Yearly — cancela antes del día 15 y no pagas nada',
+    'Full access to all features for 14 days': 'Acceso completo a todas las funciones durante 14 días',
+    ' today': ' hoy',
+    'Start Free Trial →': 'Comenzar prueba gratuita →',
+    'Subscribe — Monthly · $19.99/mo': 'Suscribirse — Monthly · 19,99 $/mes',
+    'Subscribe — Yearly · $150/year (Save $89.88)': 'Suscribirse — Yearly · 150 $/año (Ahorra 89,88 $)',
+    // ── Feature gates ──
+    'Yearly Plan Required': 'Plan Yearly requerido',
+    'Upgrade to Yearly to unlock online booking': 'Actualiza al plan Yearly para desbloquear la reserva en línea',
+    'Upgrade →': 'Actualizar →',
+    'Export CSV requires the Yearly plan.': 'La exportación CSV requiere el plan Yearly.',
+    'No data to export.': 'No hay datos para exportar.',
+    'CSV exported successfully.': 'CSV exportado con éxito.',
+    '⬇ Export CSV': '⬇ Exportar CSV',
+    'Google Form booking': 'Reserva Google Form',
+    'CSV Export': 'Exportar CSV',
+    '🔗 Google Form booking': '🔗 Reserva Google Form',
+    '⬇ CSV Export (revenue & appts)': '⬇ Exportar CSV (ingresos & citas)',
+    '☁ Cloud sync — all devices': '☁ Sync en la nube — todos los dispositivos',
+    '37% Savings vs Monthly': '37 % de ahorro vs Monthly',
+    'Billed monthly · Cancel anytime': 'Facturado mensualmente · Cancela cuando quieras',
+    'All Modules': 'Todos los módulos',
+    'Appointment Reminders': 'Recordatorios de citas',
+    'Staff Notifications': 'Notificaciones del personal',
+    'Revenue Analytics': 'Análisis de ingresos',
+    'PWA — works offline': 'PWA — funciona sin conexión',
+    'Only $12.50/mo · Save $89.88/year': 'Solo 12,50 $/mes · Ahorra 89,88 $/año',
+    'Everything in Monthly': 'Todo lo incluido en Monthly',
+    '37% Savings': '37 % de ahorro',
+    'Priority Updates': 'Actualizaciones prioritarias',
+    'Salon Management System': 'Sistema de gestión de salón',
+    '/mo': ' /mes',
+    '/yr': ' /año',
+    '★ BEST VALUE': '★ MEJOR OFERTA',
+    'No real charge is made (demo). Cancel anytime from the sidebar.': 'Ningún cargo real (demo). Cancela en cualquier momento desde la barra lateral.',
+
+    // ── Trial Modal ──
+    '🎁 14-Day Free Trial': '🎁 Prueba Gratuita 14 Días',
+    'Start Your Free Trial': 'Comienza tu prueba gratuita',
+    'Choose the plan that activates after your 14 days. No charge today.': 'Elige el plan que se activa después de tus 14 días. Sin cargo hoy.',
+    'per month after trial': 'por mes después de la prueba',
+    'Save 37%': 'Ahorra 37 %',
+    'per year after trial': 'por año después de la prueba',
+    '14 days full access — completely free': '14 días de acceso completo — totalmente gratis',
+    'Your card is saved by Stripe — not charged until day 15': 'Tu tarjeta se guarda en Stripe — sin cargo hasta el día 15',
+    'Cancel anytime before the trial ends and pay nothing': 'Cancela antes de que termine la prueba y no pagas nada',
+    'Continue to Stripe →': 'Continuar a Stripe →',
+    '🔒 Powered by Stripe. Bank-level encryption.': '🔒 Desarrollado por Stripe. Cifrado bancario.',
+
+    // ── Manage Sub Modal (JS-rendered) ──
+    'Free Trial': 'Prueba Gratuita',
+    'Days Left': 'Días Restantes',
+    'Active (Cancels)': 'Activo (Cancelación prevista)',
+    'Plan': 'Plan',
+    'Cancel subscription? Access continues until current period ends.': '¿Cancelar suscripción? El acceso continúa hasta el final del período actual.',
+    'Subscription cancelled. Access continues until expiry.': 'Suscripción cancelada. El acceso continúa hasta la expiración.'
   }
 };
 
 // Fonction pour obtenir la traduction
 function getTranslation(key, language = null) {
-  // Utiliser la variable globale _lang si elle existe, sinon utiliser le paramètre
   const currentLang = language || (typeof _lang !== 'undefined' ? _lang : 'en');
   if (currentLang === 'en') return key;
-  return i18nTranslations[currentLang]?.[key] || key;
+  const t = i18nTranslations[currentLang];
+  if (!t) return key;
+
+  // 1. Correspondance directe (clés string explicites ex: "Owners Registry")
+  if (t[key] !== undefined) return t[key];
+
+  // 2. Conversion camelCase : "Add Item" → "addItem", "Staff & Attendance" → "staffAndAttendance"
+  const cc = key
+    .replace(/\s*&\s*/g, ' And ')
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .trim()
+    .split(/\s+/)
+    .map((w, i) => i === 0
+      ? w.charAt(0).toLowerCase() + w.slice(1)
+      : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('');
+  if (cc && t[cc] !== undefined) return t[cc];
+
+  return key;
 }
 
 // Fonction pour appliquer les traductions à la page

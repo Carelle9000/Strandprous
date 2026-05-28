@@ -379,10 +379,10 @@ section { position: relative; z-index: 1; }
 #pricing { background: var(--bg); }
 .pricing-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   margin-top: 60px;
-  max-width: 780px;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -440,6 +440,57 @@ section { position: relative; z-index: 1; }
 .plan-btn-outline:hover { border-color: var(--gold-dim); color: var(--gold-light); }
 .trial-note { text-align: center; font-size: .8rem; color: var(--text3); margin-top: 24px; }
 .trial-note strong { color: var(--gold-light); }
+.plan-card.free-trial {
+  border-color: rgba(46,204,113,0.35);
+  background: linear-gradient(135deg, var(--surface), #0c1a10);
+  box-shadow: 0 0 40px rgba(46,204,113,0.06);
+  order: -1;
+}
+.plan-card.free-trial .plan-badge { background: #27ae60; color: #fff; }
+.plan-card.free-trial .plan-price { color: #2ecc71; }
+.plan-btn-green { background: #27ae60; color: #fff; border: none; cursor: pointer; }
+.plan-btn-green:hover { background: #2ecc71; }
+
+/* ── TRIAL PAYMENT MODAL ── */
+#trialPaymentModal {
+  display: none; position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.78); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+#trialPaymentModal.open { display: flex; }
+.trial-modal-box {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 36px 32px; width: 100%;
+  max-width: 460px; position: relative;
+}
+.trial-modal-box h2 {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.6rem;
+  color: var(--text); margin-bottom: 6px;
+}
+.trial-modal-box .sub { font-size: .82rem; color: var(--text3); margin-bottom: 24px; }
+.tpay-plan-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.tpay-plan-opt {
+  border: 1px solid var(--border2); border-radius: 10px; padding: 16px 14px;
+  cursor: pointer; transition: all .15s; text-align: center; background: var(--bg3);
+}
+.tpay-plan-opt:hover { border-color: var(--gold-dim); }
+.tpay-plan-opt.selected { border-color: var(--gold); background: var(--surface); box-shadow: 0 0 18px rgba(201,146,42,0.1); }
+.tpay-plan-opt .po-label { font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+.tpay-plan-opt .po-price { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--gold-light); font-weight: 700; line-height: 1; }
+.tpay-plan-opt .po-save { display: inline-block; background: rgba(39,174,96,0.15); color: #2ecc71; border: 1px solid rgba(39,174,96,0.25); border-radius: 4px; font-size: .62rem; font-weight: 600; padding: 2px 7px; margin-top: 5px; }
+.tpay-plan-opt .po-note { font-size: .65rem; color: var(--text4); margin-top: 4px; }
+.trial-modal-close {
+  position: absolute; top: 14px; right: 16px; background: none; border: none;
+  color: var(--text3); font-size: 1.3rem; cursor: pointer; padding: 4px 8px; line-height: 1;
+}
+.trial-modal-close:hover { color: var(--text); }
+.tpay-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.tpay-secure { display: flex; align-items: center; gap: 8px; font-size: .72rem; color: var(--text4); margin-top: 12px; justify-content: center; }
+.tpay-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(39,174,96,0.12); border: 1px solid rgba(39,174,96,0.25); color: #2ecc71; font-size: .7rem; border-radius: 20px; padding: 3px 10px; margin-bottom: 18px; }
+.tpay-trial-info { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+.tpay-trial-info ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.tpay-trial-info li { font-size: .8rem; color: var(--text2); display: flex; align-items: flex-start; gap: 8px; }
+.tpay-trial-info li::before { content: '✓'; color: #2ecc71; font-weight: 700; flex-shrink: 0; }
 
 /* ── ABOUT ── */
 #about { background: var(--bg3); }
@@ -641,6 +692,8 @@ footer {
   .contact-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+  .plan-card.free-trial { order: 0; }
+  .tpay-plan-group { grid-template-columns: 1fr; }
 }
 @media (max-width: 680px) {
   nav { padding: 0 20px; }
@@ -708,8 +761,8 @@ footer {
         </div>
         <div class="hero-stats">
           <div>
-            <div class="hero-stat-num">7</div>
-            <div class="hero-stat-label" data-translate="7-Day Free Trial">7-Day Free Trial</div>
+            <div class="hero-stat-num">14</div>
+            <div class="hero-stat-label" data-translate="14-Day Free Trial">14-Day Free Trial</div>
           </div>
           <div>
             <div class="hero-stat-num">6+</div>
@@ -836,9 +889,29 @@ footer {
     <div style="text-align:center;max-width:500px;margin:0 auto">
       <div class="section-label" data-translate="Pricing">Pricing</div>
       <h2 class="section-headline" data-translate="Simple, transparent pricing.">Simple, transparent pricing.</h2>
-      <p class="section-sub" data-translate="Start free for 7 days — no credit card required. Cancel anytime.">Start free for 7 days — no credit card required. Cancel anytime.</p>
+      <p class="section-sub" data-translate="Start free for 14 days — no credit card required. Cancel anytime.">Start free for 14 days — no credit card required. Cancel anytime.</p>
     </div>
     <div class="pricing-grid">
+      <div class="plan-card free-trial">
+        <div class="plan-badge" data-translate="★ GRATUIT">★ GRATUIT</div>
+        <div class="plan-name" data-translate="Free Trial">Free Trial</div>
+        <div class="plan-tagline" data-translate="Try everything, no commitment">Try everything, no commitment</div>
+        <div class="plan-price-wrap">
+          <div class="plan-price" style="color:#2ecc71"><sub style="color:#2ecc71">$</sub>0</div>
+          <div class="plan-billing" data-translate="14 days full access · no charge">14 days full access · no charge</div>
+          <div class="plan-savings" style="background:rgba(46,204,113,0.15);color:#2ecc71;border-color:rgba(46,204,113,0.3)" data-translate="Then choose your plan">Then choose your plan</div>
+        </div>
+        <ul class="plan-features">
+          <li data-translate="All 6 modules unlocked">All 6 modules unlocked</li>
+          <li data-translate="Full feature access for 14 days">Full feature access for 14 days</li>
+          <li data-translate="No credit card required to start">No credit card required to start</li>
+          <li data-translate="Choose Monthly or Yearly at the end">Choose Monthly or Yearly at the end</li>
+          <li data-translate="Unlimited staff accounts">Unlimited staff accounts</li>
+          <li data-translate="PWA — install on any device">PWA — install on any device</li>
+          <li data-translate="EN / FR / ES language support">EN / FR / ES language support</li>
+        </ul>
+        <button onclick="goToPlan('trial')" class="plan-btn plan-btn-green" data-translate="Start Free Trial →">Start Free Trial →</button>
+      </div>
       <div class="plan-card">
         <div class="plan-name" data-translate="Monthly">Monthly</div>
         <div class="plan-tagline" data-translate="Full access, billed monthly">Full access, billed monthly</div>
@@ -856,7 +929,7 @@ footer {
           <li data-translate="EN / FR / ES language support">EN / FR / ES language support</li>
           <li data-translate="Cancel anytime">Cancel anytime</li>
         </ul>
-        <a href="strandpro.html" class="plan-btn plan-btn-outline" data-translate="Launch Application →">Launch Application →</a>
+        <button onclick="goToPlan('monthly')" class="plan-btn plan-btn-outline" data-translate="Get Started →">Get Started →</button>
       </div>
       <div class="plan-card featured">
         <div class="plan-badge" data-translate="★ BEST VALUE">★ BEST VALUE</div>
@@ -877,10 +950,10 @@ footer {
           <li data-translate="PWA — install on any device">PWA — install on any device</li>
           <li data-translate="EN / FR / ES language support">EN / FR / ES language support</li>
         </ul>
-        <a href="strandpro.html" class="plan-btn plan-btn-gold" data-translate="Launch Application →">Launch Application →</a>
+        <button onclick="goToPlan('yearly')" class="plan-btn plan-btn-gold" data-translate="Get Started →">Get Started →</button>
       </div>
     </div>
-    <p class="trial-note" data-translate="All plans include a <strong>7-day free trial</strong>. No credit card required to start.">✦ All plans include a <strong>7-day free trial</strong>. No credit card required to start.</p>
+    <p class="trial-note" data-translate="All plans include a <strong>14-day free trial</strong>. No credit card required to start.">✦ All plans include a <strong>14-day free trial</strong>. No credit card required to start.</p>
   </div>
 </section>
 
@@ -1052,8 +1125,8 @@ footer {
       <div class="policy-updated" data-translate="Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC">Effective Date: January 1, 2025 &nbsp;·&nbsp; Operated by Kamel Tech Solutions LLC</div>
       <div class="policy-body">
         <p data-translate="StrandPro subscriptions are provided by Kamel Tech Solutions LLC. We want you to be fully satisfied with our service. This policy explains when refunds are available.">StrandPro subscriptions are provided by Kamel Tech Solutions LLC. We want you to be fully satisfied with our service. This policy explains when refunds are available.</p>
-        <h3 data-translate="7-Day Free Trial">7-Day Free Trial</h3>
-        <p data-translate="All new accounts receive a <strong>7-day free trial</strong> with full access to all features. No payment is collected during the trial period. You will only be charged after your trial ends and you choose a subscription plan.">All new accounts receive a <strong>7-day free trial</strong> with full access to all features. No payment is collected during the trial period. You will only be charged after your trial ends and you choose a subscription plan.</p>
+        <h3 data-translate="14-Day Free Trial">14-Day Free Trial</h3>
+        <p data-translate="All new accounts receive a <strong>14-day free trial</strong> with full access to all features. Your payment method is saved by Stripe but not charged during the trial period. You will only be charged on day 15, according to the plan you selected.">All new accounts receive a <strong>14-day free trial</strong> with full access to all features. Your payment method is saved by Stripe but not charged during the trial period. You will only be charged on day 15, according to the plan you selected.</p>
         <div class="policy-highlight" data-translate="<strong>Our Refund Guarantee:</strong> If you are charged and contact us within <strong>7 days</strong> of your billing date, we will issue a full refund — no questions asked. After 7 days, refunds are evaluated on a case-by-case basis."><strong>Our Refund Guarantee:</strong> If you are charged and contact us within <strong>7 days</strong> of your billing date, we will issue a full refund — no questions asked. After 7 days, refunds are evaluated on a case-by-case basis.</div>
         <h3 data-translate="Eligible Refund Situations">Eligible Refund Situations</h3>
         <ul>
@@ -1120,7 +1193,7 @@ footer {
           <li data-translate="Owner accounts are responsible for the conduct of all staff accounts they create">Owner accounts are responsible for the conduct of all staff accounts they create</li>
         </ul>
         <h3 data-translate="4. Subscription & Payment Terms">4. Subscription & Payment Terms</h3>
-        <p data-translate="StrandPro is offered on a subscription basis. After your 7-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).">StrandPro is offered on a subscription basis. After your 7-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).</p>
+        <p data-translate="StrandPro is offered on a subscription basis. After your 14-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).">StrandPro is offered on a subscription basis. After your 14-day free trial, access requires an active paid subscription. Payment is processed securely via Stripe. By subscribing, you authorize Kamel Tech Solutions LLC to charge your payment method on a recurring basis according to your chosen plan (monthly or yearly).</p>
         <ul>
           <li data-translate="Monthly Plan: $19.99/month, billed monthly">Monthly Plan: $19.99/month, billed monthly</li>
           <li data-translate="Yearly Plan: $150.00/year, billed annually">Yearly Plan: $150.00/year, billed annually</li>
@@ -1218,20 +1291,20 @@ footer {
       <div class="policy-heading" data-translate="🎁 Free Trial Terms">🎁 Free Trial Terms</div>
       <div class="policy-updated" data-translate="Effective Date: January 1, 2025">Effective Date: January 1, 2025</div>
       <div class="policy-body">
-        <p data-translate="StrandPro offers a 7-day free trial to new accounts. These terms govern the free trial offer.">StrandPro offers a 7-day free trial to new accounts. These terms govern the free trial offer.</p>
+        <p data-translate="StrandPro offers a 14-day free trial to new accounts. These terms govern the free trial offer.">StrandPro offers a 14-day free trial to new accounts. These terms govern the free trial offer.</p>
         <h3 data-translate="Trial Eligibility">Trial Eligibility</h3>
         <ul>
           <li data-translate="Available to new customers only — one trial per person/business">Available to new customers only — one trial per person/business</li>
-          <li data-translate="No credit card or payment information required to start the trial">No credit card or payment information required to start the trial</li>
+          <li data-translate="A valid payment method (credit or debit card) is required to start the trial via Stripe — no charge is made until day 15">A valid payment method (credit or debit card) is required to start the trial via Stripe — no charge is made until day 15</li>
           <li data-translate="Available to businesses operating in the United States">Available to businesses operating in the United States</li>
         </ul>
         <h3 data-translate="What's Included">What's Included</h3>
         <p data-translate="During the free trial, you have full access to all StrandPro features including appointments, staff management, inventory, revenue, expenses, and roles & permissions — identical to paid plan access.">During the free trial, you have full access to all StrandPro features including appointments, staff management, inventory, revenue, expenses, and roles & permissions — identical to paid plan access.</p>
         <h3 data-translate="Trial Duration">Trial Duration</h3>
-        <p data-translate="The trial lasts exactly <strong>7 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.">The trial lasts exactly <strong>7 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.</p>
+        <p data-translate="The trial lasts exactly <strong>14 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.">The trial lasts exactly <strong>14 calendar days</strong> from the date of account creation. The remaining days are displayed in your sidebar subscription indicator.</p>
         <h3 data-translate="After the Trial">After the Trial</h3>
         <p data-translate="When the trial ends, access to the app is paused until you select a subscription plan. Your data is preserved in your browser. You will be prompted to choose a Monthly ($19.99/mo) or Yearly ($150/yr) plan to continue.">When the trial ends, access to the app is paused until you select a subscription plan. Your data is preserved in your browser. You will be prompted to choose a Monthly ($19.99/mo) or Yearly ($150/yr) plan to continue.</p>
-        <div class="policy-highlight" data-translate="<strong>No automatic charges:</strong> StrandPro will never charge you automatically after the trial. You must actively choose a plan and enter payment information to subscribe."><strong>No automatic charges:</strong> StrandPro will never charge you automatically after the trial. You must actively choose a plan and enter payment information to subscribe.</div>
+        <div class="policy-highlight" data-translate="<strong>Automatic charge on day 15:</strong> Your card saved with Stripe will be automatically charged on day 15 according to your selected plan. Cancel before day 15 to avoid any charge — no partial refunds for unused trial days."><strong>Automatic charge on day 15:</strong> Your card saved with Stripe will be automatically charged on day 15 according to your selected plan. Cancel before day 15 to avoid any charge — no partial refunds for unused trial days.</div>
         <h3 data-translate="Trial Abuse">Trial Abuse</h3>
         <p data-translate="Creating multiple accounts to extend free trial access is prohibited and may result in permanent account suspension.">Creating multiple accounts to extend free trial access is prohibited and may result in permanent account suspension.</p>
         <h3 data-translate="Questions">Questions</h3>
@@ -1290,6 +1363,42 @@ footer {
   </div>
 </footer>
 
+<div id="trialPaymentModal">
+  <div class="trial-modal-box">
+    <button class="trial-modal-close" onclick="closeTrialModal()" aria-label="Close">✕</button>
+    <div class="tpay-badge">🎁 14-Day Free Trial</div>
+    <h2 data-translate="Start Your Free Trial">Start Your Free Trial</h2>
+    <p class="sub" data-translate="Choose the plan that activates after your 14-day trial. No charge today.">Choose the plan that activates after your 14-day trial. No charge today.</p>
+
+    <div class="tpay-plan-group">
+      <div class="tpay-plan-opt selected" id="tpopt-monthly" onclick="selectTrialPlan('monthly')">
+        <div class="po-label" data-translate="Monthly">Monthly</div>
+        <div class="po-price">$19.99</div>
+        <div class="po-note" data-translate="per month after trial">per month after trial</div>
+      </div>
+      <div class="tpay-plan-opt" id="tpopt-yearly" onclick="selectTrialPlan('yearly')">
+        <div class="po-label" data-translate="Yearly">Yearly</div>
+        <div class="po-price">$150</div>
+        <div class="po-save" data-translate="Save 37%">Save 37%</div>
+        <div class="po-note" data-translate="per year after trial">per year after trial</div>
+      </div>
+    </div>
+
+    <div class="tpay-trial-info">
+      <ul>
+        <li data-translate="14 days full access — completely free">14 days full access — completely free</li>
+        <li data-translate="Your card is saved by Stripe — not charged until day 15">Your card is saved by Stripe — not charged until day 15</li>
+        <li data-translate="Cancel anytime before the trial ends and pay nothing">Cancel anytime before the trial ends and pay nothing</li>
+      </ul>
+    </div>
+
+    <button onclick="startTrial()" class="plan-btn plan-btn-green" data-translate="Continue to Stripe →">Continue to Stripe →</button>
+    <div class="tpay-secure">
+      🔒 <span data-translate="Powered by Stripe. Bank-level encryption. We never see your card details.">Powered by Stripe. Bank-level encryption. We never see your card details.</span>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
 
@@ -1322,22 +1431,50 @@ window.addEventListener('scroll',()=>{
 });
 
 // Contact form
-function submitContactForm(){
-  const first=document.getElementById('cfFirstName').value.trim();
-  const email=document.getElementById('cfEmail').value.trim();
-  const subject=document.getElementById('cfSubject').value;
-  const message=document.getElementById('cfMessage').value.trim();
+async function submitContactForm(){
+  const first   = document.getElementById('cfFirstName').value.trim();
+  const last    = document.getElementById('cfLastName').value.trim();
+  const email   = document.getElementById('cfEmail').value.trim();
+  const subject = document.getElementById('cfSubject').value;
+  const message = document.getElementById('cfMessage').value.trim();
   if(!first||!email||!subject||!message){showToast('Please fill in all required fields.');return;}
   if(!email.includes('@')){showToast('Please enter a valid email address.');return;}
-  // Build mailto (since no backend)
-  const to='support@strandprous.com';
-  const sub=encodeURIComponent(`[StrandPro Contact] ${subject} — from ${first}`);
-  const body=encodeURIComponent(`From: ${first} ${document.getElementById('cfLastName').value}\nEmail: ${email}\nSubject: ${subject}\n\n${message}`);
-  window.location.href=`mailto:${to}?subject=${sub}&body=${body}`;
+  const btn = document.querySelector('[onclick="submitContactForm()"]');
+  if(btn){ btn.textContent='Sending…'; btn.disabled=true; }
+  try {
+    // Save to Firestore via REST API — viewable in SuperAdmin > Messages
+    const url='https://firestore.googleapis.com/v1/projects/strandprous/databases/(default)/documents/contacts?key=AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg';
+    const response = await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fields:{
+        firstName: {stringValue: first},
+        lastName:  {stringValue: last},
+        email:     {stringValue: email},
+        subject:   {stringValue: subject},
+        message:   {stringValue: message},
+        status:    {stringValue: 'unread'},
+        createdAt: {timestampValue: new Date().toISOString()}
+      }})
+    });
+    if(!response.ok){
+      const errBody = await response.json().catch(()=>({}));
+      console.warn('Firestore contact save failed:',response.status, errBody);
+      showToast('Failed to send message. Please try again.');
+      if(btn){ btn.textContent='Send Message →'; btn.disabled=false; }
+      return;
+    }
+  } catch(err){
+    console.warn('Firestore contact save failed:',err);
+    showToast('Failed to send message. Please check your connection.');
+    if(btn){ btn.textContent='Send Message →'; btn.disabled=false; }
+    return;
+  }
   document.getElementById('formSuccess').classList.add('show');
   ['cfFirstName','cfLastName','cfEmail','cfMessage'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cfSubject').value='';
-  showToast('✓ Opening your email app with the message pre-filled.');
+  if(btn){ btn.textContent='Send Message →'; btn.disabled=false; }
+  showToast('✓ Message sent! We\'ll be in touch within 1 business day.');
 }
 
 // Toast
@@ -1366,6 +1503,51 @@ const observer=new IntersectionObserver((entries)=>{
 document.querySelectorAll('.fade-up').forEach(el=>{
   el.style.animationPlayState='paused';
   observer.observe(el);
+});
+
+// ── PLAN NAVIGATION ──────────────────────────────────────────────────────────
+function goToPlan(plan){
+  localStorage.setItem('sp_pending_plan', plan);
+  window.location.href = 'strandpro.html';
+}
+
+// ── TRIAL MODAL ──────────────────────────────────────────────────────────────
+// Replace these with your Stripe Payment Links that have trial_period_days=14 configured
+const TRIAL_LINKS = {
+  monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00', // TODO: replace with trial-enabled monthly link
+  yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'  // TODO: replace with trial-enabled yearly link
+};
+
+let _trialPlan = 'monthly';
+
+function openTrialModal(){
+  _trialPlan = 'monthly';
+  selectTrialPlan('monthly');
+  document.getElementById('trialPaymentModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTrialModal(){
+  document.getElementById('trialPaymentModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function selectTrialPlan(plan){
+  _trialPlan = plan;
+  document.getElementById('tpopt-monthly').classList.toggle('selected', plan==='monthly');
+  document.getElementById('tpopt-yearly').classList.toggle('selected', plan==='yearly');
+}
+
+function startTrial(){
+  const link = TRIAL_LINKS[_trialPlan];
+  if(!link){ showToast('Trial link not configured yet.'); return; }
+  closeTrialModal();
+  window.location.href = link;
+}
+
+// Close modal on backdrop click
+document.getElementById('trialPaymentModal').addEventListener('click', function(e){
+  if(e.target === this) closeTrialModal();
 });
 </script>
 </body>

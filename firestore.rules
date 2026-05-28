@@ -1,32 +1,43 @@
-{
-  "rules": {
-    "users": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "appointments": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "customers": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "services": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "staff": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "inventory": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "settings": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Contact form — public write, SA reads/updates/deletes without Firebase Auth
+    match /contacts/{id} {
+      allow read, write, delete, update: if true;
+    }
+
+    // Salon registry — SA (localStorage auth) needs full access; owners sync at login
+    match /salons/{id} {
+      allow read, write, delete, update: if true;
+    }
+
+    match /users/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /appointments/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /customers/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /services/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /staff/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /inventory/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /settings/{id} {
+      allow read, write: if request.auth != null;
     }
   }
 }
