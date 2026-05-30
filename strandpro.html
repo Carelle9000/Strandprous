@@ -1426,8 +1426,8 @@ body.is-owner .owner-only { display:flex; }
       <li data-translate="Your card is saved by Stripe — not charged until day 15">Your card is saved by Stripe — not charged until day 15</li>
       <li data-translate="Cancel anytime before the trial ends and pay nothing">Cancel anytime before the trial ends and pay nothing</li>
     </ul>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startSpTrial()" data-translate="Continue to Stripe →">Continue to Stripe →</button>
-    <div style="text-align:center;font-size:.72rem;color:var(--text4);margin-top:10px" data-translate="🔒 Powered by Stripe. Bank-level encryption.">🔒 Powered by Stripe. Bank-level encryption.</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="startSpTrial()" data-translate="Start My Free Trial →">Start My Free Trial →</button>
+    <div style="text-align:center;font-size:.72rem;color:var(--text4);margin-top:10px" data-translate="No credit card required. Full access for 14 days.">No credit card required. Full access for 14 days.</div>
   </div>
 </div>
 
@@ -3654,8 +3654,8 @@ function cancelSub(){
 // ── TRIAL PLAN MODAL ──
 let _spTrialPlan = 'monthly';
 const STRIPE_TRIAL_LINKS = {
-  monthly: 'https://buy.stripe.com/6oU00l5110yX8Xed4LcMM00', // TODO: remplacer par lien trial Stripe
-  yearly:  'https://buy.stripe.com/eVq00l511dlJgpG5CjcMM01'  // TODO: remplacer par lien trial Stripe
+  monthly: 'https://buy.stripe.com/7sYbJ3alla9xehy0hZcMM02',
+  yearly:  'https://buy.stripe.com/7sYbJ3alla9xehy0hZcMM02'
 };
 function openSpTrialModal(){
   _spTrialPlan = 'monthly';
@@ -3672,11 +3672,20 @@ function selectSpTrial(plan){
   document.getElementById('spto-yearly').classList.toggle('selected',  plan==='yearly');
 }
 function startSpTrial(){
-  const link = STRIPE_TRIAL_LINKS[_spTrialPlan];
-  if(!link){ showToast('Trial link not configured yet.'); return; }
+  const now = Date.now();
+  S.setObj('sp_sub', {
+    status:     'trial',
+    plan:       _spTrialPlan,
+    trialStart: now,
+    expiry:     now + 14 * 24 * 60 * 60 * 1000
+  });
   closeSpTrialModal();
-  showToast(`💳 Redirection vers Stripe — Essai ${_spTrialPlan}…`);
-  setTimeout(()=>{ window.location.href = link; }, 800);
+  hidePaywall();
+  updateSubUI();
+  checkAccess(false);
+  syncSalonToFirestore(getCurrentUser());
+  const t = key => (typeof getTranslation === 'function') ? getTranslation(key, _lang) : key;
+  showToast('🎉 ' + t('Your 14-day free trial has started!'));
 }
 document.getElementById('spTrialModal').addEventListener('click', function(e){ if(e.target===this) closeSpTrialModal(); });
 

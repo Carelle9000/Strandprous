@@ -1285,6 +1285,9 @@ const i18nTranslations = {
     'Cancel anytime before the trial ends and pay nothing': 'Annulez avant la fin de l\'essai et ne payez rien',
     'Continue to Stripe →': 'Continuer vers Stripe →',
     '🔒 Powered by Stripe. Bank-level encryption.': '🔒 Propulsé par Stripe. Chiffrement bancaire.',
+    'Start My Free Trial →': 'Démarrer mon essai gratuit →',
+    'No credit card required. Full access for 14 days.': 'Aucune carte bancaire requise. Accès complet pendant 14 jours.',
+    'Your 14-day free trial has started!': 'Votre essai gratuit de 14 jours a commencé !',
 
     // ── Manage Sub Modal (JS-rendered) ──
     'Free Trial': 'Essai Gratuit',
@@ -2051,6 +2054,9 @@ const i18nTranslations = {
     'Cancel anytime before the trial ends and pay nothing': 'Cancela antes de que termine la prueba y no pagas nada',
     'Continue to Stripe →': 'Continuar a Stripe →',
     '🔒 Powered by Stripe. Bank-level encryption.': '🔒 Desarrollado por Stripe. Cifrado bancario.',
+    'Start My Free Trial →': 'Comenzar mi prueba gratuita →',
+    'No credit card required. Full access for 14 days.': 'Sin tarjeta de crédito. Acceso completo durante 14 días.',
+    'Your 14-day free trial has started!': '¡Tu prueba gratuita de 14 días ha comenzado!',
 
     // ── Manage Sub Modal (JS-rendered) ──
     'Free Trial': 'Prueba Gratuita',
