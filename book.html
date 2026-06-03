@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Appointment — StrandPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0D0B09;
+      --surface:   #141210;
+      --bg4:       #1e1b17;
+      --border:    #2e2a25;
+      --border2:   #3d3730;
+      --text:      #f0e8d8;
+      --text2:     #c8b89a;
+      --text3:     #8a7a66;
+      --gold:      #C9922A;
+      --gold-light:#E5B84A;
+      --gold-dim:  #8a6420;
+      --success:   #27ae60;
+      --danger:    #e74c3c;
+      --warn:      #e67e22;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: .04em;
+    }
+    .logo-sub { font-size: .72rem; color: var(--text3); margin-top: 2px; letter-spacing: .1em; text-transform: uppercase; }
+
+    .salon-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 10px;
+    }
+    .salon-sub { font-size: .78rem; color: var(--text3); margin-top: 4px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .section-title {
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.cols-1 { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: .65rem; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 13px;
+      font-size: .87rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color .15s;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--gold-dim); }
+    .form-group select option { background: var(--bg4); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 12px 20px;
+      transition: all .15s;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .btn-gold { background: linear-gradient(135deg,#C9922A,#a87520); color: #fff; }
+    .btn-gold:hover { background: linear-gradient(135deg,#e0a830,#b8851f); }
+    .btn-gold:disabled { opacity: .55; cursor: not-allowed; }
+
+    .msg {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 9px;
+      font-size: .85rem;
+      line-height: 1.5;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.ok  { background: rgba(39,174,96,.12); border: 1px solid rgba(39,174,96,.3); color: #2ecc71; }
+    .msg.err { background: rgba(231,76,60,.12);  border: 1px solid rgba(231,76,60,.3);  color: #e74c3c; }
+
+    .note {
+      font-size: .72rem;
+      color: var(--text3);
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .skeleton { background: var(--bg4); border-radius: 8px; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    .powered {
+      margin-top: 28px;
+      font-size: .68rem;
+      color: var(--text3);
+      text-align: center;
+    }
+    .powered a { color: var(--gold-dim); text-decoration: none; }
+    .powered a:hover { color: var(--gold-light); }
+
+    @media(max-width:480px){
+      .form-row { grid-template-columns: 1fr; }
+      .card { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo-name">StrandPro</div>
+    <div class="logo-sub">Online Booking</div>
+    <div class="salon-name" id="salonName">
+      <span class="skeleton" style="display:inline-block;width:180px;height:22px;border-radius:5px"></span>
+    </div>
+    <div class="salon-sub" id="salonSub"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Appointment Request</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input id="bkClient" type="text" placeholder="Your full name" autocomplete="name"/>
+      </div>
+      <div class="form-group">
+        <label>Phone *</label>
+        <input id="bkPhone" type="tel" placeholder="+1 (555) 000-0000" autocomplete="tel" inputmode="tel"/>
+      </div>
+    </div>
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Email</label>
+        <input id="bkEmail" type="email" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+    </div>
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Service Requested *</label>
+        <select id="bkService">
+          <option value="">— Select a service —</option>
+          <option>Box Braids</option>
+          <option>Knotless Braids</option>
+          <option>Cornrows</option>
+          <option>Feed-In Braids</option>
+          <option>Goddess Braids</option>
+          <option>Fulani Braids</option>
+          <option>Senegalese Twists</option>
+          <option>Passion Twists</option>
+          <option>Locs / Faux Locs</option>
+          <option>Crochet Hair</option>
+          <option>Wig Installation</option>
+          <option>Hair Extensions</option>
+          <option>Natural Hair Styling</option>
+          <option>Makeup</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Preferred Date *</label>
+        <input id="bkDate" type="date"/>
+      </div>
+      <div class="form-group">
+        <label>Preferred Time *</label>
+        <input id="bkTime" type="time"/>
+      </div>
+    </div>
+
+    <div class="form-row cols-1">
+      <div class="form-group">
+        <label>Notes / Special Requests</label>
+        <textarea id="bkNotes" rows="3" placeholder="Hair length, style details, color preferences, allergies…" style="resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="bkSubmitBtn" onclick="submitBooking()">
+      ✉ Submit Appointment Request
+    </button>
+
+    <div class="msg" id="bkMsg"></div>
+
+    <p class="note">
+      The salon owner will review your request and confirm your appointment.<br>
+      You will be contacted at the phone number or email you provided.
+    </p>
+  </div>
+
+  <div class="powered">Powered by <a href="https://www.strandprous.com" target="_blank">StrandPro</a></div>
+
+<script>
+  // ── Firestore REST (same approach as main app — no SDK needed) ──────────────
+  const FS_BASE = 'https://firestore.googleapis.com/v1/projects/strandprous/databases/(default)/documents';
+  const FS_KEY  = 'AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg';
+
+  function toVal(v) {
+    if (v === null || v === undefined)        return { nullValue: null };
+    if (typeof v === 'boolean')               return { booleanValue: v };
+    if (v instanceof Date)                    return { timestampValue: v.toISOString() };
+    if (typeof v === 'number')
+      return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+    if (typeof v === 'string')                return { stringValue: v };
+    if (Array.isArray(v))                     return { arrayValue: { values: v.map(toVal) } };
+    if (typeof v === 'object' && typeof v.toDate === 'function') return { timestampValue: v.toDate().toISOString() };
+    if (typeof v === 'object')                return { mapValue: { fields: toFields(v) } };
+    return { stringValue: String(v) };
+  }
+  function toFields(obj) {
+    const f = {};
+    for (const [k, v] of Object.entries(obj)) { if (typeof v !== 'function') f[k] = toVal(v); }
+    return f;
+  }
+  function fromVal(v) {
+    if (!v) return null;
+    if ('nullValue'      in v) return null;
+    if ('booleanValue'   in v) return v.booleanValue;
+    if ('integerValue'   in v) return Number(v.integerValue);
+    if ('doubleValue'    in v) return v.doubleValue;
+    if ('stringValue'    in v) return v.stringValue;
+    if ('timestampValue' in v) { const d = new Date(v.timestampValue); return { seconds: Math.floor(d.getTime()/1000), toDate:()=>d }; }
+    if ('arrayValue'     in v) return (v.arrayValue.values||[]).map(fromVal);
+    if ('mapValue'       in v) return fromFields(v.mapValue.fields||{});
+    return null;
+  }
+  function fromFields(fields) { const o={}; for(const [k,v] of Object.entries(fields)) o[k]=fromVal(v); return o; }
+  function fromDoc(raw) { if(!raw?.name) return null; return { id: raw.name.split('/').pop(), ...fromFields(raw.fields||{}) }; }
+
+  async function fsReq(method, path, body, params={}) {
+    const url = new URL(`${FS_BASE}/${path}`);
+    url.searchParams.set('key', FS_KEY);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const opts = { method, headers: {'Content-Type':'application/json'}, signal: ctrl.signal };
+    if (body) opts.body = JSON.stringify(body);
+    try {
+      const res = await fetch(url.toString(), opts);
+      clearTimeout(timer);
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+      return res.status === 204 ? null : res.json();
+    } finally { clearTimeout(timer); }
+  }
+
+  // Find salon by bookingSlug using runQuery
+  async function findSalonBySlug(slug) {
+    const body = {
+      structuredQuery: {
+        from: [{ collectionId: 'salons' }],
+        where: { fieldFilter: { field: { fieldPath: 'bookingSlug' }, op: 'EQUAL', value: { stringValue: slug } } },
+        limit: 1
+      }
+    };
+    const url = new URL(`${FS_BASE}:runQuery`);
+    url.searchParams.set('key', FS_KEY);
+    const res = await fetch(url.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Impossible de charger le salon.');
+    const rows = await res.json();
+    const match = (rows||[]).find(r => r.document);
+    return match ? fromDoc(match.document) : null;
+  }
+
+  // Check for conflicting appointment at same date/time
+  async function hasConflict(salonId, date, time) {
+    const body = {
+      structuredQuery: {
+        from: [{ collectionId: 'appointments' }],
+        where: {
+          compositeFilter: {
+            op: 'AND',
+            filters: [
+              { fieldFilter: { field: { fieldPath: 'date' }, op: 'EQUAL', value: { stringValue: date } } },
+              { fieldFilter: { field: { fieldPath: 'time' }, op: 'EQUAL', value: { stringValue: time } } }
+            ]
+          }
+        }
+      }
+    };
+    const url = new URL(`${FS_BASE}/salons/${salonId}:runQuery`);
+    url.searchParams.set('key', FS_KEY);
+    const res = await fetch(url.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!res.ok) return false;
+    const rows = await res.json();
+    return (rows||[]).some(r => {
+      if (!r.document) return false;
+      const appt = fromDoc(r.document);
+      return appt.status !== 'Cancelled';
+    });
+  }
+
+  // Add appointment to salon's sub-collection
+  async function addAppointment(salonId, data) {
+    return fsReq('POST', `salons/${salonId}/appointments`, { fields: toFields(data) });
+  }
+
+  // ── Page init ───────────────────────────────────────────────────────────────
+  let _salonId = null;
+
+  function showMsg(text, type) {
+    const el = document.getElementById('bkMsg');
+    el.textContent = text;
+    el.className = 'msg show ' + type;
+  }
+
+  function setMinDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('bkDate').min = today;
+  }
+
+  async function loadSalon() {
+    const slug = new URLSearchParams(window.location.search).get('salon');
+    if (!slug) {
+      document.getElementById('salonName').textContent = 'Lien invalide';
+      document.getElementById('salonSub').textContent  = 'Ce lien de réservation est incorrect ou expiré.';
+      document.getElementById('bkSubmitBtn').disabled  = true;
+      return;
+    }
+
+    try {
+      const salon = await findSalonBySlug(slug);
+      if (!salon) {
+        document.getElementById('salonName').textContent = 'Salon introuvable';
+        document.getElementById('bkSubmitBtn').disabled  = true;
+        return;
+      }
+      _salonId = salon.id;
+      document.getElementById('salonName').textContent = salon.businessName || 'StrandPro Salon';
+      document.getElementById('salonSub').textContent  = salon.city ? '📍 ' + salon.city : '';
+      document.title = 'Book — ' + (salon.businessName || 'StrandPro');
+    } catch (e) {
+      document.getElementById('salonName').textContent = 'Erreur de chargement';
+      document.getElementById('salonSub').textContent  = e.message;
+    }
+  }
+
+  // ── Submit booking ──────────────────────────────────────────────────────────
+  window.submitBooking = async function() {
+    if (!_salonId) { showMsg('Salon non chargé. Rafraîchis la page.', 'err'); return; }
+
+    const client  = document.getElementById('bkClient').value.trim();
+    const phone   = document.getElementById('bkPhone').value.trim();
+    const service = document.getElementById('bkService').value;
+    const date    = document.getElementById('bkDate').value;
+    const time    = document.getElementById('bkTime').value;
+
+    if (!client)  { showMsg('Le nom complet est requis.', 'err'); return; }
+    if (!phone)   { showMsg('Le numéro de téléphone est requis.', 'err'); return; }
+    if (!service) { showMsg('Merci de sélectionner un service.', 'err'); return; }
+    if (!date)    { showMsg('La date est requise.', 'err'); return; }
+    if (!time)    { showMsg('L\'heure est requise.', 'err'); return; }
+
+    const btn = document.getElementById('bkSubmitBtn');
+    btn.disabled    = true;
+    btn.textContent = '⏳ Envoi en cours…';
+
+    try {
+      // Duplicate time check
+      const conflict = await hasConflict(_salonId, date, time);
+      if (conflict) {
+        showMsg('⚠️ Ce créneau est déjà réservé. Merci de choisir une autre heure.', 'err');
+        btn.disabled    = false;
+        btn.textContent = '✉ Submit Appointment Request';
+        return;
+      }
+
+      await addAppointment(_salonId, {
+        salonId:   _salonId,
+        client,
+        phone,
+        wa:        phone,
+        email:     document.getElementById('bkEmail').value.trim(),
+        service,
+        stylist:   '',
+        date,
+        time,
+        duration:  2,
+        price:     0,
+        deposit:   0,
+        payMethod: '',
+        status:    'Pending',
+        notes:     document.getElementById('bkNotes').value.trim(),
+        source:    'public_booking',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      document.querySelector('.card').innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-size:3rem;margin-bottom:16px">✅</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#E5B84A;font-weight:700;margin-bottom:10px">
+            Request Submitted!
+          </div>
+          <p style="color:#c8b89a;font-size:.88rem;line-height:1.6;max-width:380px;margin:0 auto">
+            Thank you, <strong>${client}</strong>.<br>
+            Your appointment request has been sent to the salon.<br>
+            You will be contacted at <strong>${phone}</strong> to confirm.
+          </p>
+          <div style="margin-top:20px;padding:12px 16px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);border-radius:9px;font-size:.82rem;color:#7ecba1">
+            📅 ${date} · ${time} · ${service}
+          </div>
+        </div>
+      `;
+
+    } catch (e) {
+      showMsg('❌ Erreur : ' + e.message, 'err');
+      btn.disabled    = false;
+      btn.textContent = '✉ Submit Appointment Request';
+    }
+  };
+
+  // ── Boot ────────────────────────────────────────────────────────────────────
+  setMinDate();
+  loadSalon();
+</script>
+</body>
+</html>

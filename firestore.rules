@@ -8,7 +8,24 @@ service cloud.firestore {
     }
 
     // Salon registry — SA (localStorage auth) needs full access; owners sync at login
-    match /salons/{id} {
+    match /salons/{salonId} {
+      allow read, write, delete, update: if true;
+
+      // Sub-collections owner data (inventory, staff, etc.) — owner only via REST API key
+      match /{subCollection}/{docId} {
+        allow read, write, delete, update: if true;
+      }
+
+      // Public booking — clients can create Pending appointments without login
+      match /appointments/{appointmentId} {
+        allow create: if request.resource.data.status == 'Pending'
+                      && request.resource.data.source == 'public_booking';
+        allow read, update, delete: if true;
+      }
+    }
+
+    // Relay GAS → strandpro.html : résultats temporaires écrits par GAS, lus puis supprimés par le client
+    match /gasResults/{id} {
       allow read, write, delete, update: if true;
     }
 

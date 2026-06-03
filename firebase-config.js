@@ -14,21 +14,16 @@ const firebaseConfig = {
 // Importer les modules Firebase nécessaires
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getFirestore, initializeFirestore, persistentLocalCache } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 
 // Initialiser Firebase
 const app = initializeApp(firebaseConfig);
-// experimentalAutoDetectLongPolling : bascule automatiquement en long-polling
-// si WebChannel est bloqué par un ad blocker (ERR_BLOCKED_BY_CLIENT)
 const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
+  experimentalForceLongPolling: true,
   ignoreUndefinedProperties: true
 });
-const auth = getAuth(app);
 
 // Exporter les instances pour utilisation globale
 window.firebaseDB = db;
-window.firebaseAuth = auth;
 
 // Structure des collections Firestore
 const COLLECTIONS = {
@@ -44,4 +39,4 @@ const COLLECTIONS = {
 window.firestoreCollections = COLLECTIONS;
 
 console.log('Firebase initialisé avec succès');
-export { db, auth };
+export { db, app };

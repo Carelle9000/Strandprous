@@ -1,86 +1,75 @@
-// firebase-auth.js
-import { auth } from './firebase-config.js';
-import { 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged,
-    sendPasswordResetEmail 
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+// firebase-auth.js — Firebase Auth cloud layer
+// Fonctionne en local ET en production sans changer le code.
+// Si Firebase Auth n'est pas activé dans la console → les appels échouent silencieusement
+// et l'app continue avec l'auth localStorage + Firestore pw.
 
-import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { app } from './firebase-config.js';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 
-// Hash password (client-side - à améliorer avec Cloud Functions en prod)
-const hashPw = (pw) => btoa(pw).slice(0, 32); // Temporaire
+const auth = getAuth(app);
 
-export function initAuth() {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                localStorage.setItem('sp_session', JSON.stringify({
-                    uid: user.uid,
-                    username: userData.username,
-                    name: userData.name,
-                    role: userData.role
-                }));
-            }
-        }
-    });
+// Codes d'erreur Firebase Auth indiquant que le service n'est pas configuré
+const _NOT_CONFIGURED = new Set([
+  'auth/configuration-not-found',
+  'auth/invalid-api-key',
+  'auth/app-not-authorized',
+  'auth/operation-not-allowed'
+]);
+
+function _isMisconfigured(code) {
+  return _NOT_CONFIGURED.has(code);
 }
 
-export async function doLoginFirebase(emailOrUsername, password) {
-    try {
-        // Recherche par username (on stocke email aussi)
-        const usersSnap = await getDocs(collection(db, "users"));
-        let userFound = null;
-        
-        usersSnap.forEach(doc => {
-            const u = doc.data();
-            if (u.username === emailOrUsername || u.email === emailOrUsername) {
-                userFound = { uid: doc.id, ...u };
-            }
-        });
-
-        if (!userFound) throw new Error("User not found");
-
-        const userCredential = await signInWithEmailAndPassword(auth, userFound.email, password);
-        return userCredential.user;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+// ── Connexion Firebase Auth ────────────────────────────────────────────────
+export async function fbSignIn(email, password) {
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return { uid: cred.user.uid, email: cred.user.email };
+  } catch (e) {
+    if (_isMisconfigured(e.code)) return null; // Auth non activé → ignore silencieusement
+    if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password'
+      || e.code === 'auth/invalid-credential') return null; // Mauvais credentials
+    console.warn('fbSignIn:', e.code);
+    return null;
+  }
 }
 
-export async function doSignupFirebase(userData) {
-    const { email, password, name, username, businessName, city } = userData;
-    
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = userCredential.user.uid;
-
-    await setDoc(doc(db, "users", uid), {
-        username,
-        name,
-        email,
-        role: "owner",
-        businessName,
-        city,
-        createdAt: new Date().toISOString(),
-        mustChangePassword: false
-    });
-
-    return userCredential.user;
+// ── Création de compte Firebase Auth ──────────────────────────────────────
+export async function fbSignUp(email, password) {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    return { uid: cred.user.uid, email: cred.user.email };
+  } catch (e) {
+    if (_isMisconfigured(e.code)) return null;
+    if (e.code === 'auth/email-already-in-use') return null; // Déjà existant → pas une erreur
+    console.warn('fbSignUp:', e.code);
+    return null;
+  }
 }
 
-export async function doLogoutFirebase() {
-    await signOut(auth);
-    localStorage.removeItem('sp_session');
+// ── Déconnexion Firebase Auth ─────────────────────────────────────────────
+export async function fbSignOut() {
+  try { await signOut(auth); } catch { /* ignore */ }
 }
 
-// Exposer globalement pour strandpro.html
-window.initAuth = initAuth;
-window.doLoginFirebase = doLoginFirebase;
-window.doSignupFirebase = doSignupFirebase;
-window.doLogoutFirebase = doLogoutFirebase;
+// ── Écoute l'état de connexion Firebase Auth ──────────────────────────────
+// Sert à maintenir la session synchronisée si l'user se connecte via Firebase Auth
+export function fbOnAuthChange(callback) {
+  try {
+    return onAuthStateChanged(auth, callback);
+  } catch {
+    return () => {};
+  }
+}
+
+// Expose globalement pour strandpro.html
+window.fbSignIn      = fbSignIn;
+window.fbSignUp      = fbSignUp;
+window.fbSignOut     = fbSignOut;
+window.fbOnAuthChange = fbOnAuthChange;

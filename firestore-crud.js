@@ -1,251 +1,293 @@
-// firestore-crud.js
-import { db } from './firebase-config.js';
-import { 
-    collection, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    getDocs, 
-    updateDoc, 
-    deleteDoc, 
-    query, 
-    where, 
-    orderBy,
-    serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+// firestore-crud.js — Firestore REST API (no Firebase SDK, no WebChannel)
+const _FS_BASE = 'https://firestore.googleapis.com/v1/projects/strandprous/databases/(default)/documents';
+const _FS_KEY  = 'AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg';
 
-const currentUser = () => JSON.parse(localStorage.getItem('sp_session'));
+// ── Serialization ──────────────────────────────────────────────────────────
 
-// Helper pour obtenir la collection avec salon ID
-// Pour les owners : salons/{ownerUsername}/...
-// Pour le staff d'un owner Yearly : salons/{ownerUsername}/... (via salonId dans la session)
-function getSalonPath(collectionName) {
-    const user = currentUser();
-    const salonId = user?.salonId || user?.username || user?.uid || 'demo';
-    return `salons/${salonId}/${collectionName}`;
+function _toVal(v) {
+  if (v === null || v === undefined)           return { nullValue: null };
+  if (typeof v === 'boolean')                  return { booleanValue: v };
+  if (v instanceof Date)                       return { timestampValue: v.toISOString() };
+  if (typeof v === 'number')
+    return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string')                   return { stringValue: v };
+  if (typeof v === 'function')                 return { nullValue: null };
+  if (Array.isArray(v))                        return { arrayValue: { values: v.map(_toVal) } };
+  // Compat timestamp { seconds, toDate } ou Firebase SDK Timestamp → re-sérialiser comme timestamp
+  if (typeof v === 'object' && typeof v.toDate === 'function')
+    return { timestampValue: v.toDate().toISOString() };
+  if (typeof v === 'object')                   return { mapValue: { fields: _toFields(v) } };
+  return { stringValue: String(v) };
 }
 
-// === INVENTORY ===
-export const InvAPI = {
+function _toFields(obj) {
+  const fields = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'id') continue;
+    if (typeof v === 'function') continue; // ne jamais sérialiser les méthodes
+    fields[k] = _toVal(v);
+  }
+  return fields;
+}
+
+function _fromVal(v) {
+  if (!v) return null;
+  if ('nullValue'      in v) return null;
+  if ('booleanValue'   in v) return v.booleanValue;
+  if ('integerValue'   in v) return Number(v.integerValue);
+  if ('doubleValue'    in v) return v.doubleValue;
+  if ('stringValue'    in v) return v.stringValue;
+  if ('timestampValue' in v) {
+    const d = new Date(v.timestampValue);
+    // Return compat object matching Firestore SDK shape { seconds, toDate() }
+    return { seconds: Math.floor(d.getTime() / 1000), toDate: () => d };
+  }
+  if ('arrayValue'     in v) return (v.arrayValue.values || []).map(_fromVal);
+  if ('mapValue'       in v) return _fromFields(v.mapValue.fields || {});
+  return null;
+}
+
+function _fromFields(fields) {
+  const obj = {};
+  for (const [k, v] of Object.entries(fields)) obj[k] = _fromVal(v);
+  return obj;
+}
+
+function _fromDoc(raw) {
+  if (!raw?.name) return null;
+  const id = raw.name.split('/').pop();
+  return { id, ..._fromFields(raw.fields || {}) };
+}
+
+// ── HTTP layer ─────────────────────────────────────────────────────────────
+
+async function _req(method, path, body, params = {}) {
+  const url = new URL(`${_FS_BASE}/${path}`);
+  url.searchParams.set('key', _FS_KEY);
+  for (const [k, v] of Object.entries(params)) {
+    if (Array.isArray(v)) v.forEach(i => url.searchParams.append(k, i));
+    else url.searchParams.set(k, v);
+  }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  const opts = { method, headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal };
+  if (body) opts.body = JSON.stringify(body);
+  let res;
+  try { res = await fetch(url.toString(), opts); }
+  finally { clearTimeout(timer); }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw Object.assign(
+      new Error(`Firestore REST ${method} ${path} → ${res.status}`),
+      { fsError: err }
+    );
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+// Paginated collection read
+async function _getCollection(collPath) {
+  const docs = [];
+  let pageToken;
+  do {
+    const params = { pageSize: '300' };
+    if (pageToken) params.pageToken = pageToken;
+    const res = await _req('GET', collPath, null, params);
+    (res?.documents || []).forEach(d => { const doc = _fromDoc(d); if (doc) docs.push(doc); });
+    pageToken = res?.nextPageToken;
+  } while (pageToken);
+  return docs;
+}
+
+async function _getDoc(path) {
+  return _fromDoc(await _req('GET', path));
+}
+
+// Full document replace (no updateMask)
+async function _setDoc(path, data) {
+  return _fromDoc(await _req('PATCH', path, { fields: _toFields(data) }));
+}
+
+// Partial update — only writes listed top-level fields (merge semantics)
+async function _patchDoc(path, data) {
+  const fields = _toFields(data);
+  return _fromDoc(await _req('PATCH', path, { fields }, {
+    'updateMask.fieldPaths': Object.keys(fields)
+  }));
+}
+
+// Auto-ID insert
+async function _addDoc(collPath, data) {
+  return _fromDoc(await _req('POST', collPath, { fields: _toFields(data) }));
+}
+
+async function _deleteDoc(path) {
+  await _req('DELETE', path);
+}
+
+// Ordered query via runQuery
+async function _query(collPath, orderByField, direction = 'DESCENDING') {
+  const parts  = collPath.split('/');
+  const collId = parts.pop();
+  const parent = parts.length ? `${_FS_BASE}/${parts.join('/')}:runQuery` : `${_FS_BASE}:runQuery`;
+
+  const body = {
+    structuredQuery: {
+      from:    [{ collectionId: collId }],
+      orderBy: [{ field: { fieldPath: orderByField }, direction }]
+    }
+  };
+  const res = await fetch(`${parent}?key=${_FS_KEY}`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`runQuery ${collPath} → ${res.status}`);
+  const rows = await res.json();
+  return (rows || []).filter(r => r.document).map(r => _fromDoc(r.document));
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+const _currentUser = () => {
+  try { return JSON.parse(localStorage.getItem('sp_session')); } catch { return null; }
+};
+
+function _getSalonPath(collName) {
+  const u = _currentUser();
+  const salonId = u?.salonId || u?.username || u?.uid || 'demo';
+  return `salons/${salonId}/${collName}`;
+}
+
+const _now = () => new Date();
+
+// ── CRUD factory ───────────────────────────────────────────────────────────
+
+function _makeCRUD(collName) {
+  return {
     async getAll() {
-        const q = collection(db, getSalonPath('inventory'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      return _getCollection(_getSalonPath(collName));
     },
 
     async save(item) {
-        const ref = item.id ? doc(db, getSalonPath('inventory'), item.id) : doc(collection(db, getSalonPath('inventory')));
-        await setDoc(ref, { ...item, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
+      const payload = { ...item, updatedAt: _now() };
+      if (item.id) {
+        await _setDoc(`${_getSalonPath(collName)}/${item.id}`, payload);
+        return item.id;
+      }
+      const created = await _addDoc(_getSalonPath(collName), { ...payload, createdAt: _now() });
+      return created.id;
     },
 
     async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('inventory'), id));
+      await _deleteDoc(`${_getSalonPath(collName)}/${id}`);
     }
-};
+  };
+}
 
-// === STAFF ===
-export const StaffAPI = {
-    async getAll() {
-        const q = collection(db, getSalonPath('staff'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
+// ── Public APIs ────────────────────────────────────────────────────────────
 
-    async save(staffMember) {
-        const ref = staffMember.id ? doc(db, getSalonPath('staff'), staffMember.id) : doc(collection(db, getSalonPath('staff')));
-        await setDoc(ref, { ...staffMember, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
-    },
+export const InvAPI   = _makeCRUD('inventory');
+export const StaffAPI = _makeCRUD('staff');
+export const ApptAPI  = _makeCRUD('appointments');
+export const ExpAPI   = _makeCRUD('expenses');
+export const TaskAPI  = _makeCRUD('tasks');
+export const AttAPI   = _makeCRUD('attendance');
 
-    async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('staff'), id));
-    }
-};
-
-// === APPOINTMENTS ===
-export const ApptAPI = {
-    async getAll() {
-        const q = collection(db, getSalonPath('appointments'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
-
-    async save(appt) {
-        const ref = appt.id ? doc(db, getSalonPath('appointments'), appt.id) : doc(collection(db, getSalonPath('appointments')));
-        await setDoc(ref, { ...appt, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
-    },
-
-    async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('appointments'), id));
-    }
-};
-
-// === EXPENSES ===
-export const ExpAPI = {
-    async getAll() {
-        const q = collection(db, getSalonPath('expenses'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
-
-    async save(exp) {
-        const ref = exp.id ? doc(db, getSalonPath('expenses'), exp.id) : doc(collection(db, getSalonPath('expenses')));
-        await setDoc(ref, { ...exp, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
-    },
-
-    async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('expenses'), id));
-    }
-};
-
-// === TASKS ===
-export const TaskAPI = {
-    async getAll() {
-        const q = collection(db, getSalonPath('tasks'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
-
-    async save(task) {
-        const ref = task.id ? doc(db, getSalonPath('tasks'), task.id) : doc(collection(db, getSalonPath('tasks')));
-        await setDoc(ref, { ...task, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
-    },
-
-    async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('tasks'), id));
-    }
-};
-
-// === ATTENDANCE ===
-export const AttAPI = {
-    async getAll() {
-        const q = collection(db, getSalonPath('attendance'));
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
-
-    async save(att) {
-        const ref = att.id ? doc(db, getSalonPath('attendance'), att.id) : doc(collection(db, getSalonPath('attendance')));
-        await setDoc(ref, { ...att, updatedAt: serverTimestamp() }, { merge: true });
-        return ref.id;
-    },
-
-    async delete(id) {
-        await deleteDoc(doc(db, getSalonPath('attendance'), id));
-    }
-};
-
-// Pour les permissions et users (owner)
 export const UserAPI = {
-    async getAllUsers() {
-        const q = collection(db, "users");
-        const snap = await getDocs(q);
-        return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
-    }
+  async getAllUsers() {
+    const docs = await _getCollection('users');
+    return docs.map(({ id, ...rest }) => ({ uid: id, ...rest }));
+  }
 };
 
-// ── SALON REGISTRY (SuperAdmin) ──
-// Chaque owner sync son document dans salons/{username}
-// Le SuperAdmin lit toute la collection salons/
 export const SalonRegistryAPI = {
 
-    // Appelé au login/signup de chaque owner pour maintenir le registre à jour
-    async syncSalon(data) {
-        if (!data?.username) return;
-        const ref = doc(db, 'salons', data.username);
-        const existing = await getDoc(ref);
-        const base = existing.exists() ? existing.data() : {
-            createdAt:    data.createdAt || serverTimestamp(),
-            featureFlags: {
-                inventory:    true,
-                staff:        true,
-                appointments: true,
-                revenue:      true,
-                expenses:     true,
-                googleForm:   true,
-                permissions:  true
-            }
-        };
-        await setDoc(ref, {
-            ...base,
-            username:     data.username,
-            businessName: data.businessName || '',
-            city:         data.city         || '',
-            email:        data.email        || '',
-            plan:         data.plan         || null,
-            status:       data.status       || 'trial',
-            trialStart:   data.trialStart   || base.trialStart || null,
-            expiry:       data.expiry       || base.expiry     || null,
-            suspended:    base.suspended    ?? false,
-            featureFlags: base.featureFlags,
-            lastSeen:     serverTimestamp()
-        }, { merge: true });
-    },
+  async syncSalon(data) {
+    if (!data?.username) return;
 
-    // Lire la config d'un seul owner (feature flags, suspension…)
-    async getSalon(username) {
-        if (!username) return null;
-        const snap = await getDoc(doc(db, 'salons', username));
-        return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-    },
+    let existing = null;
+    try { existing = await _getDoc(`salons/${data.username}`); } catch {}
 
-    // SuperAdmin — lire tous les salons
-    async getAllSalons() {
-        const snap = await getDocs(collection(db, 'salons'));
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    },
+    const defaultFlags = {
+      inventory: true, staff: true, appointments: true,
+      revenue: true, expenses: true, googleForm: true, permissions: true
+    };
 
-    // SuperAdmin — mettre à jour n'importe quel champ d'un salon
-    async updateSalon(username, data) {
-        if (!username) return;
-        await setDoc(doc(db, 'salons', username), data, { merge: true });
-    },
+    const base = {
+      createdAt:    existing?.createdAt    || _now(),
+      featureFlags: existing?.featureFlags || defaultFlags,
+      suspended:    existing?.suspended    ?? false
+    };
 
-    // SuperAdmin — supprimer un salon du registre
-    async deleteSalon(username) {
-        if (!username) return;
-        await deleteDoc(doc(db, 'salons', username));
-    }
+    await _setDoc(`salons/${data.username}`, {
+      ...base,
+      username:     data.username,
+      businessName: data.businessName || '',
+      city:         data.city         || '',
+      email:        data.email        || '',
+      pw:           data.pw           || existing?.pw           || '',
+      bookingSlug:  data.bookingSlug  || existing?.bookingSlug || data.username,
+      plan:         data.plan         || null,
+      status:       data.status       || 'trial',
+      trialStart:   data.trialStart   || existing?.trialStart  || null,
+      expiry:       data.expiry       || existing?.expiry      || null,
+      featureFlags: base.featureFlags,
+      lastSeen:     _now()
+    });
+  },
+
+  async getSalon(username) {
+    if (!username) return null;
+    try { return await _getDoc(`salons/${username}`); }
+    catch { return null; }
+  },
+
+  async getAllSalons() {
+    return _getCollection('salons');
+  },
+
+  async updateSalon(username, data) {
+    if (!username) return;
+    await _patchDoc(`salons/${username}`, data);
+  },
+
+  async deleteSalon(username) {
+    if (!username) return;
+    await _deleteDoc(`salons/${username}`);
+  }
 };
 
-// === CONTACTS (messages depuis le formulaire index.html) ===
 export const ContactAPI = {
-    async getAll() {
-        try {
-            const q = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
-            const snap = await getDocs(q);
-            return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        } catch {
-            const snap = await getDocs(collection(db, 'contacts'));
-            return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
-                const ta = a.createdAt?.seconds || 0;
-                const tb = b.createdAt?.seconds || 0;
-                return tb - ta;
-            });
-        }
-    },
-    async markRead(id) {
-        await updateDoc(doc(db, 'contacts', id), { status: 'read' });
-    },
-    async markReplied(id) {
-        await updateDoc(doc(db, 'contacts', id), { status: 'replied', repliedAt: serverTimestamp() });
-    },
-    async delete(id) {
-        await deleteDoc(doc(db, 'contacts', id));
+  async getAll() {
+    try {
+      return await _query('contacts', 'createdAt', 'DESCENDING');
+    } catch {
+      const docs = await _getCollection('contacts');
+      return docs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     }
+  },
+
+  async markRead(id) {
+    await _patchDoc(`contacts/${id}`, { status: 'read' });
+  },
+
+  async markReplied(id) {
+    await _patchDoc(`contacts/${id}`, { status: 'replied', repliedAt: _now() });
+  },
+
+  async delete(id) {
+    await _deleteDoc(`contacts/${id}`);
+  }
 };
 
-// Exposer les APIs Firestore sous le préfixe FS pour ne pas écraser les APIs localStorage de strandpro.html
-window.FSInvAPI        = InvAPI;
-window.FSStaffAPI      = StaffAPI;
-window.FSApptAPI       = ApptAPI;
-window.FSExpAPI        = ExpAPI;
-window.FSTaskAPI       = TaskAPI;
-window.FSAttAPI        = AttAPI;
-window.UserAPI         = UserAPI;
-window.SalonRegistryAPI = SalonRegistryAPI;
-window.ContactAPI      = ContactAPI;
+// ── Window exports (backward compat) ──────────────────────────────────────
+window.FSInvAPI          = InvAPI;
+window.FSStaffAPI        = StaffAPI;
+window.FSApptAPI         = ApptAPI;
+window.FSExpAPI          = ExpAPI;
+window.FSTaskAPI         = TaskAPI;
+window.FSAttAPI          = AttAPI;
+window.UserAPI           = UserAPI;
+window.SalonRegistryAPI  = SalonRegistryAPI;
+window.ContactAPI        = ContactAPI;

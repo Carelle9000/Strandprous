@@ -37,7 +37,8 @@ const server = http.createServer((req, res) => {
   }
 
   // Serve files
-  let filePath = '.' + req.url;
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  let filePath = '.' + parsedUrl.pathname;
   if (filePath === './') {
     filePath = './index.html';
   }
