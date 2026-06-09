@@ -609,6 +609,7 @@ tr:hover td { background:var(--bg4); }
 /* ── TOAST ── */
 #toastContainer { position:fixed; bottom:calc(var(--mobile-nav-h) + 12px); right:16px; z-index:9999; display:flex; flex-direction:column; gap:8px; pointer-events:none; }
 .toast { background:var(--surface2); border:1px solid var(--gold-dim); color:var(--text); padding:11px 18px; border-radius:8px; font-size:.82rem; box-shadow:0 4px 20px rgba(0,0,0,.4); animation:fadeIn .3s ease; pointer-events:none; max-width:320px; }
+.toast.error { border-color:var(--danger); }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width:4px; height:4px; }
@@ -879,6 +880,7 @@ body.is-owner .owner-only { display:flex; }
       <div class="nav-item" id="nav-revenue"             onclick="navigate('revenue');closeSidebar()"><span class="nav-icon">💰</span> <span data-translate="Revenue & Payments">Revenue & Payments</span></div>
       <div class="nav-item" id="nav-expenses"            onclick="navigate('expenses');closeSidebar()"><span class="nav-icon">💸</span> <span data-translate="Expenses">Expenses</span></div>
       <div class="nav-item owner-only" id="nav-permissions" onclick="navigate('permissions');closeSidebar()"><span class="nav-icon">🔐</span> <span data-translate="Roles & Permissions">Roles & Permissions</span></div>
+      <div class="nav-item owner-only" id="nav-services" onclick="navigate('services');closeSidebar()"><span class="nav-icon">✂️</span> <span data-translate="My Services">My Services</span></div>
     </nav>
     <!-- === BAS : Logo & Titre StrandPro === -->
   <div class="sidebar-footer">
@@ -1136,6 +1138,35 @@ body.is-owner .owner-only { display:flex; }
         <span>Manage user roles and module access. Owners have full access to all modules. Staff accounts are created here with a temporary password — staff must change it on first login.</span>
       </div>
       <div class="perm-grid" id="permGrid"></div>
+    </section>
+
+    <!-- SERVICES (owner only) -->
+    <section class="page" id="page-services">
+      <div class="section-header">
+        <div class="section-title" data-translate="My Services">My Services</div>
+        <button class="btn btn-gold btn-sm" onclick="openServiceModal()" data-translate="+ Add Service">+ Add Service</button>
+      </div>
+      <div class="card">
+        <div class="card-title" data-translate="💅 Service Catalog">💅 Service Catalog</div>
+        <p style="font-size:.8rem;color:var(--text3);margin:0 0 12px">Configure your own service list. These services will appear in the appointments booking form.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-translate="Service Name">Service Name</th>
+                <th data-translate="Category">Category</th>
+                <th data-translate="Description">Description</th>
+                <th data-translate="Actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="servicesTableBody"></tbody>
+          </table>
+          <div id="servicesEmpty" class="empty-state" style="display:none">
+            <div class="e-icon">✂️</div>
+            <p data-translate="No services added yet. Click &quot;+ Add Service&quot; to get started.">No services added yet. Click "+ Add Service" to get started.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ACCESS DENIED -->
@@ -1400,6 +1431,7 @@ body.is-owner .owner-only { display:flex; }
     <div class="mobile-nav-item" id="mn-revenue"             onclick="navigate('revenue')"><span class="m-icon">💰</span>Revenue</div>
     <div class="mobile-nav-item" id="mn-expenses"            onclick="navigate('expenses')"><span class="m-icon">💸</span>Expenses</div>
     <div class="mobile-nav-item owner-only" id="mn-permissions" onclick="navigate('permissions')"><span class="m-icon">🔐</span>Roles</div>
+    <div class="mobile-nav-item owner-only" id="mn-services" onclick="navigate('services')"><span class="m-icon">✂️</span>Services</div>
   </div>
 </div>
 
@@ -1455,6 +1487,43 @@ body.is-owner .owner-only { display:flex; }
 </div>
 
 <div id="toastContainer"></div>
+
+<!-- ONBOARDING WELCOME MODAL (premier login) -->
+<div id="onboardingModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div class="modal slide-up" style="max-width:500px;text-align:center;padding:32px 28px">
+    <div style="font-size:2.4rem;margin-bottom:14px">✂️</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:700;color:var(--gold-light);margin-bottom:6px" data-translate="Welcome to StrandPro!">Welcome to StrandPro!</div>
+    <div id="onboardingBizName" style="font-size:.85rem;color:var(--text3);margin-bottom:20px"></div>
+    <div style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.22);border-radius:10px;padding:14px 18px;margin-bottom:22px;text-align:left">
+      <div style="font-size:.7rem;color:#2ecc71;font-weight:700;letter-spacing:.08em;margin-bottom:6px">🎁 YOUR 14-DAY FREE TRIAL IS ACTIVE</div>
+      <div style="font-size:.82rem;color:var(--text2);line-height:1.5">Full access to all features — completely free. No credit card required today.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;text-align:left">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer" onclick="closeOnboarding('appointments')">
+        <div style="font-size:1.3rem;margin-bottom:5px">📅</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:2px" data-translate="Appointments">Appointments</div>
+        <div style="font-size:.72rem;color:var(--text3)" data-translate="Book & manage clients">Book & manage clients</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer" onclick="closeOnboarding('staff')">
+        <div style="font-size:1.3rem;margin-bottom:5px">👩‍💼</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:2px" data-translate="Staff">Staff</div>
+        <div style="font-size:.72rem;color:var(--text3)" data-translate="Manage your team">Manage your team</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer" onclick="closeOnboarding('inventory')">
+        <div style="font-size:1.3rem;margin-bottom:5px">📦</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:2px" data-translate="Inventory">Inventory</div>
+        <div style="font-size:.72rem;color:var(--text3)" data-translate="Track stock & supplies">Track stock & supplies</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer" onclick="closeOnboarding('services')">
+        <div style="font-size:1.3rem;margin-bottom:5px">✂️</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:2px" data-translate="My Services">My Services</div>
+        <div style="font-size:.72rem;color:var(--text3)" data-translate="Configure your service list">Configure your service list</div>
+      </div>
+    </div>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;font-size:.95rem;padding:14px;letter-spacing:.02em" onclick="closeOnboarding('dashboard')" data-translate="Explore StrandPro →">Explore StrandPro →</button>
+    <div style="font-size:.68rem;color:var(--text4);margin-top:10px" data-translate="14 days free · Cancel anytime · No credit card required">14 days free · Cancel anytime · No credit card required</div>
+  </div>
+</div>
 
 <!-- TRIAL PLAN MODAL -->
 <div id="spTrialModal">
@@ -1568,11 +1637,23 @@ body.is-owner .owner-only { display:flex; }
 <!-- ATTENDANCE MODAL -->
 <div class="modal-overlay" id="attModal">
   <div class="modal slide-up">
-    <div class="modal-title" data-translate="Log Attendance">Log Attendance</div>
+    <div class="modal-title" data-translate="Clock In">Clock In</div>
     <div class="form-row cols-1"><div class="form-group"><label data-translate="Staff Member">Staff Member</label><select id="attStaff"></select></div></div>
-    <div class="form-row"><div class="form-group"><label data-translate="Date">Date</label><input type="date" id="attDate"></div><div class="form-group"><label data-translate="Check-In">Check-In</label><input type="time" id="attIn"></div></div>
-    <div class="form-row"><div class="form-group"><label data-translate="Check-Out">Check-Out</label><input type="time" id="attOut"></div><div class="form-group"><label data-translate="Notes">Notes</label><input type="text" id="attNote" placeholder="e.g. Late start" data-translate-placeholder="e.g. Late start"></div></div>
-    <div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeModal('attModal')" data-translate="Cancel">Cancel</button><button class="btn btn-gold btn-sm" onclick="saveAtt()" data-translate="Log">Log</button></div>
+    <div class="form-row cols-1"><div class="form-group"><label data-translate="Notes">Notes</label><input type="text" id="attNote" placeholder="e.g. Late start" data-translate-placeholder="e.g. Late start"></div></div>
+    <div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeModal('attModal')" data-translate="Cancel">Cancel</button><button class="btn btn-gold btn-sm" onclick="saveAtt()" data-translate="Clock In">Clock In</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal slide-up" style="max-width:360px;text-align:center">
+    <div style="font-size:2.4rem;margin-bottom:8px" id="confirmIcon">⚠️</div>
+    <div class="modal-title" style="justify-content:center" id="confirmTitle">Confirmation</div>
+    <p style="color:var(--text3);font-size:.85rem;margin:0 0 22px" id="confirmMsg"></p>
+    <div class="modal-actions" style="justify-content:center;gap:12px">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('confirmModal')" data-translate="Cancel">Annuler</button>
+      <button class="btn btn-danger btn-sm" id="confirmOkBtn" onclick="_runConfirm()">Confirmer</button>
+    </div>
   </div>
 </div>
 
@@ -1611,6 +1692,16 @@ body.is-owner .owner-only { display:flex; }
     <div class="form-row"><div class="form-group"><label data-translate="Paid By">Paid By</label><select id="expPaidBy"><option data-translate="Cash">Cash</option><option data-translate="Zelle">Zelle</option><option data-translate="Card">Card</option><option data-translate="Check">Check</option><option data-translate="Other">Other</option></select></div><div class="form-group"><label data-translate="Receipt # (optional)">Receipt # (optional)</label><input type="text" id="expReceipt" placeholder="e.g. INV-2024-001" data-translate-placeholder="e.g. INV-2024-001"></div></div>
     <div class="form-row cols-1"><div class="form-group"><label data-translate="Notes (optional)">Notes (optional)</label><textarea id="expNote" rows="2"></textarea></div></div>
     <div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeModal('expModal')" data-translate="Cancel">Cancel</button><button class="btn btn-gold btn-sm" onclick="saveExpense()" data-translate="Save Expense">Save Expense</button></div>
+  </div>
+</div>
+
+<!-- SERVICE MODAL -->
+<div class="modal-overlay" id="serviceModal">
+  <div class="modal slide-up">
+    <div class="modal-title" id="serviceModalTitle" data-translate="Add Service">Add Service</div>
+    <div class="form-row"><div class="form-group"><label data-translate="Service Name">Service Name</label><input type="text" id="svcName" placeholder="e.g. Box Braids" data-translate-placeholder="e.g. Box Braids"></div><div class="form-group"><label data-translate="Category">Category</label><input type="text" id="svcCategory" placeholder="e.g. Hair Braiding" data-translate-placeholder="e.g. Hair Braiding"></div></div>
+    <div class="form-row cols-1"><div class="form-group"><label data-translate="Description (optional)">Description (optional)</label><textarea id="svcDescription" rows="2" placeholder="Brief description of the service" data-translate-placeholder="Brief description of the service"></textarea></div></div>
+    <div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeModal('serviceModal')" data-translate="Cancel">Cancel</button><button class="btn btn-gold btn-sm" onclick="saveService()" data-translate="Save Service">Save Service</button></div>
   </div>
 </div>
 
@@ -1816,6 +1907,7 @@ async function loadAllData() {
         const [inv, staff]      = await Promise.all([InvAPI.getAll(), StaffAPI.getAll()]);
         const [appts, expenses] = await Promise.all([ApptAPI.getAll(), ExpAPI.getAll()]);
         const [tasks, att]      = await Promise.all([TaskAPI.getAll(), AttAPI.getAll()]);
+        const services          = await ServiceAPI.getAll();
 
         window.appData = {
             inv:      inv      || [],
@@ -1823,13 +1915,14 @@ async function loadAllData() {
             appts:    appts    || [],
             tasks:    tasks    || [],
             att:      att      || [],
-            expenses: expenses || []
+            expenses: expenses || [],
+            services: services || []
         };
 
         console.log(`✅ loadAllData terminé - RDV chargés : ${window.appData.appts.length}`);
     } catch (e) {
         console.error("Erreur chargement données:", e);
-        window.appData = { inv: [], staff: [], appts: [], tasks: [], att: [], expenses: [] };
+        window.appData = { inv: [], staff: [], appts: [], tasks: [], att: [], expenses: [], services: [] };
     }
 }
 // Fonction pour prévisualiser le logo
@@ -2006,6 +2099,25 @@ const ExpAPI = {
     }
 };
 
+const ServiceAPI = {
+    getAll: async () => S.get('services'),
+    save: async (item) => {
+        let items = S.get('services');
+        if (item.id) {
+            items = items.map(i => i.id === item.id ? item : i);
+        } else {
+            item.id = 'svc_' + Date.now().toString(36);
+            items.push(item);
+        }
+        S.set('services', items);
+        return item;
+    },
+    delete: async (id) => {
+        let items = S.get('services').filter(i => i.id !== id);
+        S.set('services', items);
+    }
+};
+
 // ══════════════════════════════════════════════════════════════
 // ── CLOUD / LOCAL DATA ROUTING ────────────────────────────────
 // Monthly ($19.99) → localStorage  |  Yearly ($150) → Firestore
@@ -2041,7 +2153,8 @@ async function _tryCloud(fsName, method, ...args) {
     [ApptAPI,  'FSApptAPI',  'appts'],
     [ExpAPI,   'FSExpAPI',   'expenses'],
     [TaskAPI,  'FSTaskAPI',  'tasks'],
-    [AttAPI,   'FSAttAPI',   'att'],
+    [AttAPI,      'FSAttAPI',     'att'],
+    [ServiceAPI,  'FSServiceAPI', 'services'],
   ];
   map.forEach(([api, fsName, lsKey]) => {
     const _get = api.getAll.bind(api);
@@ -2094,7 +2207,8 @@ async function migrateToCloud() {
     ['FSApptAPI',  'appts',    'Rendez-vous'],
     ['FSExpAPI',   'expenses', 'Dépenses'],
     ['FSTaskAPI',  'tasks',    'Tâches'],
-    ['FSAttAPI',   'att',      'Présences'],
+    ['FSAttAPI',      'att',      'Présences'],
+    ['FSServiceAPI',  'services', 'Services'],
   ];
 
   let total = 0, done = 0;
@@ -2140,11 +2254,22 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 document.getElementById('manageSubModal').addEventListener('click', e => {
   if(e.target===document.getElementById('manageSubModal')) closeManageSub();
 });
-function showToast(msg) {
+function showToast(msg, type='') {
   const c=document.getElementById('toastContainer');
-  const el=document.createElement('div'); el.className='toast'; el.textContent=msg;
+  const el=document.createElement('div'); el.className='toast'+(type?' '+type:''); el.textContent=msg;
   c.appendChild(el); setTimeout(()=>el.remove(),3500);
 }
+let _confirmCb=null;
+function showConfirm(msg, onOk, {title='Confirmation',icon='🗑',okLabel='Supprimer',danger=true}={}){
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmIcon').textContent=icon;
+  document.getElementById('confirmOkBtn').textContent=okLabel;
+  document.getElementById('confirmOkBtn').className='btn btn-sm '+(danger?'btn-danger':'btn-gold');
+  _confirmCb=onOk;
+  openModal('confirmModal');
+}
+function _runConfirm(){closeModal('confirmModal');if(_confirmCb){_confirmCb();_confirmCb=null;}}
 
 // ==================== CSV PARSING ====================
 
@@ -2199,11 +2324,11 @@ function sanitizeString(value) {
 // ══════════════════════════════════════════════════════
 
 function syncSalonToFirestore(user){
-  if(!window.SalonRegistryAPI) return;
+  if(!window.SalonRegistryAPI) return Promise.resolve();
   const sub   = S.getObj('sp_sub') || {};
   const users = getUsers();
   const u     = users[user.username] || user;
-  window.SalonRegistryAPI.syncSalon({
+  return window.SalonRegistryAPI.syncSalon({
     username:      user.username,
     businessName:  user.businessName || '',
     city:          user.city         || '',
@@ -2234,12 +2359,17 @@ async function readSalonConfig(username){
       window.SalonRegistryAPI.updateSalon(username, { tempPassword: null }).catch(()=>{});
     }
     // Sync subscription from Firestore (SA-activated plans)
+    // Ne pas laisser 'inactive' (état initial par défaut) écraser un trial local actif
     if(salon.plan || salon.status || salon.expiry){
       const sub = S.getObj('sp_sub') || {};
-      if(salon.plan)   sub.plan   = salon.plan;
-      if(salon.status) sub.status = salon.status;
-      if(salon.expiry) sub.expiry = salon.expiry;
-      if(salon.trialStart) sub.trialStart = salon.trialStart;
+      if(salon.plan) sub.plan = salon.plan;
+      // Sync statut uniquement si Firestore a un statut "réel" (activé par SA)
+      // 'inactive' est l'état initial par défaut — il ne doit jamais tuer un trial local
+      const realStatuses = ['active', 'cancelled', 'trial'];
+      if(salon.status && realStatuses.includes(salon.status)) sub.status = salon.status;
+      // Normaliser les timestamps Firestore ({ seconds, toDate }) en millisecondes
+      if(salon.expiry) sub.expiry = _tsToMs(salon.expiry) || sub.expiry;
+      if(salon.trialStart) sub.trialStart = _tsToMs(salon.trialStart) || sub.trialStart;
       S.setObj('sp_sub', sub);
       updateSubUI();
     }
@@ -2278,6 +2408,7 @@ let _saAllSalons = [];
 async function loadSaData(force = false){
   if(!window.SalonRegistryAPI) return;
   if(!force && _saAllSalons.length) return;
+  if(force && window.clearFsCache) window.clearFsCache('salons');
   try {
     _saAllSalons = await window.SalonRegistryAPI.getAllSalons();
   } catch(e){ console.error('loadSaData:', e); }
@@ -2401,11 +2532,12 @@ async function saMarkMsgRead(id, silent=false){
 }
 
 async function saDeleteMsg(id){
-  if(!confirm('Supprimer ce message définitivement ?')) return;
-  try { await window.ContactAPI.delete(id); } catch{}
-  _allMessages = _allMessages.filter(x=>x.id!==id);
-  filterMessages(); msgRenderStats(); updateUnreadBadge();
-  showToast('🗑 Message supprimé.');
+  showConfirm('Supprimer ce message définitivement ?', async ()=>{
+    try { await window.ContactAPI.delete(id); } catch{}
+    _allMessages = _allMessages.filter(x=>x.id!==id);
+    filterMessages(); msgRenderStats(); updateUnreadBadge();
+    showToast('🗑 Message supprimé.');
+  });
 }
 
 // ── Reply modal ──
@@ -2502,11 +2634,13 @@ async function saBulkMarkRead(){
 
 async function saBulkDelete(){
   const ids = [...document.querySelectorAll('.msg-check:checked')].map(c=>c.value);
-  if(!ids.length || !confirm(`Supprimer ${ids.length} message(s) ?`)) return;
-  for(const id of ids){ try{ await window.ContactAPI.delete(id); }catch{} }
-  _allMessages = _allMessages.filter(m=>!ids.includes(m.id));
-  filterMessages(); msgRenderStats(); updateUnreadBadge(); saClearSelection();
-  showToast('🗑 Messages supprimés.');
+  if(!ids.length) return;
+  showConfirm(`Supprimer ${ids.length} message(s) ?`, async ()=>{
+    for(const id of ids){ try{ await window.ContactAPI.delete(id); }catch{} }
+    _allMessages = _allMessages.filter(m=>!ids.includes(m.id));
+    filterMessages(); msgRenderStats(); updateUnreadBadge(); saClearSelection();
+    showToast('🗑 Messages supprimés.');
+  });
 }
 
 // Close reply modal on backdrop click
@@ -2924,21 +3058,25 @@ async function saveSaActivation(){
 
 async function saToggleSuspend(username, suspend){
   if(!window.SalonRegistryAPI) return;
-  if(suspend && !confirm(`Suspendre le compte "${username}" ?`)) return;
-  await window.SalonRegistryAPI.updateSalon(username, { suspended: suspend });
-  const idx = _saAllSalons.findIndex(s=>s.username===username||s.id===username);
-  if(idx>-1) _saAllSalons[idx].suspended = suspend;
-  saRenderOwners(_saAllSalons);
-  showToast(suspend ? `🔒 ${username} suspendu.` : `✅ ${username} réactivé.`);
+  const doIt=async()=>{
+    await window.SalonRegistryAPI.updateSalon(username, { suspended: suspend });
+    const idx=_saAllSalons.findIndex(s=>s.username===username||s.id===username);
+    if(idx>-1) _saAllSalons[idx].suspended=suspend;
+    saRenderOwners(_saAllSalons);
+    showToast(suspend?`🔒 ${username} suspendu.`:`✅ ${username} réactivé.`);
+  };
+  if(suspend) showConfirm(`Suspendre le compte "${username}" ?`, doIt, {icon:'🔒',okLabel:'Suspendre'});
+  else doIt();
 }
 
 async function saDeleteOwner(username){
   if(!window.SalonRegistryAPI) return;
-  if(!confirm(`Supprimer définitivement "${username}" du registre ?`)) return;
-  await window.SalonRegistryAPI.deleteSalon(username);
-  _saAllSalons = _saAllSalons.filter(s=>s.username!==username&&s.id!==username);
-  saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons);
-  showToast(`🗑️ ${username} supprimé du registre.`);
+  showConfirm(`Supprimer définitivement "${username}" du registre ?`, async()=>{
+    await window.SalonRegistryAPI.deleteSalon(username);
+    _saAllSalons=_saAllSalons.filter(s=>s.username!==username&&s.id!==username);
+    saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons);
+    showToast(`🗑️ ${username} supprimé du registre.`);
+  });
 }
 
 // ── LANG ──
@@ -3078,13 +3216,24 @@ function initSubscription(){
   }
   return sub;
 }
+function _tsToMs(v){
+  if(!v) return 0;
+  if(typeof v === 'number') return v;
+  if(typeof v.toDate === 'function') return v.toDate().getTime();
+  if(typeof v.seconds === 'number') return v.seconds * 1000;
+  return 0;
+}
 function getDaysLeft(sub){
   if(sub.status==='trial'){
-    if(sub.expiry)return Math.max(0,Math.ceil((sub.expiry-Date.now())/86400000));
-    if(sub.trialStart)return Math.max(0,14-Math.floor((Date.now()-sub.trialStart)/86400000));
+    const expiry = _tsToMs(sub.expiry);
+    if(expiry) return Math.max(0,Math.ceil((expiry-Date.now())/86400000));
+    const trialStart = _tsToMs(sub.trialStart);
+    if(trialStart) return Math.max(0,14-Math.floor((Date.now()-trialStart)/86400000));
     return 0;
   }
-  if((sub.status==='active'||sub.status==='cancelled')&&sub.expiry)return Math.max(0,Math.ceil((sub.expiry-Date.now())/86400000));
+  if((sub.status==='active'||sub.status==='cancelled')&&sub.expiry){
+    return Math.max(0,Math.ceil((_tsToMs(sub.expiry)-Date.now())/86400000));
+  }
   return 0;
 }
 function isAccessAllowed(){
@@ -3187,9 +3336,10 @@ function openManageSub(){
 function closeManageSub(){document.getElementById('manageSubModal').classList.remove('open');}
 function cancelSub(){
   const t=key=>(typeof getTranslation==='function')?getTranslation(key,_lang):key;
-  if(!confirm(t('Cancel subscription? Access continues until current period ends.')))return;
-  const sub=S.getObj('sp_sub');sub.status='cancelled';S.setObj('sp_sub',sub);
-  closeManageSub();updateSubUI();showToast(t('Subscription cancelled. Access continues until expiry.'));
+  showConfirm(t('Cancel subscription? Access continues until current period ends.'), ()=>{
+    const sub=S.getObj('sp_sub');sub.status='cancelled';S.setObj('sp_sub',sub);
+    closeManageSub();updateSubUI();showToast(t('Subscription cancelled. Access continues until expiry.'));
+  },{icon:'💳',okLabel:t('Cancel subscription'),danger:false});
 }
 
 // ── TRIAL PLAN MODAL ──
@@ -3198,6 +3348,25 @@ const STRIPE_TRIAL_LINKS = {
   monthly: 'https://buy.stripe.com/7sYbJ3alla9xehy0hZcMM02',
   yearly:  'https://buy.stripe.com/7sYbJ3alla9xehy0hZcMM02'
 };
+function showOnboarding(user){
+  if(S.getObj('sp_onboarding_done')) return;
+  const modal = document.getElementById('onboardingModal');
+  if(!modal) return;
+  const bizEl = document.getElementById('onboardingBizName');
+  if(bizEl){
+    const parts = [user?.businessName, user?.city].filter(Boolean);
+    bizEl.textContent = parts.length ? parts.join(' · ') : '';
+  }
+  modal.style.display = 'flex';
+  if(typeof applyTranslations === 'function') applyTranslations(_lang);
+}
+function closeOnboarding(page){
+  S.setObj('sp_onboarding_done', true);
+  const modal = document.getElementById('onboardingModal');
+  if(modal) modal.style.display = 'none';
+  navigate(page || 'dashboard');
+}
+
 function openSpTrialModal(){
   _spTrialPlan = 'monthly';
   selectSpTrial('monthly');
@@ -3385,10 +3554,22 @@ async function _bootApp(session){
   const _pending = localStorage.getItem('sp_pending_plan');
   if(_pending && session.role==='owner' && (STRIPE_PLANS[_pending] || _pending==='trial')){
     localStorage.removeItem('sp_pending_plan');
-    if(users[session.username]) syncSalonToFirestore(users[session.username]);
-    if(_pending==='trial'){ setTimeout(openSpTrialModal, 400); }
-    else { showToast(`💳 Redirection vers Stripe — Plan ${_pending}…`); setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pending]; }, 900); }
-    return;
+    if(_pending==='trial'){
+      // Si le trial est déjà actif, ignorer — continuer le boot normalement
+      const _existingSub = S.getObj('sp_sub');
+      if(!_existingSub || (_existingSub.status !== 'trial' && _existingSub.status !== 'active')){
+        // Activer le trial directement, sans bloquer sur une modale de sélection
+        const _now = Date.now();
+        S.setObj('sp_sub', { status:'trial', plan:'monthly', trialStart:_now, expiry: _now + 14*24*60*60*1000 });
+        if(users[session.username]) syncSalonToFirestore(users[session.username] || session);
+      }
+      // continuer le boot normalement (pas de return)
+    } else {
+      if(users[session.username]) syncSalonToFirestore(users[session.username]);
+      showToast(`💳 Redirection vers Stripe — Plan ${_pending}…`);
+      setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pending]; }, 900);
+      return;
+    }
   }
 
   initSubscription();
@@ -3396,13 +3577,21 @@ async function _bootApp(session){
   if(session.role==='owner'){
     checkCloudMigration();
     readSalonConfig(session.username);
+    // Sync login data to Firestore so SuperAdmin can always see all registered users
+    setTimeout(() => syncSalonToFirestore(users[session.username] || session), 1200);
   }
 
   // Navigation : l'user voit ses interfaces, puis checkAccess applique l'overlay si nécessaire
   navigate(session.role === 'owner' ? 'dashboard' : 'staff');
   checkAccess(true);   // affiche l'overlay si trial expiré (pas de redirection paywall)
   if(isAccessAllowed()){
-    showToast(`👋 Bienvenue ${session.name}!`);
+    // Onboarding pour les nouveaux owners (premier login)
+    if(session.role === 'owner' && !S.getObj('sp_onboarding_done')){
+      const _u = getUsers()[session.username] || {};
+      setTimeout(() => showOnboarding(_u), 700);
+    } else {
+      showToast(`👋 Bienvenue ${session.name}!`);
+    }
     checkLowStock();
     checkDueTasks();
     checkUpcomingAppts();
@@ -3581,8 +3770,15 @@ async function doSignup() {
         .catch(()=>{});
     }
 
-    // Sync vers Firestore — visible immédiatement dans le SA Dashboard
-    syncSalonToFirestore(users[username]);
+    // Activer le trial immédiatement (avant sync Firestore pour que Firestore reçoive status:'trial')
+    const _now = Date.now();
+    S.setObj('sp_sub', { status:'trial', plan:'monthly', trialStart:_now, expiry: _now + 14*24*60*60*1000 });
+    localStorage.removeItem('sp_pending_plan'); // évite la modale trial au 1er login
+
+    // Sync vers Firestore — await pour garantir que le SA voit le nouvel owner dès le prochain Refresh
+    await syncSalonToFirestore(users[username]);
+    // Invalider le cache SA pour que loadSaData() refetche au prochain accès
+    if(window.clearFsCache) window.clearFsCache('salons');
 
     showAuthMsg('signupOk', `✓ Compte créé ! Connecte-toi avec ${email}.`, 'success');
 
@@ -3783,11 +3979,8 @@ function confirmLogout(){
   clearCurrentUser();
   hideAccessDenied();
   hideSuspendedScreen();
-  if(window.fbSignOut){
-    window.fbSignOut(); // onAuthStateChanged → clearCurrentUser() + showAuthScreen()
-  } else {
-    showAuthScreen();
-  }
+  showAuthScreen(); // show immediately without waiting for Firebase callback
+  if(window.fbSignOut) window.fbSignOut();
 }
 function showAuthScreen(){document.getElementById('authScreen').classList.add('show');}
 function hideAuthScreen(){document.getElementById('authScreen').classList.remove('show');}
@@ -3880,14 +4073,9 @@ const STAFF_ALWAYS=['staff'];
 
 // ====================== Gestion des Permissions ======================
 
-async function getUserPermissions(staffId) {
-    try {
-        const permDoc = await getDoc(doc(db, `salons/${getCurrentUser().uid}/permissions`, staffId));
-        return permDoc.exists() ? permDoc.data() : {};
-    } catch (e) {
-        console.error(e);
-        return {};
-    }
+function getUserPermissions(staffId) {
+    const allPerms = S.getObj('sp_permissions') || {};
+    return allPerms['roster__' + staffId] || {};
 }
 
 // Fonction de compatibilité temporaire
@@ -4025,23 +4213,15 @@ async function renderPermissions() {
     grid.innerHTML = html;
 }
 
-async function togglePerm(staffId, moduleKey, granted, displayName) {
-    try {
-        const salonId = getCurrentUser().uid;
-        const permRef = doc(db, `salons/${salonId}/permissions`, staffId);
-        
-        await setDoc(permRef, {
-            [moduleKey]: granted,
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-
-        const modLabel = PERM_MODULES.find(m => m.key === moduleKey)?.label || moduleKey;
-        showToast(`✓ ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
-        addNotif(`🔐 ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
-    } catch (e) {
-        console.error(e);
-        alert("Erreur lors de la modification des permissions");
-    }
+function togglePerm(staffId, moduleKey, granted, displayName) {
+    const allPerms = S.getObj('sp_permissions') || {};
+    const key = 'roster__' + staffId;
+    allPerms[key] = allPerms[key] || {};
+    allPerms[key][moduleKey] = granted;
+    S.setObj('sp_permissions', allPerms);
+    const modLabel = PERM_MODULES.find(m => m.key === moduleKey)?.label || moduleKey;
+    showToast(`✓ ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
+    addNotif(`🔐 ${modLabel} ${granted ? 'activé' : 'désactivé'} pour ${displayName}`);
 }
 
 // ── STAFF ACCOUNT MANAGEMENT ──
@@ -4131,7 +4311,7 @@ function managerResetPass(){
 const PAGE_TITLES={
   dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',
   appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',
-  permissions:'Roles & Permissions',denied:'Access Restricted',
+  permissions:'Roles & Permissions',services:'My Services',denied:'Access Restricted',
   'sa-dashboard':'Dashboard','sa-owners':'Owners','sa-payments':'Paiements',
   'sa-gforms':'Google Forms','sa-modules':'Modules & Accès','sa-messages':'Messages'
 };
@@ -4167,6 +4347,7 @@ async function navigate(page){
   if(page==='revenue')      await renderRevenue();
   if(page==='expenses')     await renderExpenses();
   if(page==='permissions')  await renderPermissions();
+  if(page==='services')     await renderServices();
 }
 function _activatePage(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -4376,10 +4557,7 @@ async function renderInventory() {
 
 async function saveInvItem() {
     const name = document.getElementById('invName').value.trim();
-    if (!name) {
-        alert("Le nom de l'article est requis");
-        return;
-    }
+    if (!name) { showToast("Le nom de l'article est requis", 'error'); return; }
 
     const item = {
         id: editInvId,
@@ -4402,20 +4580,21 @@ async function saveInvItem() {
         }
     } catch (e) {
         console.error(e);
-        alert("Erreur lors de la sauvegarde");
+        showToast("Erreur lors de la sauvegarde", 'error');
     }
 }
 
 async function deleteInv(id) {
-    if (!confirm("Supprimer cet article ?")) return;
-    try {
-        await InvAPI.delete(id);
-        await loadAllData();
-        renderInventory();
-        showToast("Article supprimé");
-    } catch (e) {
-        alert("Erreur lors de la suppression");
-    }
+    showConfirm("Supprimer cet article ?", async()=>{
+        try {
+            await InvAPI.delete(id);
+            await loadAllData();
+            renderInventory();
+            showToast("Article supprimé");
+        } catch (e) {
+            showToast("Erreur lors de la suppression", 'error');
+        }
+    });
 }
 
 
@@ -4497,8 +4676,7 @@ function openAttModal(){
   editAttId = null;
   const staff=window.appData.staff;
   document.getElementById('attStaff').innerHTML=staff.map(s=>`<option value="${s.id}">${s.name} (${s.role})</option>`).join('');
-  document.getElementById('attDate').value=today();
-  ['attIn','attOut','attNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('attNote').value='';
   openModal('attModal');
 }
 function openTaskModal(){
@@ -4511,7 +4689,7 @@ function openTaskModal(){
 }
 async function saveStaff(){
   const name=document.getElementById('staffName').value.trim();
-  if(!name){alert('Name required.');return;}
+  if(!name){showToast('Name required.','error');return;}
   
   const staffMember={
     id:editStaffId,
@@ -4530,60 +4708,75 @@ async function saveStaff(){
     showToast(staffMember.id ? 'Staff member updated ✓' : 'Staff member added ✓');
   }catch(e){
     console.error(e);
-    alert("Error saving staff member");
+    showToast('Error saving staff member','error');
   }
 }
 async function deleteStaff(id){
-  if(!confirm('Remove staff member?'))return;
-  try{
-    await StaffAPI.delete(id);
-    await loadAllData();
-    renderStaff();
-    showToast('Staff member removed');
-  }catch(e){
-    console.error(e);
-    alert('Error removing staff member');
-  }
+  showConfirm('Remove staff member?', async()=>{
+    try{
+      await StaffAPI.delete(id);
+      await loadAllData();
+      renderStaff();
+      showToast('Staff member removed');
+    }catch(e){
+      console.error(e);
+      showToast('Error removing staff member','error');
+    }
+  });
 }
 async function saveAtt(){
-  const date=document.getElementById('attDate').value;if(!date){alert('Date required.');return;}
-  const att={
-    id:editAttId,
-    staffId:document.getElementById('attStaff').value,
-    date:date,
-    in:document.getElementById('attIn').value,
-    out:document.getElementById('attOut').value,
-    note:document.getElementById('attNote').value
-  };
-  
+  const now=new Date();
+  const timeStr=now.toTimeString().slice(0,5);
+  const dateStr=now.toISOString().slice(0,10);
+  const staffId=document.getElementById('attStaff').value;
+  if(!staffId){showToast('Please select a staff member.','error');return;}
+  const att={id:editAttId,staffId,date:dateStr,in:timeStr,out:null,note:document.getElementById('attNote').value};
   try{
     await AttAPI.save(att);
     await loadAllData();
     renderStaff();
     closeModal('attModal');
-    showToast('Attendance logged ✓');
-    const staff=window.appData.staff,m=staff.find(s=>s.id===document.getElementById('attStaff').value);
-    addNotif(`✅ Attendance logged for ${m?m.name:''} on ${fmtDate(date)}`);
+    showToast('Clock In logged ✓');
+    const staff=window.appData.staff,m=staff.find(s=>s.id===staffId);
+    addNotif(`⏱ ${m?m.name:''} clocked in at ${timeStr}`);
   }catch(e){
     console.error(e);
-    alert('Error saving attendance');
+    showToast('Error saving clock in','error');
+  }
+}
+async function clockOut(id){
+  const now=new Date();
+  const timeStr=now.toTimeString().slice(0,5);
+  const att=(window.appData.att||[]).find(a=>a.id===id);
+  if(!att)return;
+  try{
+    await AttAPI.save({...att,out:timeStr});
+    await loadAllData();
+    renderStaff();
+    showToast('Clock Out logged ✓');
+    const staff=window.appData.staff,m=staff.find(s=>s.id===att.staffId);
+    addNotif(`⏱ ${m?m.name:''} clocked out at ${timeStr}`);
+  }catch(e){
+    console.error(e);
+    showToast('Error saving clock out','error');
   }
 }
 async function deleteAtt(id){
-  if(!confirm('Remove this attendance record?'))return;
-  try{
-    await AttAPI.delete(id);
-    await loadAllData();
-    renderStaff();
-    showToast('Attendance record removed');
-  }catch(e){
-    console.error(e);
-    alert('Error removing attendance record');
-  }
+  showConfirm('Remove this attendance record?', async()=>{
+    try{
+      await AttAPI.delete(id);
+      await loadAllData();
+      renderStaff();
+      showToast('Attendance record removed');
+    }catch(e){
+      console.error(e);
+      showToast('Error removing attendance record','error');
+    }
+  });
 }
 function calcHours(i,o){if(!i||!o)return 0;const[ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number),h=(oh*60+om-ih*60-im)/60;return h>0?h:0;}
 async function saveTask(){
-  const title=document.getElementById('taskTitle').value.trim();if(!title){alert('Task title required.');return;}
+  const title=document.getElementById('taskTitle').value.trim();if(!title){showToast('Task title required.','error');return;}
   const task={
     id:editTaskId,
     title:title,
@@ -4603,8 +4796,48 @@ async function saveTask(){
     showToast('Task saved ✓');
   }catch(e){
     console.error(e);
-    alert('Error saving task');
+    showToast('Error saving task','error');
   }
+}
+
+function renderTasks(){
+  const tasks=window.appData.tasks||[],staff=window.appData.staff||[];
+  const el=document.getElementById('taskList');if(!el)return;
+  if(tasks.length===0){el.innerHTML='<div class="text-muted text-sm" style="padding:12px 0" data-translate="No tasks yet.">No tasks yet.</div>';return;}
+  const tod=today();
+  const sorted=[...tasks].sort((a,b)=>((a.due||'9999')+(a.time||'00:00')).localeCompare((b.due||'9999')+(b.time||'00:00')));
+  el.innerHTML=sorted.map(tk=>{
+    const m=staff.find(s=>s.id===tk.assignedTo);
+    const isPast=tk.due&&tk.due<tod&&!tk.done;
+    const priColor=tk.priority==='Urgent'?'var(--danger)':tk.priority==='High'?'var(--gold)':'var(--text3)';
+    const assignLabel=m?m.name:tk.assignedTo?'':'All Staff';
+    return`<div class="task-item">
+      <div class="task-check${tk.done?' done':''}" onclick="toggleTaskDone('${tk.id}')">${tk.done?'✓':''}</div>
+      <div style="flex:1;min-width:0">
+        <div class="task-title${tk.done?' done':''}">${tk.title}${tk.priority!=='Normal'?`<span style="font-size:.72rem;color:${priColor};margin-left:4px">${tk.priority}</span>`:''}${isPast?'<span class="badge badge-warn" style="margin-left:4px">Past</span>':''}</div>
+        <div class="text-muted text-sm">${tk.due?fmtDate(tk.due):''}${tk.time?' · '+tk.time:''}${assignLabel?' · '+assignLabel:''}${tk.note?' · <em>'+tk.note+'</em>':''}</div>
+      </div>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="deleteTask('${tk.id}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+async function deleteTask(id){
+  showConfirm('Remove this task?', async()=>{
+    try{
+      await TaskAPI.delete(id);
+      await loadAllData();
+      renderStaff();
+      showToast('Task removed');
+    }catch(e){console.error(e);showToast('Error removing task','error');}
+  });
+}
+async function toggleTaskDone(id){
+  const tk=(window.appData.tasks||[]).find(t=>t.id===id);if(!tk)return;
+  try{
+    await TaskAPI.save({...tk,done:!tk.done});
+    await loadAllData();
+    renderTasks();
+  }catch(e){console.error(e);}
 }
 
 // Attendance month filter setup
@@ -4638,7 +4871,7 @@ function renderAttendance(){
   if(staffFilter) filtered=filtered.filter(a=>a.staffId===staffFilter);
   const el=document.getElementById('attTableBody');if(!el)return;
   document.getElementById('attEmpty').style.display=filtered.length===0?'block':'none';
-  el.innerHTML=filtered.map(a=>{const m=staff.find(s=>s.id===a.staffId);const hrs=calcHours(a.in,a.out);return`<tr><td>${fmtDate(a.date)}</td><td style="font-weight:500">${m?m.name:'—'}</td><td>${a.in||'—'}</td><td>${a.out||'—'}</td><td>${hrs>0?hrs.toFixed(1)+'h':'—'}</td><td><button class="btn btn-danger btn-sm btn-icon" onclick="deleteAtt('${a.id}')">🗑</button></td></tr>`;}).join('');
+  el.innerHTML=filtered.map(a=>{const m=staff.find(s=>s.id===a.staffId);const hrs=calcHours(a.in,a.out);const coBtn=!a.out?`<button class="btn btn-gold btn-sm" onclick="clockOut('${a.id}')" style="margin-right:4px" data-translate="Clock Out">Clock Out</button>`:'';return`<tr><td>${fmtDate(a.date)}</td><td style="font-weight:500">${m?m.name:'—'}</td><td>${a.in||'—'}</td><td>${a.out||'—'}</td><td>${hrs>0?hrs.toFixed(1)+'h':'—'}</td><td style="white-space:nowrap">${coBtn}<button class="btn btn-danger btn-sm btn-icon" onclick="deleteAtt('${a.id}')">🗑</button></td></tr>`;}).join('');
   // Populate staff filter
   const staffFilterEl=document.getElementById('attStaffFilter');
   if(staffFilterEl){
@@ -4656,10 +4889,16 @@ let editApptId = null;
 async function renderAppts() {
     await loadAllData();
 
+    // Populate service filter dynamically from owner's services
+    const svcFilterSel = document.getElementById('apptServiceFilter');
+    const prevFilter = svcFilterSel.value;
+    svcFilterSel.innerHTML = buildServiceOptions(true);
+    svcFilterSel.value = prevFilter;
+
     const appts = window.appData.appts || [];
     const search = (document.getElementById('apptSearch').value || '').toLowerCase().trim();
     const statusFilter = document.getElementById('apptStatusFilter').value;
-    const serviceFilter = document.getElementById('apptServiceFilter').value;
+    const serviceFilter = svcFilterSel.value;
     const dateFilter = document.getElementById('apptDateFilter').value;
 
     const filtered = appts.filter(a => {
@@ -4737,7 +4976,7 @@ async function openApptModal(id = null) {
         document.getElementById('apptPhone').value = appt.phone || '';
         document.getElementById('apptWA').value = appt.wa || '';
         document.getElementById('apptEmail').value = appt.email || '';
-        document.getElementById('apptService').value = appt.service || 'Box Braids';
+        document.getElementById('apptService').value = appt.service || '';
         document.getElementById('apptStylist').value = appt.stylist || '';
         document.getElementById('apptDate').value = appt.date || '';
         document.getElementById('apptTime').value = appt.time || '';
@@ -4763,10 +5002,7 @@ async function openApptModal(id = null) {
 
 async function saveAppt() {
     const client = document.getElementById('apptClient').value.trim();
-    if (!client) {
-        alert("Le nom du client est obligatoire");
-        return;
-    }
+    if (!client) { showToast("Le nom du client est obligatoire", 'error'); return; }
 
     const appt = {
         id: editApptId,
@@ -4797,20 +5033,21 @@ async function saveAppt() {
         }
     } catch (e) {
         console.error(e);
-        alert("Erreur lors de la sauvegarde du rendez-vous");
+        showToast("Erreur lors de la sauvegarde du rendez-vous", 'error');
     }
 }
 
 async function deleteAppt(id) {
-    if (!confirm("Supprimer ce rendez-vous ?")) return;
-    try {
-        await ApptAPI.delete(id);
-        await loadAllData();
-        renderAppts();
-        showToast("Rendez-vous supprimé");
-    } catch (e) {
-        alert("Erreur lors de la suppression");
-    }
+    showConfirm("Supprimer ce rendez-vous ?", async()=>{
+        try {
+            await ApptAPI.delete(id);
+            await loadAllData();
+            renderAppts();
+            showToast("Rendez-vous supprimé");
+        } catch (e) {
+            showToast("Erreur lors de la suppression", 'error');
+        }
+    });
 }
 
 // Fonction de rappel client
@@ -4891,11 +5128,28 @@ const SERVICES_GROUPED=[
 
 function buildServiceOptions(includeAll=false){
   let html = includeAll ? `<option value="">${getTranslation('All Services', _lang) || 'All Services'}</option>` : '';
-  SERVICES_GROUPED.forEach(g=>{
-    html += `<optgroup label="${g.group}">`;
-    g.items.forEach(s=>{ html += `<option value="${s}">${s}</option>`; });
-    html += '</optgroup>';
-  });
+  const customServices = window.appData?.services || [];
+  if (customServices.length > 0) {
+    // Group custom services by category
+    const grouped = {};
+    customServices.forEach(s => {
+      const cat = s.category || 'Other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(s.name);
+    });
+    Object.entries(grouped).forEach(([cat, items]) => {
+      html += `<optgroup label="${cat}">`;
+      items.forEach(name => { html += `<option value="${name}">${name}</option>`; });
+      html += '</optgroup>';
+    });
+  } else {
+    // Fallback: hardcoded list
+    SERVICES_GROUPED.forEach(g=>{
+      html += `<optgroup label="${g.group}">`;
+      g.items.forEach(s=>{ html += `<option value="${s}">${s}</option>`; });
+      html += '</optgroup>';
+    });
+  }
   return html;
 }
 
@@ -5184,8 +5438,8 @@ async function saveExpense() {
     const desc = document.getElementById('expDesc').value.trim();
     const amount = parseFloat(document.getElementById('expAmount').value);
 
-    if (!desc) return alert("Description requise");
-    if (!amount || amount <= 0) return alert("Montant invalide");
+    if (!desc) { showToast("Description requise",'error'); return; }
+    if (!amount || amount <= 0) { showToast("Montant invalide",'error'); return; }
 
     const expense = {
         id: editExpId,
@@ -5210,20 +5464,98 @@ async function saveExpense() {
         }
     } catch (e) {
         console.error(e);
-        alert("Erreur lors de la sauvegarde de la dépense");
+        showToast("Erreur lors de la sauvegarde de la dépense",'error');
     }
 }
 
 async function deleteExpense(id) {
-    if (!confirm("Supprimer cette dépense ?")) return;
-    try {
-        await ExpAPI.delete(id);
-        await loadAllData();
-        renderExpenses();
-        showToast("Dépense supprimée");
-    } catch (e) {
-        alert("Erreur lors de la suppression");
+    showConfirm("Supprimer cette dépense ?", async()=>{
+        try {
+            await ExpAPI.delete(id);
+            await loadAllData();
+            renderExpenses();
+            showToast("Dépense supprimée");
+        } catch (e) {
+            showToast("Erreur lors de la suppression",'error');
+        }
+    });
+}
+
+// ── SERVICES ──
+let editServiceId = null;
+
+async function renderServices() {
+    await loadAllData();
+    const services = window.appData.services || [];
+    const tbody = document.getElementById('servicesTableBody');
+    const empty = document.getElementById('servicesEmpty');
+    if (!tbody) return;
+
+    if (services.length === 0) {
+        tbody.innerHTML = '';
+        if (empty) empty.style.display = '';
+        return;
     }
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = services.map(s => `
+        <tr>
+            <td><strong>${s.name}</strong></td>
+            <td>${s.category || '—'}</td>
+            <td style="max-width:220px;white-space:normal;font-size:.78rem;color:var(--text3)">${s.description || '—'}</td>
+            <td>
+                <button class="btn btn-outline btn-sm btn-icon" onclick="openServiceModal('${s.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm btn-icon" style="margin-left:3px" onclick="deleteService('${s.id}')">🗑</button>
+            </td>
+        </tr>`).join('');
+}
+
+async function openServiceModal(id = null) {
+    editServiceId = id;
+    const services = window.appData?.services || [];
+    const svc = id ? services.find(s => s.id === id) : null;
+
+    document.getElementById('serviceModalTitle').textContent = id ? 'Modifier Service' : 'Nouveau Service';
+    document.getElementById('svcName').value = svc?.name || '';
+    document.getElementById('svcCategory').value = svc?.category || '';
+    document.getElementById('svcDescription').value = svc?.description || '';
+
+    openModal('serviceModal');
+}
+
+async function saveService() {
+    const name = document.getElementById('svcName').value.trim();
+    if (!name) { showToast('Le nom du service est requis','error'); return; }
+
+    const svc = {
+        id: editServiceId || null,
+        name,
+        category: document.getElementById('svcCategory').value.trim(),
+        description: document.getElementById('svcDescription').value.trim()
+    };
+
+    try {
+        await ServiceAPI.save(svc);
+        await loadAllData();
+        renderServices();
+        closeModal('serviceModal');
+        showToast(svc.id ? 'Service mis à jour ✓' : 'Service ajouté ✓');
+    } catch (e) {
+        console.error(e);
+        showToast('Erreur lors de la sauvegarde du service','error');
+    }
+}
+
+async function deleteService(id) {
+    showConfirm('Supprimer ce service ?', async()=>{
+        try {
+            await ServiceAPI.delete(id);
+            await loadAllData();
+            renderServices();
+            showToast('Service supprimé');
+        } catch (e) {
+            showToast('Erreur lors de la suppression','error');
+        }
+    });
 }
 
 // ── BACKGROUND CHECKS ──

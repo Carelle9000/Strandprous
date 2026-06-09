@@ -217,12 +217,13 @@ function _makeCRUD(collName) {
 
 // ── Public APIs ────────────────────────────────────────────────────────────
 
-export const InvAPI   = _makeCRUD('inventory');
-export const StaffAPI = _makeCRUD('staff');
-export const ApptAPI  = _makeCRUD('appointments');
-export const ExpAPI   = _makeCRUD('expenses');
-export const TaskAPI  = _makeCRUD('tasks');
-export const AttAPI   = _makeCRUD('attendance');
+export const InvAPI      = _makeCRUD('inventory');
+export const StaffAPI    = _makeCRUD('staff');
+export const ApptAPI     = _makeCRUD('appointments');
+export const ExpAPI      = _makeCRUD('expenses');
+export const TaskAPI     = _makeCRUD('tasks');
+export const AttAPI      = _makeCRUD('attendance');
+export const ServiceAPI  = _makeCRUD('services');
 
 export const UserAPI = {
   async getAllUsers() {
@@ -318,6 +319,7 @@ window.FSApptAPI         = ApptAPI;
 window.FSExpAPI          = ExpAPI;
 window.FSTaskAPI         = TaskAPI;
 window.FSAttAPI          = AttAPI;
+window.FSServiceAPI      = ServiceAPI;
 window.UserAPI           = UserAPI;
 window.SalonRegistryAPI  = SalonRegistryAPI;
 window.ContactAPI        = ContactAPI;
