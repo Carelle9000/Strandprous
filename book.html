@@ -287,24 +287,34 @@
   function fromFields(fields) { const o={}; for(const [k,v] of Object.entries(fields)) o[k]=fromVal(v); return o; }
   function fromDoc(raw) { if(!raw?.name) return null; return { id: raw.name.split('/').pop(), ...fromFields(raw.fields||{}) }; }
 
-  async function fsReq(method, path, body, params={}) {
+  async function fsReq(method, path, body, params={}, retries=3) {
     const url = new URL(`${FS_BASE}/${path}`);
     url.searchParams.set('key', FS_KEY);
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);
-    const opts = { method, headers: {'Content-Type':'application/json'}, signal: ctrl.signal };
-    if (body) opts.body = JSON.stringify(body);
-    try {
-      const res = await fetch(url.toString(), opts);
-      clearTimeout(timer);
-      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
-      return res.status === 204 ? null : res.json();
-    } finally { clearTimeout(timer); }
+    for (let attempt = 0; attempt < retries; attempt++) {
+      const ctrl  = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const opts  = { method, headers: {'Content-Type':'application/json'}, signal: ctrl.signal };
+      if (body) opts.body = JSON.stringify(body);
+      try {
+        const res = await fetch(url.toString(), opts);
+        clearTimeout(timer);
+        if (res.status === 429 && attempt < retries - 1) {
+          await new Promise(r => setTimeout(r, 800 * Math.pow(2, attempt)));
+          continue;
+        }
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message || `HTTP ${res.status}`); }
+        return res.status === 204 ? null : res.json();
+      } finally { clearTimeout(timer); }
+    }
   }
 
-  // Find salon by bookingSlug using runQuery
+  // Find salon by bookingSlug — cached in sessionStorage to avoid repeat Firestore reads
   async function findSalonBySlug(slug) {
+    const cacheKey = 'bk_salon_' + slug;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) { try { return JSON.parse(cached); } catch(e) {} }
+
     const body = {
       structuredQuery: {
         from: [{ collectionId: 'salons' }],
@@ -314,16 +324,25 @@
     };
     const url = new URL(`${FS_BASE}:runQuery`);
     url.searchParams.set('key', FS_KEY);
-    const res = await fetch(url.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error('Impossible de charger le salon.');
-    const rows = await res.json();
-    const match = (rows||[]).find(r => r.document);
-    return match ? fromDoc(match.document) : null;
+    let attempt = 0;
+    while (attempt < 3) {
+      const res = await fetch(url.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (res.status === 429 && attempt < 2) {
+        await new Promise(r => setTimeout(r, 800 * Math.pow(2, attempt)));
+        attempt++; continue;
+      }
+      if (!res.ok) throw new Error('Impossible de charger le salon (429 — trop de requêtes). Réessaie dans quelques secondes.');
+      const rows  = await res.json();
+      const match = (rows||[]).find(r => r.document);
+      const salon = match ? fromDoc(match.document) : null;
+      if (salon) sessionStorage.setItem(cacheKey, JSON.stringify(salon));
+      return salon;
+    }
   }
 
-  // Check for conflicting appointment at same date/time
-  async function hasConflict(salonId, date, time) {
-    const body = {
+  // Check slot capacity against staff count — allows multiple bookings per slot (one per stylist)
+  async function checkSlotCapacity(salonId, date, time) {
+    const conflictBody = {
       structuredQuery: {
         from: [{ collectionId: 'appointments' }],
         where: {
@@ -337,16 +356,37 @@
         }
       }
     };
-    const url = new URL(`${FS_BASE}/salons/${salonId}:runQuery`);
-    url.searchParams.set('key', FS_KEY);
-    const res = await fetch(url.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!res.ok) return false;
-    const rows = await res.json();
-    return (rows||[]).some(r => {
-      if (!r.document) return false;
-      const appt = fromDoc(r.document);
-      return appt.status !== 'Cancelled';
-    });
+    const conflictUrl = new URL(`${FS_BASE}/salons/${salonId}:runQuery`);
+    conflictUrl.searchParams.set('key', FS_KEY);
+
+    const staffUrl = new URL(`${FS_BASE}/salons/${salonId}/staff`);
+    staffUrl.searchParams.set('key', FS_KEY);
+    staffUrl.searchParams.set('pageSize', '100');
+
+    const [conflictRes, staffRes] = await Promise.all([
+      fetch(conflictUrl.toString(), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(conflictBody) }),
+      fetch(staffUrl.toString())
+    ]);
+
+    let booked = 0;
+    if (conflictRes.ok) {
+      const rows = await conflictRes.json();
+      booked = (rows||[]).filter(r => {
+        if (!r.document) return false;
+        const appt = fromDoc(r.document);
+        return appt.status !== 'Cancelled';
+      }).length;
+    }
+
+    let staffCount = 0;
+    if (staffRes.ok) {
+      const staffData = await staffRes.json();
+      staffCount = (staffData.documents || []).length;
+    }
+
+    // No staff configured → unlimited slots
+    if (staffCount === 0) return { full: false, booked, capacity: 0 };
+    return { full: booked >= staffCount, booked, capacity: staffCount };
   }
 
   // Add appointment to salon's sub-collection
@@ -389,8 +429,12 @@
       document.getElementById('salonSub').textContent  = salon.city ? '📍 ' + salon.city : '';
       document.title = 'Book — ' + (salon.businessName || 'StrandPro');
     } catch (e) {
-      document.getElementById('salonName').textContent = 'Erreur de chargement';
-      document.getElementById('salonSub').textContent  = e.message;
+      const is429 = e.message && (e.message.includes('429') || e.message.includes('trop de requêtes'));
+      document.getElementById('salonName').textContent = is429 ? 'Serveur surchargé' : 'Erreur de chargement';
+      document.getElementById('salonSub').textContent  = is429
+        ? '⏳ Trop de requêtes. Rafraîchis la page dans quelques secondes.'
+        : e.message;
+      if (!is429) document.getElementById('bkSubmitBtn').disabled = true;
     }
   }
 
@@ -415,10 +459,10 @@
     btn.textContent = '⏳ Envoi en cours…';
 
     try {
-      // Duplicate time check
-      const conflict = await hasConflict(_salonId, date, time);
-      if (conflict) {
-        showMsg('⚠️ Ce créneau est déjà réservé. Merci de choisir une autre heure.', 'err');
+      const slot = await checkSlotCapacity(_salonId, date, time);
+      if (slot.full) {
+        const cap = slot.capacity;
+        showMsg(`⚠️ Ce créneau est complet (${slot.booked}/${cap} stylist${cap > 1 ? 'es' : 'e'} disponible${cap > 1 ? 's' : ''}). Merci de choisir une autre heure.`, 'err');
         btn.disabled    = false;
         btn.textContent = '✉ Submit Appointment Request';
         return;

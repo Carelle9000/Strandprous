@@ -452,6 +452,18 @@ body {
 .paywall-subscribe-btn:hover { background:var(--gold-light); }
 .paywall-legal { text-align:center; font-size:.68rem; color:var(--text3); margin-top:12px; line-height:1.6; }
 
+/* ── Access-Denied overlay (trial expiré — contenu flouté, nav accessible) ── */
+#accessDeniedOverlay { display:none; position:absolute; top:var(--topbar-h); left:0; right:0; bottom:0; z-index:150; align-items:center; justify-content:center; flex-direction:column; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); background:rgba(13,11,9,.65); }
+#accessDeniedOverlay.show { display:flex; }
+.ado-card { background:var(--surface); border:1px solid var(--border2); border-radius:18px; padding:40px 36px; max-width:420px; width:90%; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,.7); animation:fadeIn .3s ease; }
+.ado-icon { font-size:3rem; margin-bottom:16px; }
+.ado-title { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:700; color:var(--gold-light); margin-bottom:8px; }
+.ado-sub { font-size:.83rem; color:var(--text3); margin-bottom:24px; line-height:1.6; }
+.ado-btn { display:inline-block; padding:13px 32px; background:var(--gold); color:#0d0b09; border:none; border-radius:8px; font-size:.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background .15s; }
+.ado-btn:hover { background:var(--gold-light); }
+.ado-logout { display:block; margin-top:14px; font-size:.75rem; color:var(--text3); cursor:pointer; }
+.ado-logout:hover { color:var(--text); }
+
 /* ── MANAGE SUB MODAL ── */
 #manageSubModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:1500; align-items:center; justify-content:center; }
 #manageSubModal.open { display:flex; }
@@ -504,6 +516,11 @@ tr:hover td { background:var(--bg4); }
 .badge-gold    { background:var(--gold-dim);    color:var(--gold-light); }
 .badge-info    { background:#1a3a5e;            color:#5dade2; }
 .badge-grey    { background:var(--bg4);         color:var(--text3); }
+.badge-online  { background:#0d2a3a;            color:#5bc8f5; }
+
+/* Counter badge on nav items */
+.nav-badge { display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; border-radius:99px; background:#e74c3c; color:#fff; font-size:.6rem; font-weight:700; line-height:1; margin-left:auto; }
+.nav-badge:empty { display:none; }
 
 /* ── FORMS ── */
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
@@ -774,11 +791,14 @@ body.is-owner .owner-only { display:flex; }
 <div id="otpScreen">
   <div class="otp-box fade-in">
     <div class="otp-title">🔐 Verify Your Email</div>
-    <div class="otp-sub" id="otpSubText">A 6-digit code has been prepared for <strong id="otpEmailDisplay"></strong>. Send it via the link below, then enter it here.</div>
-    <div class="otp-email-notice" id="otpEmailNotice">
-      📧 <strong>Send this code to yourself:</strong><br>
-      <span id="otpMailtoLink" style="word-break:break-all;color:var(--gold-light);cursor:pointer;text-decoration:underline" onclick="openOtpMailto()">Click to open email with code</span>
+    <div class="otp-sub" id="otpSubText">Un code à 6 chiffres a été généré pour <strong id="otpEmailDisplay"></strong>. Saisissez-le ci-dessous.</div>
+    <!-- Code visible directement (pas de service email configuré) -->
+    <div id="otpCodeDisplay" style="background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:.7rem;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Votre code de vérification</div>
+      <div id="otpCodeValue" style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--gold-light);letter-spacing:.15em"></div>
+      <div style="font-size:.7rem;color:var(--text3);margin-top:4px">Copiez ce code et saisissez-le dans les champs ci-dessous</div>
     </div>
+    <div id="otpMailtoLink" style="display:none"></div>
     <div class="auth-msg error" id="otpErr" style="display:none"></div>
     <div class="otp-input-row" id="otpInputRow">
       <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,0)" onkeydown="otpDigitKey(event,0)">
@@ -848,13 +868,14 @@ body.is-owner .owner-only { display:flex; }
         <div class="nav-item" id="nav-sa-dashboard" onclick="navigate('sa-dashboard');closeSidebar()"><span class="nav-icon">🏠</span> <span data-translate="Dashboard">Dashboard</span></div>
         <div class="nav-item" id="nav-sa-owners"   onclick="navigate('sa-owners');closeSidebar()"><span class="nav-icon">👥</span> <span data-translate="Owners">Owners</span></div>
         <div class="nav-item" id="nav-sa-payments" onclick="navigate('sa-payments');closeSidebar()"><span class="nav-icon">💳</span> <span data-translate="Payments">Paiements</span></div>
-<div class="nav-item" id="nav-sa-modules"  onclick="navigate('sa-modules');closeSidebar()"><span class="nav-icon">🧩</span> <span data-translate="Modules">Modules</span></div>
+        <div class="nav-item" id="nav-sa-gforms"   onclick="navigate('sa-gforms');closeSidebar()"><span class="nav-icon">🔗</span> Google Forms</div>
+        <div class="nav-item" id="nav-sa-modules"  onclick="navigate('sa-modules');closeSidebar()"><span class="nav-icon">🧩</span> <span data-translate="Modules">Modules</span></div>
         <div class="nav-item" id="nav-sa-messages" onclick="navigate('sa-messages');closeSidebar()"><span class="nav-icon">💬</span> <span data-translate="Messages">Messages</span> <span id="msgUnreadBadge" style="display:none;background:var(--gold);color:#0a0907;border-radius:10px;font-size:.6rem;font-weight:700;padding:1px 6px;margin-left:4px"></span></div>
       </div>
       <div class="nav-item active" id="nav-dashboard"    onclick="navigate('dashboard');closeSidebar()"><span class="nav-icon">📊</span> <span data-translate="Dashboard">Dashboard</span></div>
       <div class="nav-item" id="nav-inventory"           onclick="navigate('inventory');closeSidebar()"><span class="nav-icon">📦</span> <span data-translate="Inventory">Inventory</span></div>
       <div class="nav-item" id="nav-staff"               onclick="navigate('staff');closeSidebar()"><span class="nav-icon">👩‍💼</span> <span data-translate="Staff & Attendance">Staff & Attendance</span></div>
-      <div class="nav-item" id="nav-appointments"        onclick="navigate('appointments');closeSidebar()"><span class="nav-icon">📅</span> <span data-translate="Appointments">Appointments</span></div>
+      <div class="nav-item" id="nav-appointments"        onclick="navigate('appointments');closeSidebar()"><span class="nav-icon">📅</span> <span data-translate="Appointments">Appointments</span><span class="nav-badge" id="navBadgeAppts"></span></div>
       <div class="nav-item" id="nav-revenue"             onclick="navigate('revenue');closeSidebar()"><span class="nav-icon">💰</span> <span data-translate="Revenue & Payments">Revenue & Payments</span></div>
       <div class="nav-item" id="nav-expenses"            onclick="navigate('expenses');closeSidebar()"><span class="nav-icon">💸</span> <span data-translate="Expenses">Expenses</span></div>
       <div class="nav-item owner-only" id="nav-permissions" onclick="navigate('permissions');closeSidebar()"><span class="nav-icon">🔐</span> <span data-translate="Roles & Permissions">Roles & Permissions</span></div>
@@ -921,6 +942,17 @@ body.is-owner .owner-only { display:flex; }
         <span class="notif-clear" onclick="clearNotifs()">Clear all</span>
       </div>
       <div id="notifList"></div>
+    </div>
+
+    <!-- ACCESS DENIED OVERLAY (trial expiré) -->
+    <div id="accessDeniedOverlay">
+      <div class="ado-card">
+        <div class="ado-icon">🔒</div>
+        <div class="ado-title" data-translate="Access Restricted">Access Restricted</div>
+        <div class="ado-sub" data-translate="Your free trial has ended. Subscribe to continue using StrandPro and keep access to all your data.">Your free trial has ended. Subscribe to continue using StrandPro and keep access to all your data.</div>
+        <button class="ado-btn" onclick="hideAccessDenied();showPaywall()" data-translate="View Plans">View Plans →</button>
+        <span class="ado-logout" onclick="doLogout()" data-translate="Sign out">Sign out</span>
+      </div>
     </div>
 
     <!-- DASHBOARD -->
@@ -1145,6 +1177,10 @@ body.is-owner .owner-only { display:flex; }
           <div class="sa-ql-icon">💬</div>
           <div class="sa-ql-lbl"><span data-translate="Messages">Messages</span> <span id="saQlMsgBadge" style="display:none;background:var(--gold);color:#0a0907;border-radius:8px;font-size:.6rem;padding:1px 5px;margin-left:3px;font-weight:700"></span></div>
         </div>
+        <div class="sa-ql" onclick="navigate('sa-gforms')">
+          <div class="sa-ql-icon">🔗</div>
+          <div class="sa-ql-lbl">G. Forms</div>
+        </div>
         <div class="sa-ql" onclick="navigate('sa-modules')">
           <div class="sa-ql-icon">🧩</div>
           <div class="sa-ql-lbl" data-translate="Modules">Modules</div>
@@ -1258,6 +1294,8 @@ body.is-owner .owner-only { display:flex; }
         </div>
         <button class="btn btn-outline btn-sm" onclick="saRefresh('messages')">🔄 <span data-translate="Refresh">Rafraîchir</span></button>
       </div>
+
+
       <div class="msg-stats-grid" id="msgStatsGrid"></div>
       <!-- Bulk action bar -->
       <div class="msg-bulk-bar" id="msgBulkBar">
@@ -1279,6 +1317,53 @@ body.is-owner .owner-only { display:flex; }
       <div id="msgList"></div>
     </section>
 
+    <!-- SA — GOOGLE FORMS -->
+    <section class="page" id="page-sa-gforms">
+      <div class="sa-header">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">🔗 Google Forms</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Création et gestion des formulaires de réservation par owner</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="saRefresh('gforms')">🔄 Rafraîchir</button>
+      </div>
+
+      <!-- API Config -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="card-title" style="margin:0;font-size:.9rem">🔑 Google Apps Script — URL de l'API</div>
+          <a href="https://script.google.com" target="_blank" style="font-size:.72rem;color:var(--gold);text-decoration:none">script.google.com ↗</a>
+        </div>
+        <div style="font-size:.75rem;color:var(--text3);margin-bottom:10px">Collez l'URL de votre web app GAS déployée en accès public.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="url" id="gasApiUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+                 style="flex:1;padding:8px 12px;background:var(--bg4);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-size:.8rem;min-width:220px">
+          <button class="btn btn-gold btn-sm"    onclick="saveGasApiUrl()">💾 Sauvegarder</button>
+          <button class="btn btn-outline btn-sm" onclick="testGasApi()">🔌 Tester</button>
+        </div>
+        <div id="gasApiStatus" style="font-size:.75rem;margin-top:8px;display:none"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div class="card-title" style="margin:0">Formulaires par Owner</div>
+          <div style="font-size:.75rem;color:var(--text3)">URLs synchronisées à chaque connexion owner</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="sa-table">
+            <thead><tr>
+              <th>Owner / Salon</th>
+              <th style="text-align:center">Form URL</th>
+              <th style="text-align:center">CSV URL</th>
+              <th style="text-align:center">Module actif</th>
+              <th style="text-align:center">Créer</th>
+              <th>URLs</th>
+            </tr></thead>
+            <tbody id="saGformsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- SA — MODULES -->
     <section class="page" id="page-sa-modules">
       <div class="sa-header">
@@ -1294,7 +1379,7 @@ body.is-owner .owner-only { display:flex; }
             <thead><tr>
               <th>Owner</th>
               <th>📦 Stock</th><th>👩‍💼 Staff</th><th>📅 Appts</th>
-              <th>💰 Revenue</th><th>💸 Dépenses</th><th>🔐 Rôles</th>
+              <th>💰 Revenue</th><th>💸 Dépenses</th><th>🔗 G.Form</th><th>🔐 Rôles</th>
             </tr></thead>
             <tbody id="saModulesBody"></tbody>
           </table>
@@ -1311,7 +1396,7 @@ body.is-owner .owner-only { display:flex; }
     <div class="mobile-nav-item active" id="mn-dashboard"    onclick="navigate('dashboard')"><span class="m-icon">📊</span>Home</div>
     <div class="mobile-nav-item" id="mn-inventory"           onclick="navigate('inventory')"><span class="m-icon">📦</span>Stock</div>
     <div class="mobile-nav-item" id="mn-staff"               onclick="navigate('staff')"><span class="m-icon">👩‍💼</span>Staff</div>
-    <div class="mobile-nav-item" id="mn-appointments"        onclick="navigate('appointments')"><span class="m-icon">📅</span>Appts</div>
+    <div class="mobile-nav-item" id="mn-appointments"        onclick="navigate('appointments')" style="position:relative"><span class="m-icon">📅</span>Appts<span class="nav-badge" id="mnBadgeAppts" style="position:absolute;top:6px;right:6px"></span></div>
     <div class="mobile-nav-item" id="mn-revenue"             onclick="navigate('revenue')"><span class="m-icon">💰</span>Revenue</div>
     <div class="mobile-nav-item" id="mn-expenses"            onclick="navigate('expenses')"><span class="m-icon">💸</span>Expenses</div>
     <div class="mobile-nav-item owner-only" id="mn-permissions" onclick="navigate('permissions')"><span class="m-icon">🔐</span>Roles</div>
@@ -1322,16 +1407,40 @@ body.is-owner .owner-only { display:flex; }
 <div id="saReplyModal">
   <div class="sa-reply-box">
     <button class="sa-reply-close" onclick="closeReplyModal()">✕</button>
-    <h3 id="saReplyTitle" data-translate="Reply">Répondre</h3>
-    <div class="sa-reply-to" id="saReplyTo"></div>
-    <label class="sa-reply-label" data-translate="Subject">Objet</label>
-    <input  class="sa-reply-input" id="saReplySubject" type="text">
-    <label class="sa-reply-label">Message</label>
-    <textarea class="sa-reply-area" id="saReplyBody" placeholder="Your reply…" data-translate-placeholder="Your reply…"></textarea>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-outline btn-sm" onclick="closeReplyModal()">Annuler</button>
-      <button class="btn btn-gold  btn-sm"   onclick="sendReply()" id="saReplySendBtn">✉ Envoyer</button>
+
+    <!-- Étape 1 : Rédiger -->
+    <div id="saReplyStep1">
+      <h3 id="saReplyTitle">Répondre</h3>
+      <div class="sa-reply-to" id="saReplyTo"></div>
+      <label class="sa-reply-label">Objet</label>
+      <input class="sa-reply-input" id="saReplySubject" type="text">
+      <label class="sa-reply-label">Message</label>
+      <textarea class="sa-reply-area" id="saReplyBody" placeholder="Écris ta réponse ici…"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-outline btn-sm" onclick="closeReplyModal()">Annuler</button>
+        <button class="btn btn-gold btn-sm" onclick="sendReply()">📧 Ouvrir dans Gmail →</button>
+      </div>
     </div>
+
+    <!-- Étape 2 : Confirmation après envoi Gmail -->
+    <div id="saReplyStep2" style="display:none;text-align:center;padding:8px 0">
+      <div style="font-size:2.4rem;margin-bottom:12px">📧</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--gold-light);margin-bottom:8px">
+        Gmail est ouvert dans un nouvel onglet
+      </div>
+      <p style="font-size:.82rem;color:var(--text3);margin-bottom:20px;line-height:1.6">
+        Envoie l'email depuis Gmail,<br>puis reviens ici et confirme ci-dessous.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-gold btn-sm" style="width:100%;padding:11px" onclick="confirmReplySent()">
+          ✅ J'ai envoyé l'email — Marquer comme répondu
+        </button>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="closeReplyModal()">
+          ✕ Fermer sans marquer
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1702,22 +1811,19 @@ body.is-owner .owner-only { display:flex; }
 let currentSalonData = {}; // cache local optionnel
 async function loadAllData() {
     try {
-        const [inv, staff, appts, tasks, att, expenses] = await Promise.all([
-            InvAPI.getAll(),
-            StaffAPI.getAll(),
-            ApptAPI.getAll(),
-            TaskAPI.getAll(),
-            AttAPI.getAll(),
-            ExpAPI.getAll()
-        ]);
+        // Charge par paires pour éviter de saturer le quota Firestore (429)
+        // Si localStorage (plan mensuel/trial), Promise.all reste ok car pas de réseau
+        const [inv, staff]      = await Promise.all([InvAPI.getAll(), StaffAPI.getAll()]);
+        const [appts, expenses] = await Promise.all([ApptAPI.getAll(), ExpAPI.getAll()]);
+        const [tasks, att]      = await Promise.all([TaskAPI.getAll(), AttAPI.getAll()]);
 
-        window.appData = { 
-            inv: inv || [], 
-            staff: staff || [], 
-            appts: appts || [], 
-            tasks: tasks || [], 
-            att: att || [], 
-            expenses: expenses || [] 
+        window.appData = {
+            inv:      inv      || [],
+            staff:    staff    || [],
+            appts:    appts    || [],
+            tasks:    tasks    || [],
+            att:      att      || [],
+            expenses: expenses || []
         };
 
         console.log(`✅ loadAllData terminé - RDV chargés : ${window.appData.appts.length}`);
@@ -2183,6 +2289,7 @@ async function saRefresh(page){
   if(page==='dashboard'){ saRenderDashboard(_saAllSalons); showToast('🔄 Dashboard actualisé.'); return; }
   if(page==='owners')   { saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons); }
   if(page==='payments') saRenderPayments(_saAllSalons);
+  if(page==='gforms')   saRenderGoogleForms(_saAllSalons);
   if(page==='modules')  saRenderModules(_saAllSalons);
   showToast('🔄 Données actualisées.');
 }
@@ -2322,60 +2429,47 @@ function openReplyModal(ids){
 
 function closeReplyModal(){
   document.getElementById('saReplyModal').classList.remove('open');
+  document.getElementById('saReplyStep1').style.display = 'block';
+  document.getElementById('saReplyStep2').style.display = 'none';
   _replyIds=[];
 }
 
-// Helper JSONP réutilisable pour tous les appels GAS
-function _gasCall(gasUrl, params, timeoutMs = 25000) {
-  return new Promise((resolve, reject) => {
-    const cb = '_gc_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-    const timer = setTimeout(() => { delete window[cb]; document.getElementById(cb)?.remove(); reject(new Error('Délai dépassé')); }, timeoutMs);
-    window[cb] = data => { clearTimeout(timer); delete window[cb]; document.getElementById(cb)?.remove(); resolve(data); };
-    const s = document.createElement('script');
-    s.id = cb;
-    s.onerror = () => { clearTimeout(timer); delete window[cb]; reject(new Error('Script GAS inaccessible')); };
-    const u = new URL(gasUrl);
-    Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
-    u.searchParams.set('callback', cb);
-    s.src = u.toString();
-    document.head.appendChild(s);
-  });
-}
+// ── Send reply via Gmail compose URL ────────────────────────────────────────
 
-async function sendReply(){
+function sendReply(){
   const subject = document.getElementById('saReplySubject').value.trim();
   const body    = document.getElementById('saReplyBody').value.trim();
   if(!body){ showToast('Veuillez rédiger un message.'); return; }
 
-  const msgs    = _replyIds.map(id=>_allMessages.find(m=>m.id===id)).filter(Boolean);
-  const gasUrl  = localStorage.getItem('sp_sa_gasUrl') || '';
-  const sendBtn = document.getElementById('saReplySendBtn');
+  const msgs = _replyIds.map(id=>_allMessages.find(m=>m.id===id)).filter(Boolean);
+  if(!msgs.length){ closeReplyModal(); return; }
 
-  if(gasUrl){
-    // ── Envoi automatique via GAS (MailApp) ──
-    if(sendBtn){ sendBtn.disabled=true; sendBtn.textContent='⏳ Envoi…'; }
-    let sent=0, failed=0;
-    for(const m of msgs){
-      if(!m.email) { failed++; continue; }
-      try {
-        const res = await _gasCall(gasUrl, { action:'sendEmail', to:m.email, subject, body });
-        if(res?.success) sent++; else { failed++; console.warn('GAS sendEmail:', res?.error); }
-      } catch(e){ failed++; console.warn('GAS sendEmail error:', e.message); }
-    }
-    if(sendBtn){ sendBtn.disabled=false; sendBtn.textContent='✉ Envoyer'; }
-    if(sent)   showToast(`✅ ${sent} email${sent>1?'s':''} envoyé${sent>1?'s':''} avec succès.`);
-    if(failed) showToast(`⚠️ ${failed} email${failed>1?'s':''} non envoyé${failed>1?'s':''} — vérifiez les adresses.`);
-  } else {
-    // ── Fallback mailto si GAS non configuré ──
-    const emails = msgs.map(m=>m.email).filter(Boolean).join(',');
-    window.open(`mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
-    showToast('✉ Ouverture de votre messagerie…');
-  }
-
-  // Marquer comme répondus dans Firestore
+  // Ouvre Gmail compose pour chaque destinataire
   for(const m of msgs){
-    try { await window.ContactAPI.markReplied(m.id); m.status='replied'; } catch{}
+    if(!m.email) continue;
+    const name     = ((m.firstName||'') + ' ' + (m.lastName||'')).trim();
+    const fullBody = `Bonjour ${name},\n\n${body}\n\n—\nStrandPro Support`;
+    const gmailUrl = 'https://mail.google.com/mail/?view=cm'
+      + '&to='   + encodeURIComponent(m.email)
+      + '&su='   + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(fullBody);
+    window.open(gmailUrl, '_blank');
   }
+
+  // Passe à l'étape de confirmation
+  document.getElementById('saReplyStep1').style.display = 'none';
+  document.getElementById('saReplyStep2').style.display = 'block';
+}
+
+async function confirmReplySent(){
+  for(const id of _replyIds){
+    try {
+      await window.ContactAPI.markReplied(id);
+      const m = _allMessages.find(x=>x.id===id);
+      if(m) m.status = 'replied';
+    } catch{}
+  }
+  showToast('✅ Conversation marquée comme répondue.');
   closeReplyModal();
   filterMessages(); msgRenderStats(); updateUnreadBadge();
 }
@@ -3016,7 +3110,23 @@ function updateSubUI(){
   else if(sub.status==='active'||sub.status==='cancelled'){dot.className='sub-dot active';pill.textContent=`${PLANS[sub.plan]?.label||'Pro'} · ${d}d`;banner.classList.remove('show');}
   else{dot.className='sub-dot expired';pill.textContent='Expired';banner.classList.remove('show');}
 }
-function checkAccess(forceShow = true){if(!isAccessAllowed() && forceShow)showPaywall();else{hidePaywall();updateSubUI();}}
+function checkAccess(forceShow = true){
+  if(!isAccessAllowed()){
+    if(forceShow) showAccessDenied();
+  } else {
+    hideAccessDenied();
+    hidePaywall();
+    updateSubUI();
+  }
+}
+function showAccessDenied(){
+  document.getElementById('accessDeniedOverlay').classList.add('show');
+  updateSubUI();
+}
+function hideAccessDenied(){
+  const el = document.getElementById('accessDeniedOverlay');
+  if(el) el.classList.remove('show');
+}
 function showPaywall(){
   document.getElementById('paywallScreen').classList.add('show');
   const sub = S.getObj('sp_sub');
@@ -3145,9 +3255,159 @@ async function copyBookingLink(){
     prompt('Copie ce lien :', link);
   }
 }
+// ── Notifications navigateur (Spark-compatible, aucune dépendance serveur) ──
+let _notifKnownIds = null; // null = pas encore initialisé
+
+async function initNotifications() {
+  if (_notifKnownIds !== null) return; // already initialized
+  if (!('Notification' in window)) return;
+  const stored = localStorage.getItem('sp_notif_granted');
+  if (stored === 'denied') return;
+
+  if (Notification.permission === 'default') {
+    // Demande discrète : on ne bloque pas le flux si l'user refuse
+    const perm = await Notification.requestPermission();
+    localStorage.setItem('sp_notif_granted', perm);
+    if (perm !== 'granted') return;
+  }
+
+  if (Notification.permission !== 'granted') return;
+
+  // Snapshot initial — on mémorise les IDs déjà connus pour ne pas notifier les anciens
+  const appts = window.appData?.appts || [];
+  _notifKnownIds = new Set(
+    appts.filter(a => a.source === 'public_booking').map(a => a.id)
+  );
+}
+
+function checkNewOnlineBookings() {
+  if (_notifKnownIds === null) return; // notifications non initialisées
+  if (Notification.permission !== 'granted') return;
+
+  const appts = window.appData?.appts || [];
+  const online = appts.filter(a => a.source === 'public_booking');
+
+  online.forEach(a => {
+    if (_notifKnownIds.has(a.id)) return;
+    _notifKnownIds.add(a.id);
+
+    const title = `📅 Nouveau booking — ${a.client || 'Client'}`;
+    const body  = `${a.service || ''}${a.date ? ' · ' + a.date : ''}${a.time ? ' · ' + a.time : ''}`;
+    const icon  = './icons/icon-192x192.png';
+
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, { body, icon, badge: './icons/icon-72x72.png', tag: 'booking-' + a.id, data: './strandpro.html#appointments' });
+      });
+    } else {
+      new Notification(title, { body, icon });
+    }
+  });
+}
+
 function getCurrentUser(){return S.getObj('sp_session')||null;}
 function setCurrentUser(u){S.setObj('sp_session',u);}
 function clearCurrentUser(){localStorage.removeItem('sp_session');}
+
+// ── FLAG anti-double-boot ──────────────────────────────────────────────────
+let _bootDone = false;
+
+// ── Charge le profil app depuis le cache local ou Firestore par email ──────
+async function _resolveProfile(email){
+  if(!email) return null;
+  const lc = email.toLowerCase();
+
+  // 1. Cache local sp_users
+  const users = getUsers();
+  const local = Object.values(users).find(u => u.email && u.email.toLowerCase() === lc);
+  if(local){
+    const p = {username: local.username, name: local.name, role: local.role};
+    if(local.role==='staff' && local.ownerUsername) p.salonId = local.ownerUsername;
+    return p;
+  }
+
+  // 2. Firestore SalonRegistry (owners uniquement)
+  if(window.SalonRegistryAPI){
+    try {
+      const salons = await Promise.race([
+        window.SalonRegistryAPI.getAllSalons(),
+        new Promise((_,r) => setTimeout(() => r(new Error('timeout')), 5000))
+      ]);
+      const salon = salons.find(s => s.email && s.email.toLowerCase() === lc);
+      if(salon){
+        const fsProfile = {
+          username: salon.username, name: salon.businessName || salon.username,
+          role: 'owner', email: salon.email, businessName: salon.businessName || '', city: salon.city || ''
+        };
+        users[salon.username] = {...(users[salon.username]||{}), ...fsProfile};
+        setUsers(users);
+        return {username: fsProfile.username, name: fsProfile.name, role: 'owner'};
+      }
+    } catch(e){ console.warn('_resolveProfile Firestore:', e); }
+  }
+  return null;
+}
+
+// ── Boot de l'application après authentification réussie ──────────────────
+async function _bootApp(session){
+  if(_bootDone) return;
+  _bootDone = true;
+
+  await loadAllData();
+
+  const users = getUsers();
+  const user  = users[session.username];
+
+  // SuperAdmin : bypass abonnement + paywall
+  if(session.role === 'superAdmin'){
+    hideAuthScreen();
+    updateUserUI();
+    applyRoleUI();
+    if(typeof applyTranslations === 'function') applyTranslations(_lang);
+    navigate('sa-dashboard');
+    return;
+  }
+
+  // Changement de mot de passe forcé
+  if(user?.mustChangePassword){
+    hideAuthScreen();
+    showForcedPwScreen();
+    return;
+  }
+
+  hideAuthScreen();
+  updateUserUI();
+  updateSidebarBranding();
+  applyRoleUI();
+  if(typeof applyTranslations === 'function') applyTranslations(_lang);
+
+  // Plan en attente depuis index.html
+  const _pending = localStorage.getItem('sp_pending_plan');
+  if(_pending && session.role==='owner' && (STRIPE_PLANS[_pending] || _pending==='trial')){
+    localStorage.removeItem('sp_pending_plan');
+    if(users[session.username]) syncSalonToFirestore(users[session.username]);
+    if(_pending==='trial'){ setTimeout(openSpTrialModal, 400); }
+    else { showToast(`💳 Redirection vers Stripe — Plan ${_pending}…`); setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pending]; }, 900); }
+    return;
+  }
+
+  initSubscription();
+  updateStorageBadge();
+  if(session.role==='owner'){
+    checkCloudMigration();
+    readSalonConfig(session.username);
+  }
+
+  // Navigation : l'user voit ses interfaces, puis checkAccess applique l'overlay si nécessaire
+  navigate(session.role === 'owner' ? 'dashboard' : 'staff');
+  checkAccess(true);   // affiche l'overlay si trial expiré (pas de redirection paywall)
+  if(isAccessAllowed()){
+    showToast(`👋 Bienvenue ${session.name}!`);
+    checkLowStock();
+    checkDueTasks();
+    checkUpcomingAppts();
+  }
+}
 
 function ensureAdminExists(){
   const users=getUsers();
@@ -3184,137 +3444,74 @@ async function doLogin(){
   const pw    = document.getElementById('loginPass').value;
   if(!email||!pw){showAuthMsg('loginErr','Saisis ton email et ton mot de passe.');return;}
 
-  const hashed = hashPw(pw);
-  const users  = getUsers();
-  let user = Object.values(users).find(u => u.email && u.email.toLowerCase()===email);
-  if(!user) user = users[email];
+  const loginBtn = document.querySelector('button[onclick="doLogin()"]');
+  if(loginBtn){ loginBtn.disabled=true; loginBtn.textContent='⏳'; }
 
-  // ── Fallback Firestore si compte absent en local ou mot de passe SA non synchronisé ──
-  if(!user || user.pw !== hashed){
-    const loginBtn = document.querySelector('button[onclick="doLogin()"]');
-    if(loginBtn){ loginBtn.disabled=true; loginBtn.textContent='⏳'; }
-    try {
-      if(window.SalonRegistryAPI){
-        // Timeout 6 s pour éviter que fetch reste suspendu indéfiniment
-        const salons = await Promise.race([
-          window.SalonRegistryAPI.getAllSalons(),
-          new Promise((_,r) => setTimeout(() => r(new Error('timeout')), 6000))
-        ]);
-        // Vérifie tempPassword (reset SA) OU pw (credentials synchronisés au signup/login)
-        const salon = salons.find(s => {
-          if(!s.email || s.email.toLowerCase() !== email) return false;
-          return s.tempPassword === hashed || s.pw === hashed;
-        });
-        if(salon){
-          const isTempPw = salon.tempPassword === hashed;
-          const fsUser = {
-            username:           salon.username,
-            name:               salon.businessName || salon.username,
-            role:               'owner',
-            pw:                 hashed,
-            email:              salon.email || email,
-            businessName:       salon.businessName || '',
-            city:               salon.city  || '',
-            mustChangePassword: isTempPw
-          };
-          users[salon.username] = fsUser;
-          setUsers(users);
-          if(isTempPw) window.SalonRegistryAPI.updateSalon(salon.username, { tempPassword: null }).catch(()=>{});
-          user = fsUser;
-        }
-
-        // ── Couche 3 : Firebase Auth (si activé dans la console Firebase) ──
-        if(!user && window.fbSignIn){
-          const fbUser = await window.fbSignIn(email, pw);
-          if(fbUser){
-            // Firebase Auth réussi → cherche le profil dans Firestore par email
-            const allSalons = salons.length ? salons : await window.SalonRegistryAPI.getAllSalons().catch(()=>[]);
-            const fbSalon   = allSalons.find(s => s.email?.toLowerCase() === email);
-            if(fbSalon){
-              const fbLocal = {
-                username:           fbSalon.username,
-                name:               fbSalon.businessName || fbSalon.username,
-                role:               'owner',
-                pw:                 hashed,
-                email:              fbSalon.email || email,
-                businessName:       fbSalon.businessName || '',
-                city:               fbSalon.city  || '',
-                mustChangePassword: false
-              };
-              users[fbSalon.username] = fbLocal;
-              setUsers(users);
-              user = fbLocal;
-            }
-          }
-        }
-      }
-    } catch(e){ console.warn('doLogin Firestore fallback:', e); }
-    if(loginBtn){ loginBtn.disabled=false; loginBtn.textContent='Sign In →'; }
+  // ── Couche 1 : Firebase Auth (source de vérité principale) ──────────────
+  if(window.fbSignIn){
+    const fbUser = await window.fbSignIn(email, pw);
+    if(fbUser){
+      // Succès Firebase Auth → onAuthStateChanged prend le relais via _bootApp
+      document.getElementById('loginPass').value='';
+      if(loginBtn){ loginBtn.disabled=false; loginBtn.textContent='Sign In →'; }
+      return;
+    }
+    // null = mauvais credentials OU Firebase Auth non configuré → continuer
   }
 
-  if(!user || user.pw !== hashed){
+  const hashed = hashPw(pw);
+  let user = null;
+
+  // ── Couche 2 : Firestore SalonRegistry (comptes non encore migrés) ───────
+  try {
+    if(window.SalonRegistryAPI){
+      const salons = await Promise.race([
+        window.SalonRegistryAPI.getAllSalons(),
+        new Promise((_,r) => setTimeout(() => r(new Error('timeout')), 6000))
+      ]);
+      const salon = salons.find(s => {
+        if(!s.email || s.email.toLowerCase() !== email) return false;
+        return s.tempPassword === hashed || s.pw === hashed;
+      });
+      if(salon){
+        const isTempPw = salon.tempPassword === hashed;
+        const fsUser = {
+          username: salon.username, name: salon.businessName || salon.username,
+          role: 'owner', pw: hashed, email: salon.email || email,
+          businessName: salon.businessName || '', city: salon.city || '',
+          mustChangePassword: isTempPw
+        };
+        const users = getUsers();
+        users[salon.username] = fsUser;
+        setUsers(users);
+        if(isTempPw) window.SalonRegistryAPI.updateSalon(salon.username, { tempPassword: null }).catch(()=>{});
+        user = fsUser;
+      }
+    }
+  } catch(e){ console.warn('doLogin Firestore fallback:', e); }
+
+  // ── Couche 3 : Cache local (staff + superAdmin offline) ──────────────────
+  if(!user){
+    const users = getUsers();
+    let localUser = Object.values(users).find(u => u.email && u.email.toLowerCase() === email);
+    if(!localUser) localUser = users[email];
+    if(localUser && localUser.pw === hashed) user = localUser;
+  }
+
+  if(loginBtn){ loginBtn.disabled=false; loginBtn.textContent='Sign In →'; }
+
+  if(!user){
     showAuthMsg('loginErr','Email ou mot de passe incorrect.');
     return;
   }
 
-  // Pour le staff d'un owner Yearly : inclure le namespace Firestore de l'owner
-  const _session = {username:user.username, name:user.name, role:user.role};
+  // Session manuelle (Firebase Auth non configuré ou compte non migré)
+  const _session = {username: user.username, name: user.name, role: user.role};
   if(user.role==='staff' && user.ownerUsername) _session.salonId = user.ownerUsername;
   setCurrentUser(_session);
   document.getElementById('loginPass').value='';
-
-  // ── SuperAdmin : accès direct, pas de paywall ni subscription ──
-  if(user.role==='superAdmin'){
-    hideAuthScreen();
-    updateUserUI();
-    applyRoleUI();
-    navigate('sa-dashboard');
-    showToast(`🛡️ Bienvenue, ${user.name} !`);
-    return;
-  }
-
-  // Check forced password change
-  if(user.mustChangePassword){
-    hideAuthScreen();
-    showForcedPwScreen();
-    return;
-  }
-
-  // ── Plan en attente depuis index.html → Stripe ou modal trial ──
-  const _pendingPlan = localStorage.getItem('sp_pending_plan');
-  if(_pendingPlan && user.role==='owner' && (STRIPE_PLANS[_pendingPlan] || _pendingPlan === 'trial')){
-    localStorage.removeItem('sp_pending_plan');
-    hideAuthScreen();
-    updateUserUI();
-    applyRoleUI();
-    syncSalonToFirestore(user);
-    if(_pendingPlan === 'trial'){
-      setTimeout(openSpTrialModal, 400);
-    } else {
-      showToast(`💳 Redirection vers Stripe — Plan ${_pendingPlan}…`);
-      setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pendingPlan]; }, 900);
-    }
-    return;
-  }
-
-  hideAuthScreen();
-  updateUserUI();
-  updateSidebarBranding();
-  applyRoleUI();
-  initSubscription();checkAccess();seedData();
-
-  // Sync le salon vers Firestore + vérifier suspension / feature flags
-  syncSalonToFirestore(user);
-  readSalonConfig(user.username);
-
-  updateStorageBadge();
-  if(user.role==='owner') checkCloudMigration();
-  navigate(user.role==='owner'?'dashboard':'staff');
-  showToast(`👋 Welcome back, ${user.name}!`);
-  setTimeout(()=>requestNotifPermission(),3000);
-  checkLowStock();
-  setInterval(checkDueTasks,60000);setInterval(checkUpcomingAppts,60000);
-  checkDueTasks();checkUpcomingAppts();
+  _bootDone = false;
+  await _bootApp(_session);
 }
 
 async function doSignup() {
@@ -3377,7 +3574,12 @@ async function doSignup() {
     setUsers(users);
 
     // Créer le compte Firebase Auth en parallèle (cloud auth cross-device)
-    if(window.fbSignUp) window.fbSignUp(email, pw).catch(()=>{});
+    // Créer le compte Firebase Auth (puis sign-out immédiat pour ne pas déclencher onAuthStateChanged)
+    if(window.fbSignUp){
+      window.fbSignUp(email, pw)
+        .then(fbUser => { if(fbUser && window.fbSignOut) window.fbSignOut(); })
+        .catch(()=>{});
+    }
 
     // Sync vers Firestore — visible immédiatement dans le SA Dashboard
     syncSalonToFirestore(users[username]);
@@ -3410,40 +3612,54 @@ function fileToBase64(file) {
 let _otpData = null; // {code, username, email, expiry}
 let _otpTimerInterval = null;
 let _otpTargetUsername = null;
+let _otpIsOwner = false; // true si compte trouvé dans Firestore (salon owner)
 
-function doRequestReset(){
+async function doRequestReset(){
   const emailInput=document.getElementById('resetEmail').value.trim().toLowerCase();
   if(!emailInput){showAuthMsg('resetErr','Please enter your email address.');return;}
-  const users=getUsers();
-  const matched=Object.values(users).find(u=>u.email&&u.email.toLowerCase()===emailInput);
+
+  const btn=document.querySelector('#panel-reset .auth-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Searching...';}
+
+  let matched=null;
+  let isOwner=false;
+
+  try{
+    // 1. Recherche dans localStorage (staff + owners déjà connectés)
+    const users=getUsers();
+    matched=Object.values(users).find(u=>u.email&&u.email.toLowerCase()===emailInput);
+
+    // 2. Fallback Firestore — owners pas encore en local (nouvel appareil)
+    if(!matched&&window.SalonRegistryAPI){
+      const salons=await Promise.race([
+        window.SalonRegistryAPI.getAllSalons(),
+        new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),6000))
+      ]);
+      const salon=salons.find(s=>s.email&&s.email.toLowerCase()===emailInput);
+      if(salon){
+        matched={username:salon.username,name:salon.businessName||salon.username,email:salon.email};
+        isOwner=true;
+      }
+    }
+  }catch(e){console.warn('doRequestReset lookup:',e);}
+
+  if(btn){btn.disabled=false;btn.textContent='Send Verification Code →';}
   if(!matched){showAuthMsg('resetErr','No account found with that email address.');return;}
+
   const code=Math.floor(100000+Math.random()*900000).toString();
   const expiry=Date.now()+10*60*1000;
   _otpData={code,username:matched.username,email:matched.email,expiry};
   _otpTargetUsername=matched.username;
+  _otpIsOwner=isOwner;
+
   document.getElementById('otpEmailDisplay').textContent=matched.email;
+  // Show code directly in the UI (no external email service)
+  const codeEl = document.getElementById('otpCodeValue');
+  if(codeEl) codeEl.textContent = code.replace(/(\d{3})(\d{3})/, '$1 $2');
   document.getElementById('otpScreen').classList.add('show');
-  const subject=encodeURIComponent('StrandPro Password Reset Code');
-  const body=encodeURIComponent(
-    'Hello '+matched.name+',\n\n'+
-    'Your StrandPro password reset code is:\n\n'+
-    code+'\n\n'+
-    'This code expires in 10 minutes.\n'+
-    'Do not share it with anyone.\n\n'+
-    'If you did not request this, ignore this email.\n\n'+
-    '— StrandPro Team\nstrandprous.com'
-  );
-  const mailto=`mailto:${matched.email}?subject=${subject}&body=${body}`;
-  document.getElementById('otpMailtoLink').setAttribute('data-href', mailto);
   document.querySelectorAll('.otp-digit').forEach(d=>{d.value='';});
   document.getElementById('otpErr').style.display='none';
   startOtpCountdown(expiry);
-  setTimeout(()=>openOtpMailto(),400);
-}
-function openOtpMailto(){
-  const el=document.getElementById('otpMailtoLink');
-  const href=el.getAttribute('data-href');
-  if(href) window.open(href,'_blank');
 }
 function startOtpCountdown(expiry){
   if(_otpTimerInterval) clearInterval(_otpTimerInterval);
@@ -3486,11 +3702,11 @@ function verifyOtp(){
 function showOtpErr(msg){const el=document.getElementById('otpErr');el.textContent=msg;el.style.display='block';}
 function cancelOtp(){
   clearInterval(_otpTimerInterval);
-  _otpData=null;_otpTargetUsername=null;
+  _otpData=null;_otpTargetUsername=null;_otpIsOwner=false;
   document.getElementById('otpScreen').classList.remove('show');
   switchAuthTab('login');
 }
-function saveNewPassword(){
+async function saveNewPassword(){
   const pw=document.getElementById('newPwInput').value;
   const pw2=document.getElementById('newPwInput2').value;
   const errEl=document.getElementById('newPwErr');
@@ -3498,13 +3714,26 @@ function saveNewPassword(){
   if(pw.length<6){show('Password must be at least 6 characters.');return;}
   if(pw!==pw2){show('Passwords do not match.');return;}
   if(!_otpTargetUsername){show('Session error. Please start over.');return;}
+
+  const hashed=hashPw(pw);
+
+  // Mise à jour localStorage (staff + owners déjà en cache)
   const users=getUsers();
-  users[_otpTargetUsername].pw=hashPw(pw);
-  users[_otpTargetUsername].mustChangePassword=false;
-  setUsers(users);
-  _otpData=null;_otpTargetUsername=null;
+  if(users[_otpTargetUsername]){
+    users[_otpTargetUsername].pw=hashed;
+    users[_otpTargetUsername].mustChangePassword=false;
+    setUsers(users);
+  }
+
+  // Mise à jour Firestore pour les comptes owner (persiste sur tous les appareils)
+  if(_otpIsOwner&&window.SalonRegistryAPI){
+    try{
+      await window.SalonRegistryAPI.updateSalon(_otpTargetUsername,{pw:hashed,tempPassword:null});
+    }catch(e){console.warn('saveNewPassword Firestore sync:',e);}
+  }
+
+  _otpData=null;_otpTargetUsername=null;_otpIsOwner=false;
   document.getElementById('newPwScreen').style.display='none';
-  showAuthMsg('loginErr','','error');
   showToast('✓ Password updated! Please sign in.');
   switchAuthTab('login');
 }
@@ -3550,10 +3779,15 @@ function doLogout(){
 }
 function confirmLogout(){
   closeModal('logoutModal');
+  _bootDone = false;
   clearCurrentUser();
-  if(window.fbSignOut) window.fbSignOut();
+  hideAccessDenied();
   hideSuspendedScreen();
-  showAuthScreen();
+  if(window.fbSignOut){
+    window.fbSignOut(); // onAuthStateChanged → clearCurrentUser() + showAuthScreen()
+  } else {
+    showAuthScreen();
+  }
 }
 function showAuthScreen(){document.getElementById('authScreen').classList.add('show');}
 function hideAuthScreen(){document.getElementById('authScreen').classList.remove('show');}
@@ -3839,6 +4073,15 @@ function createStaffAccount(){
   const ownerUsername = getCurrentUser()?.username || '';
   users[username]={username,name:staffName,role:'staff',pw:hashPw(pw),email,jobRole,businessName:'',city:'',mustChangePassword:true,ownerUsername};
   setUsers(users);
+  // Créer le compte Firebase Auth pour le staff (sans déconnecter le owner)
+  if(window.fbCreateStaffAccount && email){
+    window.fbCreateStaffAccount(email, pw).then(fbResult => {
+      if(fbResult?.uid){
+        const u = getUsers();
+        if(u[username]){ u[username].firebaseUid = fbResult.uid; setUsers(u); }
+      }
+    }).catch(()=>{});
+  }
   // Migrate roster-keyed perms
   if(rosterKey.startsWith('roster__')){
     const allPerms=S.getObj('sp_permissions')||{};
@@ -3889,7 +4132,8 @@ const PAGE_TITLES={
   dashboard:'Dashboard',inventory:'Inventory',staff:'Staff & Attendance',
   appointments:'Appointments',revenue:'Revenue & Payments',expenses:'Expenses',
   permissions:'Roles & Permissions',denied:'Access Restricted',
-  'sa-dashboard':'Dashboard','sa-owners':'Owners','sa-payments':'Paiements','sa-modules':'Modules & Accès','sa-messages':'Messages'
+  'sa-dashboard':'Dashboard','sa-owners':'Owners','sa-payments':'Paiements',
+  'sa-gforms':'Google Forms','sa-modules':'Modules & Accès','sa-messages':'Messages'
 };
 async function navigate(page){
   const user = getCurrentUser();
@@ -3899,7 +4143,8 @@ async function navigate(page){
     if(page==='sa-dashboard'){ await loadSaData(); saRenderDashboard(_saAllSalons); }
     if(page==='sa-owners')   { await loadSaData(); saRenderStats(_saAllSalons); saRenderOwners(_saAllSalons); }
     if(page==='sa-payments') { await loadSaData(); saRenderPayments(_saAllSalons); }
-if(page==='sa-modules')  { await loadSaData(); saRenderModules(_saAllSalons); }
+    if(page==='sa-gforms')   { await loadSaData(); saRenderGoogleForms(_saAllSalons); }
+    if(page==='sa-modules')  { await loadSaData(); saRenderModules(_saAllSalons); }
     if(page==='sa-messages') { await saLoadMessages(); }
     if(typeof applyTranslations === 'function') applyTranslations(_lang);
     return;
@@ -4436,8 +4681,15 @@ async function renderAppts() {
 
     empty.style.display = 'none';
 
+    // Update nav counter badges with pending online bookings
+    const pendingOnline = appts.filter(a => a.source === 'public_booking' && a.status === 'Pending').length;
+    const navBadge  = document.getElementById('navBadgeAppts');
+    const mnBadge   = document.getElementById('mnBadgeAppts');
+    if (navBadge) navBadge.textContent = pendingOnline > 0 ? pendingOnline : '';
+    if (mnBadge)  mnBadge.textContent  = pendingOnline > 0 ? pendingOnline : '';
+
     tbody.innerHTML = filtered.map(a => `
-        <tr>
+        <tr${a.source === 'public_booking' ? ' style="background:rgba(91,200,245,.03)"' : ''}>
             <td>
                 <div style="font-weight:500">${a.client}</div>
                 <div class="text-muted text-sm">${a.phone || ''}</div>
@@ -4446,7 +4698,10 @@ async function renderAppts() {
             <td>${a.stylist || '—'}</td>
             <td>${fmtDate(a.date)}${a.time ? ' · ' + a.time : ''}</td>
             <td>${fmtMoney(a.price)}</td>
-            <td>${statusBadge(a.status)}</td>
+            <td>
+                ${statusBadge(a.status)}
+                ${a.source === 'public_booking' ? '<br><span class="badge badge-online" style="margin-top:3px">🌐 Online</span>' : ''}
+            </td>
             <td>
                 <div class="reminder-group">
                     <button class="btn btn-whatsapp btn-sm btn-icon" title="WhatsApp" onclick="sendClientReminder('${a.id}','whatsapp')">💬</button>
@@ -5037,84 +5292,50 @@ async function init() {
         weekday: 'short', month: 'short', day: 'numeric'
     });
 
-    // Charger toutes les données depuis Firebase
-    await loadAllData();
-
-    const session = getCurrentUser();
-
-    if (session) {
-        const users = getUsers();
-        const user  = users[session.username];
-
-        // ── SuperAdmin : bypass total ──
-        if (session.role === 'superAdmin') {
-            hideAuthScreen();
-            updateUserUI();
-            applyRoleUI();
-            if(typeof applyTranslations === 'function') applyTranslations(_lang);
-            navigate('sa-dashboard');
-            return;
-        }
-
-        // Vérification du changement forcé de mot de passe
-        if (user?.mustChangePassword) {
-            hideAuthScreen();
-            showForcedPwScreen();
-            return;
-        }
-
-        hideAuthScreen();
-        updateUserUI();
-        updateSidebarBranding();
-        applyRoleUI();
-
-        // ── Utilisateur déjà connecté + plan en attente → Stripe ou modal trial ──
-        const _pendingOnInit = localStorage.getItem('sp_pending_plan');
-        if(_pendingOnInit && session.role==='owner' && (STRIPE_PLANS[_pendingOnInit] || _pendingOnInit === 'trial')){
-          localStorage.removeItem('sp_pending_plan');
-          syncSalonToFirestore(users[session.username]);
-          if(_pendingOnInit === 'trial'){
-            setTimeout(openSpTrialModal, 400);
+    // ── Firebase Auth — source de vérité pour la session ─────────────────────
+    // onAuthStateChanged se déclenche immédiatement (token mis en cache par Firebase)
+    if(window.fbOnAuthChange){
+      window.fbOnAuthChange(async (fbUser) => {
+        if(fbUser){
+          // Firebase confirme l'utilisateur → charger son profil applicatif
+          const profile = await _resolveProfile(fbUser.email);
+          if(profile){
+            setCurrentUser(profile);
+            _bootDone = false;
+            await _bootApp(profile);
           } else {
-            showToast(`💳 Redirection vers Stripe — Plan ${_pendingOnInit}…`);
-            setTimeout(()=>{ window.location.href = STRIPE_PLANS[_pendingOnInit]; }, 900);
+            // Firebase Auth OK mais aucun profil trouvé → déconnecter proprement
+            if(window.fbSignOut) window.fbSignOut();
           }
-          return;
-        }
-
-        initSubscription();
-        checkAccess(false);
-        updateStorageBadge();
-        if(session.role==='owner'){
-          checkCloudMigration();
-          readSalonConfig(session.username);
-        }
-
-        // Navigation selon le rôle et l'accès
-        if (isAccessAllowed()) {
-            navigate(session.role === 'owner' ? 'dashboard' : 'staff');
-            showToast(`👋 Bienvenue ${session.name}!`);
-            checkLowStock();
-            checkDueTasks();
-            checkUpcomingAppts();
         } else {
-            showPaywall();
+          // Firebase dit "non connecté" → afficher l'écran de connexion
+          clearCurrentUser();
+          hideAccessDenied();
+          if(typeof applyTranslations === 'function') applyTranslations(_lang);
+          showAuthScreen();
         }
-
+      });
     } else {
-        // Aucun utilisateur connecté → écran de connexion
+      // Firebase Auth non disponible → fallback localStorage (staff hors-ligne, superAdmin)
+      const session = getCurrentUser();
+      if(session){
+        await _bootApp(session);
+      } else {
         if(typeof applyTranslations === 'function') applyTranslations(_lang);
         showAuthScreen();
+      }
     }
 
-    // === Rafraîchissement automatique des données ===
+    // === Rafraîchissement automatique des données (seulement si connecté) ===
     setInterval(async () => {
+        if(!getCurrentUser()) return;
         await loadAllData();
-        
+        checkNewOnlineBookings();
+
         const activePage = document.querySelector('.page.active');
         if (activePage) {
             const pageId = activePage.id.replace('page-', '');
-            
+
             if (pageId === 'dashboard') renderDashboard();
             else if (pageId === 'inventory') renderInventory();
             else if (pageId === 'staff') renderStaff();
@@ -5133,11 +5354,11 @@ init();
 
 // === SÉCURITÉ : Vérification forcée à chaque visibilité / focus ===
 function enforcePaywallOnReturn() {
+    if(!getCurrentUser()) return; // pas connecté, rien à faire
     const sub = S.getObj('sp_sub');
-    
     if (sub && !isAccessAllowed()) {
         console.log("🔒 Accès expiré détecté après retour navigateur");
-        showPaywall();
+        showAccessDenied();
     }
 }
 
@@ -5199,6 +5420,14 @@ window.addEventListener('load', () => {
   new MutationObserver(() => injectEyes())
     .observe(document.body, { subtree:true, childList:true });
 })();
+
+
+// ── Auto-refresh Messages quand la fenêtre reprend le focus ─────────────────
+window.addEventListener('focus', () => {
+  if(getCurrentUser()?.role === 'superAdmin' && document.getElementById('page-sa-messages')?.classList.contains('active')){
+    saLoadMessages();
+  }
+});
 </script>
 </body>
 </html>

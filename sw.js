@@ -1,6 +1,6 @@
-const CACHE_NAME = 'strandpro-v1';
-const STATIC_CACHE = 'strandpro-static-v1';
-const DYNAMIC_CACHE = 'strandpro-dynamic-v1';
+const CACHE_NAME = 'strandpro-v3';
+const STATIC_CACHE = 'strandpro-static-v3';
+const DYNAMIC_CACHE = 'strandpro-dynamic-v3';
 
 // Static assets to cache
 const STATIC_ASSETS = [

@@ -61,32 +61,56 @@ function _fromDoc(raw) {
 
 // ── HTTP layer ─────────────────────────────────────────────────────────────
 
-async function _req(method, path, body, params = {}) {
+async function _req(method, path, body, params = {}, retries = 3) {
   const url = new URL(`${_FS_BASE}/${path}`);
   url.searchParams.set('key', _FS_KEY);
   for (const [k, v] of Object.entries(params)) {
     if (Array.isArray(v)) v.forEach(i => url.searchParams.append(k, i));
     else url.searchParams.set(k, v);
   }
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10000);
-  const opts = { method, headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal };
-  if (body) opts.body = JSON.stringify(body);
-  let res;
-  try { res = await fetch(url.toString(), opts); }
-  finally { clearTimeout(timer); }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw Object.assign(
-      new Error(`Firestore REST ${method} ${path} → ${res.status}`),
-      { fsError: err }
-    );
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
+    const opts  = { method, headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal };
+    if (body) opts.body = JSON.stringify(body);
+    let res;
+    try { res = await fetch(url.toString(), opts); }
+    finally { clearTimeout(timer); }
+    if (res.status === 429 && attempt < retries - 1) {
+      await new Promise(r => setTimeout(r, 600 * Math.pow(2, attempt)));
+      continue;
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(
+        new Error(`Firestore REST ${method} ${path} → ${res.status}`),
+        { fsError: err }
+      );
+    }
+    return res.status === 204 ? null : res.json();
   }
-  return res.status === 204 ? null : res.json();
 }
 
-// Paginated collection read
+// ── Collection read cache (TTL 60s) ────────────────────────────────────────
+const _collCache = new Map(); // path → { data, ts }
+const _CACHE_TTL = 60_000;
+
+function _cacheGet(path) {
+  const entry = _collCache.get(path);
+  if (entry && Date.now() - entry.ts < _CACHE_TTL) return entry.data;
+  return null;
+}
+function _cacheSet(path, data) { _collCache.set(path, { data, ts: Date.now() }); }
+export function clearFsCache(path) {
+  if (path) _collCache.delete(path);
+  else _collCache.clear();
+}
+window.clearFsCache = clearFsCache;
+
+// Paginated collection read — with in-memory cache
 async function _getCollection(collPath) {
+  const cached = _cacheGet(collPath);
+  if (cached) return cached;
   const docs = [];
   let pageToken;
   do {
@@ -96,6 +120,7 @@ async function _getCollection(collPath) {
     (res?.documents || []).forEach(d => { const doc = _fromDoc(d); if (doc) docs.push(doc); });
     pageToken = res?.nextPageToken;
   } while (pageToken);
+  _cacheSet(collPath, docs);
   return docs;
 }
 
@@ -170,17 +195,22 @@ function _makeCRUD(collName) {
     },
 
     async save(item) {
+      const path    = _getSalonPath(collName);
       const payload = { ...item, updatedAt: _now() };
       if (item.id) {
-        await _setDoc(`${_getSalonPath(collName)}/${item.id}`, payload);
+        await _setDoc(`${path}/${item.id}`, payload);
+        _collCache.delete(path);
         return item.id;
       }
-      const created = await _addDoc(_getSalonPath(collName), { ...payload, createdAt: _now() });
+      const created = await _addDoc(path, { ...payload, createdAt: _now() });
+      _collCache.delete(path);
       return created.id;
     },
 
     async delete(id) {
-      await _deleteDoc(`${_getSalonPath(collName)}/${id}`);
+      const path = _getSalonPath(collName);
+      await _deleteDoc(`${path}/${id}`);
+      _collCache.delete(path);
     }
   };
 }

@@ -39,4 +39,4 @@ const COLLECTIONS = {
 window.firestoreCollections = COLLECTIONS;
 
 console.log('Firebase initialisé avec succès');
-export { db, app };
+export { db, app, firebaseConfig };
