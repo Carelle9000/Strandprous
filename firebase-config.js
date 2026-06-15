@@ -1,19 +1,18 @@
-// Firebase Configuration
-// Remplacez ces valeurs par celles de votre projet Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg",
-  authDomain: "strandprous.firebaseapp.com",
-  databaseURL: "https://strandprous-default-rtdb.firebaseio.com",
-  projectId: "strandprous",
-  storageBucket: "strandprous.firebasestorage.app",
-  messagingSenderId: "684736633913",
-  appId: "1:684736633913:web:92f765b9c58d6a2ed8c1e8",
-  measurementId: "G-1X0D38EK1W"
+  apiKey: "AIzaSyCp15cmyrXpblbvEWvY2Rk6DWxI0_XC1y0",
+  authDomain: "strandprous-b3398.firebaseapp.com",
+  databaseURL: "https://strandprous-b3398-default-rtdb.firebaseio.com",
+  projectId: "strandprous-b3398",
+  storageBucket: "strandprous-b3398.firebasestorage.app",
+  messagingSenderId: "279144298205",
+  appId: "1:279144298205:web:f3a8f05f456402091c8d34",
+  measurementId: "G-15WBZ722MX"
 };
 
 // Importer les modules Firebase nécessaires
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getFirestore, initializeFirestore, persistentLocalCache } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFunctions, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js';
 
 // Initialiser Firebase
 const app = initializeApp(firebaseConfig);
@@ -22,8 +21,15 @@ const db = initializeFirestore(app, {
   ignoreUndefinedProperties: true
 });
 
+// Initialiser Cloud Functions
+const functions = getFunctions(app);
+
+// En développement local, décommenter pour tester sur l'émulateur :
+// connectFunctionsEmulator(functions, 'localhost', 5001);
+
 // Exporter les instances pour utilisation globale
 window.firebaseDB = db;
+window.firebaseFunctions = functions;
 
 // Structure des collections Firestore
 const COLLECTIONS = {

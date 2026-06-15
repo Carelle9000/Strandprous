@@ -1,0 +1,31 @@
+mutation CreateSeedData @transaction {
+  user_insertMany(data: [
+    {
+      id: "770e8400-e29b-41d4-a716-446655440001",
+      fullName: "Alice SalonOwner",
+      email: "alice@salon.example",
+      role: "owner"
+    },
+    {
+      id: "770e8400-e29b-41d4-a716-446655440002",
+      fullName: "Bob Stylist",
+      email: "bob@salon.example",
+      role: "staff"
+    }
+  ])
+  salon_insertMany(data: [
+    {
+      id: "880e8400-e29b-41d4-a716-446655440001",
+      name: "Elite Hair Design",
+      address: "123 Maple St"
+    }
+  ])
+  service_insertMany(data: [
+    {
+      name: "Haircut",
+      durationMinutes: 45,
+      price: 50.0,
+      salon: { id: "880e8400-e29b-41d4-a716-446655440001" }
+    }
+  ])
+}

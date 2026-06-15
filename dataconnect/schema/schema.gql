@@ -1,0 +1,37 @@
+type Salon @table {
+  name: String!
+  address: String!
+  contactPhone: String
+  websiteUrl: String
+}
+
+type User @table {
+  fullName: String!
+  email: String!
+  role: String!
+  phone: String
+  avatarUrl: String
+}
+
+type Service @table {
+  name: String!
+  durationMinutes: Int!
+  price: Float!
+  salon: Salon!
+}
+
+type Appointment @table {
+  startTime: Timestamp!
+  endTime: Timestamp!
+  status: String!
+  salon: Salon!
+  client: User!
+  staff: User!
+  service: Service!
+}
+
+type Availability @table {
+  startTime: Timestamp!
+  endTime: Timestamp!
+  staff: User!
+}

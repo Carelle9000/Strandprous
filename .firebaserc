@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "strandprous"
-  }
+    "default": "strandprous-b3398",
+    "strandprous": "strandprous-b3398"
+  },
+  "targets": {},
+  "etags": {}
 }

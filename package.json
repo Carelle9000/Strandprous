@@ -41,6 +41,7 @@
     "not dead"
   ],
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "ajv": "^8.18.0",
     "ansi-align": "^3.0.1",
     "ansi-regex": "^6.2.2",

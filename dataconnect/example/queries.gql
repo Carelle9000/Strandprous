@@ -1,0 +1,29 @@
+mutation CreateAppointment($startTime: Timestamp!, $endTime: Timestamp!, $salonId: UUID!, $clientId: UUID!, $staffId: UUID!, $serviceId: UUID!) @auth(level: USER) {
+  appointment_insert(data: {
+    startTime: $startTime,
+    endTime: $endTime,
+    status: "scheduled",
+    salonId: $salonId,
+    clientId: $clientId,
+    staffId: $staffId,
+    serviceId: $serviceId
+  })
+}
+
+query ListAvailableSlots($staffId: UUID!, $startTime: Timestamp!) @auth(level: USER) {
+  availabilities(where: {
+    staffId: {eq: $staffId},
+    startTime: {ge: $startTime}
+  }) {
+    startTime
+    endTime
+  }
+}
+
+mutation UpdateAppointmentStatus($id: UUID!, $status: String!) @auth(level: USER) {
+  appointment_update(id: $id, data: { status: $status })
+}
+
+mutation CancelAppointment($id: UUID!) @auth(level: USER) {
+  appointment_delete(id: $id)
+}

@@ -104,10 +104,30 @@ export async function fbCreateStaffAccount(email, password) {
   }
 }
 
+// ── Envoie un email de réinitialisation du mot de passe ──────────────────
+// Firebase génère un lien unique et sécurisé (valide 1h)
+// L'utilisateur reçoit un email avec un lien de réinitialisation
+export async function fbSendPasswordResetEmail(email) {
+  try {
+    const auth = await _getAuth();
+    // sendPasswordResetEmail() envoie un email avec un lien temporaire
+    await _authModule.sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (e) {
+    if (_isMisconfigured(e.code)) return null;
+    // Si l'utilisateur n'existe pas dans Firebase Auth, on ne le signale pas
+    // (pour des raisons de sécurité : pas de révélation de quels emails existent)
+    if (e.code === 'auth/user-not-found') return null;
+    console.warn('fbSendPasswordResetEmail:', e.code);
+    return null;
+  }
+}
+
 // Expose globalement pour strandpro.html
-window.fbSignIn            = fbSignIn;
-window.fbSignUp            = fbSignUp;
-window.fbSignOut           = fbSignOut;
-window.fbOnAuthChange      = fbOnAuthChange;
-window.fbGetCurrentUser    = fbGetCurrentUser;
-window.fbCreateStaffAccount = fbCreateStaffAccount;
+window.fbSignIn                    = fbSignIn;
+window.fbSignUp                    = fbSignUp;
+window.fbSignOut                   = fbSignOut;
+window.fbOnAuthChange              = fbOnAuthChange;
+window.fbGetCurrentUser            = fbGetCurrentUser;
+window.fbCreateStaffAccount        = fbCreateStaffAccount;
+window.fbSendPasswordResetEmail    = fbSendPasswordResetEmail;
