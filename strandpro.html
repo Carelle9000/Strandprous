@@ -3892,44 +3892,28 @@ async function doRequestReset(){
   _otpTargetUsername=matched.username;
   _otpIsOwner=isOwner;
 
-  // Envoyer l'email avec le code via Cloud Function
+  // Envoyer email de réinitialisation via Firebase Auth native
   try{
     if(btn){btn.disabled=true;btn.textContent='📧 Sending email...';}
 
-    // Appeler la Cloud Function sendOtpEmail directement via HTTP
-    const response = await fetch('https://us-central1-strandprous-b3398.cloudfunctions.net/sendOtpEmail', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: matched.email,
-        code: code,
-        username: matched.username
-      })
-    });
+    // Appeler fbSendPasswordResetEmail (Firebase native)
+    await fbSendPasswordResetEmail(matched.email);
 
-    const result = await response.json();
+    // ✅ Email envoyé avec succès
+    if(btn){btn.disabled=false;btn.textContent='Send Password Reset Link →';}
+    showAuthMsg('resetOk', `✓ Password reset link sent to ${matched.email}. Check your inbox!`);
+    document.getElementById('resetEmail').value='';
 
-    if(result.success){
-      // ✅ Email envoyé avec succès
-      if(btn){btn.disabled=false;btn.textContent='Send Verification Code →';}
-      showAuthMsg('resetOk', `✓ A verification code has been sent to ${matched.email}. Check your inbox!`);
-      document.getElementById('resetEmail').value='';
-
-      // Attendre 2 sec puis afficher l'écran OTP (sans afficher le code)
-      setTimeout(()=>{
-        showAuthMsg('resetOk','');
-        showOtpScreenAfterEmailSent();
-      }, 2000);
-      return;
-    } else {
-      throw new Error(result.error || 'Failed to send email');
-    }
+    // Attendre 2 sec puis retourner au login
+    setTimeout(()=>{
+      showAuthMsg('resetOk','');
+      showAuthPanel('login');
+    }, 2000);
+    return;
   }catch(e){
-    console.warn('Cloud Function error:', e);
-    if(btn){btn.disabled=false;btn.textContent='Send Verification Code →';}
-    showAuthMsg('resetErr', 'Could not send email. Please try again.');
+    console.warn('Password reset error:', e);
+    if(btn){btn.disabled=false;btn.textContent='Send Password Reset Link →';}
+    showAuthMsg('resetErr', 'Could not send reset link. Please try again.');
     return;
   }
 }
