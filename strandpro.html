@@ -170,20 +170,6 @@ body {
 .forced-pw-title { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:600; color:var(--gold-light); text-align:center; margin-bottom:6px; }
 .forced-pw-sub { font-size:.8rem; color:var(--text3); text-align:center; margin-bottom:22px; line-height:1.6; }
 
-/* ── OTP SCREEN ── */
-#otpScreen { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:3500; align-items:center; justify-content:center; }
-#otpScreen.show { display:flex; }
-.otp-box { width:100%; max-width:420px; padding:36px 28px; margin:20px; background:var(--surface); border:1px solid var(--border2); border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,.7); animation:fadeIn .35s ease; }
-.otp-title { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:600; color:var(--gold-light); margin-bottom:6px; }
-.otp-sub { font-size:.8rem; color:var(--text3); margin-bottom:20px; line-height:1.6; }
-.otp-input-row { display:flex; gap:8px; justify-content:center; margin:20px 0; }
-.otp-digit { width:44px; height:52px; background:var(--bg4); border:2px solid var(--border2); border-radius:8px; color:var(--text); font-size:1.4rem; font-weight:700; text-align:center; font-family:'Cormorant Garamond',serif; outline:none; transition:border-color .15s; }
-.otp-digit:focus { border-color:var(--gold); }
-.otp-timer { text-align:center; font-size:.75rem; color:var(--text3); margin-bottom:16px; }
-.otp-timer.expired { color:var(--danger); }
-.otp-email-notice { background:rgba(201,146,42,.08); border:1px solid var(--gold-dim); border-radius:8px; padding:12px 14px; font-size:.78rem; color:var(--text2); line-height:1.6; margin-bottom:16px; }
-.otp-email-notice strong { color:var(--gold-light); }
-
 /* ── ACCESS DENIED ── */
 #page-denied { display:none; }
 #page-denied.active { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; }
@@ -778,54 +764,17 @@ body.is-owner .owner-only { display:flex; }
    <!-- RESET — step 1: enter email -->
 <div class="auth-panel" id="panel-reset">
   <div class="auth-panel-title">Reset Password</div>
-  <div class="auth-panel-sub">Enter the email address on your account. We will send a 6-digit verification code to that email.</div>
+  <div class="auth-panel-sub">Enter the email address on your account. We will send a password reset link to that email.</div>
   <div class="auth-msg error" id="resetErr"></div>
   <div class="auth-msg success" id="resetOk"></div>
   <div class="auth-group"><label>Email Address</label><input type="email" id="resetEmail" placeholder="your@email.com" inputmode="email" onkeydown="if(event.key==='Enter')doRequestReset()"></div>
-  <button class="auth-btn" onclick="doRequestReset()">Send Verification Code →</button>
+  <button class="auth-btn" onclick="doRequestReset()">Send Reset Link →</button>
   <div class="auth-footer"><a onclick="switchAuthTab('login')">← Back to Sign In</a></div>
 </div>
   </div>
 </div>
 
 <!-- ── OTP VERIFICATION SCREEN ── -->
-<div id="otpScreen">
-  <div class="otp-box fade-in">
-    <div class="otp-title">🔐 Verify Your Email</div>
-    <div class="otp-sub" id="otpSubText">Un code à 6 chiffres a été généré pour <strong id="otpEmailDisplay"></strong>. Saisissez-le ci-dessous.</div>
-    <!-- Code visible directement (pas de service email configuré) -->
-    <div id="otpCodeDisplay" style="background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:16px;text-align:center">
-      <div style="font-size:.7rem;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Votre code de vérification</div>
-      <div id="otpCodeValue" style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--gold-light);letter-spacing:.15em"></div>
-      <div style="font-size:.7rem;color:var(--text3);margin-top:4px">Copiez ce code et saisissez-le dans les champs ci-dessous</div>
-    </div>
-    <div id="otpMailtoLink" style="display:none"></div>
-    <div class="auth-msg error" id="otpErr" style="display:none"></div>
-    <div class="otp-input-row" id="otpInputRow">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,0)" onkeydown="otpDigitKey(event,0)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,1)" onkeydown="otpDigitKey(event,1)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,2)" onkeydown="otpDigitKey(event,2)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,3)" onkeydown="otpDigitKey(event,3)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,4)" onkeydown="otpDigitKey(event,4)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,5)" onkeydown="otpDigitKey(event,5)">
-    </div>
-    <div class="otp-timer" id="otpTimer">Code expires in <strong id="otpCountdown">10:00</strong></div>
-    <button class="auth-btn" style="margin-bottom:10px" onclick="verifyOtp()">Verify Code →</button>
-    <button class="auth-btn" style="background:transparent;border:1px solid var(--border2);color:var(--text2);margin-top:0" onclick="cancelOtp()">← Cancel</button>
-  </div>
-</div>
-
-<!-- ── NEW PASSWORD SCREEN (after OTP verified) ── -->
-<div id="newPwScreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3600;align-items:center;justify-content:center">
-  <div class="otp-box fade-in">
-    <div class="otp-title">🔑 Set New Password</div>
-    <div class="otp-sub">OTP verified. Create your new password below.</div>
-    <div class="auth-msg error" id="newPwErr" style="display:none;margin-bottom:12px;padding:9px 12px;border-radius:7px;font-size:.79px;background:var(--danger-dim);border:1px solid var(--danger);color:#e74c3c"></div>
-    <div class="auth-group"><label>New Password</label><input type="password" id="newPwInput" placeholder="At least 6 characters" oninput="checkPwStrength(this.value,'newPwBar')"><div class="pw-bar-wrap"><div class="pw-bar" id="newPwBar"></div></div></div>
-    <div class="auth-group"><label>Confirm Password</label><input type="password" id="newPwInput2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')saveNewPassword()"></div>
-    <button class="auth-btn" onclick="saveNewPassword()">Save New Password →</button>
-  </div>
-</div>
 
 <!-- ── FORCED PASSWORD CHANGE SCREEN ── -->
 <div id="forcedPwScreen">
@@ -3831,52 +3780,7 @@ function fileToBase64(file) {
     });
 }
 
-// ── PASSWORD RESET WITH OTP ──
-let _otpData = null; // {code, username, email, expiry}
-let _otpTimerInterval = null;
-let _otpTargetUsername = null;
-let _otpIsOwner = false; // true si compte trouvé dans Firestore (salon owner)
-
-// ── RATE LIMITING POUR OTP ──
-// Prévient les attaques brute-force en limitant les tentatives
-async function getOtpAttempts(email) {
-  try {
-    const docRef = window.db.collection('otpAttempts').doc(email);
-    const doc = await docRef.get();
-    if (!doc.exists) return { attempts: 0, blockedUntil: 0 };
-    return doc.data();
-  } catch (e) {
-    console.warn('getOtpAttempts error:', e);
-    return { attempts: 0, blockedUntil: 0 };
-  }
-}
-
-async function recordOtpAttempt(email, success = false) {
-  try {
-    const docRef = window.db.collection('otpAttempts').doc(email);
-
-    if (success) {
-      // Réinitialiser les tentatives si succès
-      await docRef.delete();
-    } else {
-      // Incrémenter les tentatives échouées
-      const data = await getOtpAttempts(email);
-      const newAttempts = (data.attempts || 0) + 1;
-
-      // Bloquer après 5 tentatives pendant 15 minutes
-      const blockedUntil = newAttempts >= 5 ? Date.now() + 15*60*1000 : 0;
-
-      await docRef.set({
-        attempts: newAttempts,
-        blockedUntil: blockedUntil,
-        lastAttempt: new Date()
-      });
-    }
-  } catch (e) {
-    console.warn('recordOtpAttempt error:', e);
-  }
-}
-
+// ── PASSWORD RESET (Firebase Auth native) ──
 async function doRequestReset(){
   const emailInput=document.getElementById('resetEmail').value.trim().toLowerCase();
   if(!emailInput){showAuthMsg('resetErr','Please enter your email address.');return;}
@@ -3885,14 +3789,11 @@ async function doRequestReset(){
   if(btn){btn.disabled=true;btn.textContent='⏳ Searching...';}
 
   let matched=null;
-  let isOwner=false;
 
   try{
-    // 1. Recherche dans localStorage (staff + owners déjà connectés)
     const users=getUsers();
     matched=Object.values(users).find(u=>u.email&&u.email.toLowerCase()===emailInput);
 
-    // 2. Fallback Firestore — owners pas encore en local (nouvel appareil)
     if(!matched&&window.SalonRegistryAPI){
       const salons=await Promise.race([
         window.SalonRegistryAPI.getAllSalons(),
@@ -3901,37 +3802,19 @@ async function doRequestReset(){
       const salon=salons.find(s=>s.email&&s.email.toLowerCase()===emailInput);
       if(salon){
         matched={username:salon.username,name:salon.businessName||salon.username,email:salon.email};
-        isOwner=true;
       }
     }
   }catch(e){console.warn('doRequestReset lookup:',e);}
 
-  if(btn){btn.disabled=false;btn.textContent='Send Verification Code →';}
+  if(btn){btn.disabled=false;btn.textContent='Send Reset Link →';}
   if(!matched){showAuthMsg('resetErr','No account found with that email address.');return;}
 
-  // ════════════════════════════════════════════════════════════════════
-  // Générer l'OTP et envoyer par email via Cloud Function
-  // ════════════════════════════════════════════════════════════════════
-
-  const code=Math.floor(100000+Math.random()*900000).toString();
-  const expiry=Date.now()+10*60*1000;
-  _otpData={code,username:matched.username,email:matched.email,expiry};
-  _otpTargetUsername=matched.username;
-  _otpIsOwner=isOwner;
-
-  // Envoyer email de réinitialisation via Firebase Auth native
   try{
     if(btn){btn.disabled=true;btn.textContent='📧 Sending email...';}
-
-    // Appeler fbSendPasswordResetEmail (Firebase native)
     await fbSendPasswordResetEmail(matched.email);
-
-    // ✅ Email envoyé avec succès
-    if(btn){btn.disabled=false;btn.textContent='Send Password Reset Link →';}
+    if(btn){btn.disabled=false;btn.textContent='Send Reset Link →';}
     showAuthMsg('resetOk', `✓ Password reset link sent to ${matched.email}. Check your inbox!`);
     document.getElementById('resetEmail').value='';
-
-    // Attendre 2 sec puis retourner au login
     setTimeout(()=>{
       showAuthMsg('resetOk','');
       switchAuthTab('login');
@@ -3939,123 +3822,10 @@ async function doRequestReset(){
     return;
   }catch(e){
     console.warn('Password reset error:', e);
-    if(btn){btn.disabled=false;btn.textContent='Send Password Reset Link →';}
+    if(btn){btn.disabled=false;btn.textContent='Send Reset Link →';}
     showAuthMsg('resetErr', 'Could not send reset link. Please try again.');
     return;
   }
-}
-
-// Affiche l'écran OTP SANS afficher le code (il est dans l'email)
-function showOtpScreenAfterEmailSent(){
-  document.getElementById('otpEmailDisplay').textContent=_otpData.email;
-
-  // NE PAS afficher le code à l'écran (il est dans l'email)
-  const codeDisplayEl = document.getElementById('otpCodeDisplay');
-  if(codeDisplayEl) codeDisplayEl.style.display='none';
-
-  document.getElementById('otpScreen').classList.add('show');
-  document.querySelectorAll('.otp-digit').forEach(d=>{d.value='';});
-  document.getElementById('otpErr').style.display='none';
-  startOtpCountdown(_otpData.expiry);
-}
-function startOtpCountdown(expiry){
-  if(_otpTimerInterval) clearInterval(_otpTimerInterval);
-  function tick(){
-    const remaining=Math.max(0,Math.floor((expiry-Date.now())/1000));
-    const m=Math.floor(remaining/60),s=remaining%60;
-    const el=document.getElementById('otpCountdown');
-    if(el) el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
-    const timerEl=document.getElementById('otpTimer');
-    if(remaining===0){
-      if(timerEl){timerEl.textContent='Code expired. Go back and request a new one.';timerEl.className='otp-timer expired';}
-      clearInterval(_otpTimerInterval);
-    }
-  }
-  tick();
-  _otpTimerInterval=setInterval(tick,1000);
-}
-function otpDigitInput(el,idx){
-  el.value=el.value.replace(/\D/g,'').slice(-1);
-  if(el.value&&idx<5){document.querySelectorAll('.otp-digit')[idx+1]?.focus();}
-}
-function otpDigitKey(e,idx){
-  if(e.key==='Backspace'&&!e.target.value&&idx>0){document.querySelectorAll('.otp-digit')[idx-1]?.focus();}
-}
-async function verifyOtp(){
-  if(!_otpData){showOtpErr('Session expired. Please start over.');return;}
-  if(Date.now()>_otpData.expiry){showOtpErr('Code has expired. Go back and request a new one.');return;}
-
-  // ✅ RATE LIMITING : Vérifier si l'utilisateur est bloqué
-  const attempts = await getOtpAttempts(_otpData.email);
-  if (attempts.blockedUntil && Date.now() < attempts.blockedUntil) {
-    const remainingMin = Math.ceil((attempts.blockedUntil - Date.now()) / 60000);
-    showOtpErr(`❌ Too many failed attempts. Try again in ${remainingMin} minute(s).`);
-    return;
-  }
-
-  const entered=[...document.querySelectorAll('.otp-digit')].map(d=>d.value).join('');
-  if(entered.length<6){showOtpErr('Please enter all 6 digits.');return;}
-
-  if(entered!==_otpData.code){
-    // ❌ Code incorrect — enregistrer la tentative échouée
-    await recordOtpAttempt(_otpData.email, false);
-    const data = await getOtpAttempts(_otpData.email);
-    const remaining = 5 - (data.attempts || 0);
-    if (remaining > 0) {
-      showOtpErr(`❌ Incorrect code. ${remaining} attempt(s) remaining.`);
-    } else {
-      showOtpErr(`❌ Account locked for 15 minutes due to too many failed attempts.`);
-    }
-    return;
-  }
-
-  // ✅ OTP correct — enregistrer le succès et afficher le formulaire de nouveau mot de passe
-  await recordOtpAttempt(_otpData.email, true);
-  clearInterval(_otpTimerInterval);
-  document.getElementById('otpScreen').classList.remove('show');
-  document.getElementById('newPwScreen').style.display='flex';
-  document.getElementById('newPwInput').value='';
-  document.getElementById('newPwInput2').value='';
-  document.getElementById('newPwBar').style.width='0';
-  document.getElementById('newPwErr').style.display='none';
-}
-function showOtpErr(msg){const el=document.getElementById('otpErr');el.textContent=msg;el.style.display='block';}
-function cancelOtp(){
-  clearInterval(_otpTimerInterval);
-  _otpData=null;_otpTargetUsername=null;_otpIsOwner=false;
-  document.getElementById('otpScreen').classList.remove('show');
-  switchAuthTab('login');
-}
-async function saveNewPassword(){
-  const pw=document.getElementById('newPwInput').value;
-  const pw2=document.getElementById('newPwInput2').value;
-  const errEl=document.getElementById('newPwErr');
-  const show=msg=>{errEl.textContent=msg;errEl.style.display='block';};
-  if(pw.length<6){show('Password must be at least 6 characters.');return;}
-  if(pw!==pw2){show('Passwords do not match.');return;}
-  if(!_otpTargetUsername){show('Session error. Please start over.');return;}
-
-  const hashed=hashPw(pw);
-
-  // Mise à jour localStorage (staff + owners déjà en cache)
-  const users=getUsers();
-  if(users[_otpTargetUsername]){
-    users[_otpTargetUsername].pw=hashed;
-    users[_otpTargetUsername].mustChangePassword=false;
-    setUsers(users);
-  }
-
-  // Mise à jour Firestore pour les comptes owner (persiste sur tous les appareils)
-  if(_otpIsOwner&&window.SalonRegistryAPI){
-    try{
-      await window.SalonRegistryAPI.updateSalon(_otpTargetUsername,{pw:hashed,tempPassword:null});
-    }catch(e){console.warn('saveNewPassword Firestore sync:',e);}
-  }
-
-  _otpData=null;_otpTargetUsername=null;_otpIsOwner=false;
-  document.getElementById('newPwScreen').style.display='none';
-  showToast('✓ Password updated! Please sign in.');
-  switchAuthTab('login');
 }
 
 // ── FORCED PASSWORD CHANGE ──
