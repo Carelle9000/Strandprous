@@ -9,14 +9,27 @@ admin.initializeApp();
 // ── Configurer Nodemailer avec Gmail ──
 // IMPORTANT : Tu dois activer les "App Passwords" dans ton compte Google
 // Voir : https://myaccount.google.com/apppasswords
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    // ⚠️ REMPLACE CES VALEURS :
-    user: process.env.GMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.GMAIL_PASSWORD || 'your-app-password'
+// Pour déployer, utilise : firebase functions:config:set gmail.user="email" gmail.password="password"
+let transporter;
+function getTransporter() {
+  if (!transporter) {
+    const gmailUser = functions.config().gmail?.user;
+    const gmailPassword = functions.config().gmail?.password;
+
+    if (!gmailUser || !gmailPassword) {
+      console.warn('Gmail credentials not configured. Configure them using: firebase functions:config:set gmail.user="your-email" gmail.password="your-password"');
+    }
+
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailUser,
+        pass: gmailPassword
+      }
+    });
   }
-});
+  return transporter;
+}
 
 // Configurer CORS pour permettre les requêtes depuis localhost et production
 const corsHandler = cors({
@@ -55,8 +68,9 @@ exports.sendOtpEmail = functions.https.onRequest((req, res) => {
 
     try {
       // Envoyer l'email
-      await transporter.sendMail({
-        from: `"StrandPro" <${process.env.GMAIL_USER}>`,
+      const gmailUser = functions.config().gmail?.user;
+      await getTransporter().sendMail({
+        from: `"StrandPro" <${gmailUser}>`,
         to: email,
         subject: '🔐 Your StrandPro Password Reset Code',
         html: `
