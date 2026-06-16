@@ -3907,7 +3907,7 @@ async function doRequestReset(){
     // Attendre 2 sec puis retourner au login
     setTimeout(()=>{
       showAuthMsg('resetOk','');
-      showAuthPanel('login');
+      switchAuthTab('login');
     }, 2000);
     return;
   }catch(e){
