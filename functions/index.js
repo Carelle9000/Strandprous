@@ -9,15 +9,15 @@ admin.initializeApp();
 // ── Configurer Nodemailer avec Gmail ──
 // IMPORTANT : Tu dois activer les "App Passwords" dans ton compte Google
 // Voir : https://myaccount.google.com/apppasswords
-// Pour déployer, utilise : firebase functions:config:set gmail.user="email" gmail.password="password"
 let transporter;
 function getTransporter() {
   if (!transporter) {
-    const gmailUser = functions.config().gmail?.user;
-    const gmailPassword = functions.config().gmail?.password;
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailPassword = process.env.GMAIL_PASSWORD;
 
     if (!gmailUser || !gmailPassword) {
-      console.warn('Gmail credentials not configured. Configure them using: firebase functions:config:set gmail.user="your-email" gmail.password="your-password"');
+      console.error('Gmail credentials not configured. Set GMAIL_USER and GMAIL_PASSWORD environment variables.');
+      throw new Error('Missing Gmail credentials');
     }
 
     transporter = nodemailer.createTransport({
@@ -68,7 +68,7 @@ exports.sendOtpEmail = functions.https.onRequest((req, res) => {
 
     try {
       // Envoyer l'email
-      const gmailUser = functions.config().gmail?.user;
+      const gmailUser = process.env.GMAIL_USER;
       await getTransporter().sendMail({
         from: `"StrandPro" <${gmailUser}>`,
         to: email,
