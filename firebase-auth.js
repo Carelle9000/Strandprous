@@ -53,7 +53,7 @@ export async function fbSignUp(email, password) {
     return { uid: cred.user.uid, email: cred.user.email };
   } catch (e) {
     if (_isMisconfigured(e.code)) return null;
-    if (e.code === 'auth/email-already-in-use') return null;
+    if (e.code === 'auth/email-already-in-use') throw e; // Propager l'erreur pour meilleur message
     console.warn('fbSignUp:', e.code);
     return null;
   }

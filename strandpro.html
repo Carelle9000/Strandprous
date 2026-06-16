@@ -3737,10 +3737,29 @@ async function doSignup() {
 
     const users = getUsers();
 
-    // Vérifier unicité de l'email
+    // Vérifier unicité de l'email dans localStorage local
     if (Object.values(users).some(u => u.email && u.email.toLowerCase() === email)) {
         showAuthMsg('signupErr', 'Un compte avec cet email existe déjà.');
         return;
+    }
+
+    // Vérifier unicité de l'email dans Firestore (source de vérité — cross-device)
+    try {
+      if (window.db) {
+        const existingOwner = await window.db.collection('salons')
+          .where('email', '==', email)
+          .limit(1)
+          .get();
+
+        if (!existingOwner.empty) {
+          showAuthMsg('signupErr', 'Un compte avec cet email existe déjà.');
+          return;
+        }
+      }
+    } catch(e) {
+      console.warn('Firestore uniqueness check failed:', e);
+      showAuthMsg('signupErr', 'Erreur lors de la vérification. Réessaye.');
+      return;
     }
 
     // Auto-générer un username interne depuis l'email
@@ -3763,11 +3782,19 @@ async function doSignup() {
     setUsers(users);
 
     // Créer le compte Firebase Auth en parallèle (cloud auth cross-device)
-    // Créer le compte Firebase Auth (puis sign-out immédiat pour ne pas déclencher onAuthStateChanged)
     if(window.fbSignUp){
       window.fbSignUp(email, pw)
-        .then(fbUser => { if(fbUser && window.fbSignOut) window.fbSignOut(); })
-        .catch(()=>{});
+        .then(fbUser => {
+          if(fbUser && window.fbSignOut) window.fbSignOut();
+        })
+        .catch((err) => {
+          // Firebase rejette l'email (doublon détecté)
+          if(err?.code === 'auth/email-already-in-use') {
+            showAuthMsg('signupErr', 'Un compte avec cet email existe déjà.');
+          } else {
+            console.warn('Firebase signup warning:', err?.code);
+          }
+        });
     }
 
     // Activer le trial immédiatement (avant sync Firestore pour que Firestore reçoive status:'trial')
