@@ -1,40 +1,23 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
 
 // Initialiser Firebase Admin SDK
 admin.initializeApp();
 const db = admin.firestore();
 
-// Créer le transporter paresseux (lazy initialization) pour éviter les timeouts
-let transporter = null;
-
-function getTransporter() {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER || '',
-        pass: process.env.GMAIL_PASSWORD || ''
-      }
-    });
-  }
-  return transporter;
-}
-
 /**
- * Cloud Function: Envoyer code OTP pour réinitialisation de mot de passe
+ * Cloud Function: Générer et envoyer code OTP pour réinitialisation de mot de passe
  *
  * Flux:
  * 1. Génère un code OTP à 6 chiffres aléatoires
  * 2. Stocke le code dans Firestore avec expiration 5 minutes
- * 3. Envoie l'email avec le code via nodemailer + Gmail
+ * 3. Crée un document dans /mail pour que l'extension Firebase Email l'envoie
  * 4. Retourne succès ou erreur
  *
  * Sécurité:
  * - Rate limiting via Firestore (évite les spam)
  * - Code expire après 5 minutes
- * - Max 5 tentatives avant blocage
+ * - Email géré par Firebase Extension (officiel et sécurisé)
  */
 exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
   const email = data.email?.toLowerCase().trim();
@@ -47,23 +30,15 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
     );
   }
 
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-    console.error('Gmail credentials not configured');
-    throw new functions.https.HttpsError(
-      'internal',
-      'Email service not configured'
-    );
-  }
-
   try {
     // Vérifier s'il y a un OTP valide non expiré
     const existingOtp = await db.collection('otpResetCodes').doc(email).get();
     if (existingOtp.exists) {
-      const data = existingOtp.data();
-      // Si le code n'a pas expiré, on le remet à zéro et on en génère un nouveau
-      if (data.expiresAt > Date.now()) {
-        // Wait 30 secondes avant de permettre une nouvelle demande
-        if (data.lastRequestedAt && Date.now() - data.lastRequestedAt < 30000) {
+      const otpData = existingOtp.data();
+      // Si le code n'a pas expiré, vérifier le rate limiting
+      if (otpData.expiresAt > Date.now()) {
+        // Attendre 30 secondes avant de permettre une nouvelle demande
+        if (otpData.lastRequestedAt && Date.now() - otpData.lastRequestedAt < 30000) {
           throw new functions.https.HttpsError(
             'resource-exhausted',
             'Veuillez attendre 30 secondes avant de demander un nouveau code'
@@ -76,7 +51,7 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-    // Sauvegarder le code dans Firestore
+    // Sauvegarder le code OTP dans Firestore
     await db.collection('otpResetCodes').doc(email).set({
       code,
       expiresAt,
@@ -86,31 +61,15 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
       verified: false
     });
 
-    // Envoyer l'email via nodemailer + Gmail
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
-      console.error('Gmail credentials not configured');
-      throw new functions.https.HttpsError(
-        'internal',
-        'Email service not configured'
-      );
-    }
-
-    try {
-      await getTransporter().sendMail({
-        from: process.env.GMAIL_USER,
-        to: email,
-        subject: 'StrandPro - Password Reset Code',
+    // Créer un document pour que l'extension Firebase Email l'envoie
+    // L'extension détectera automatiquement ce document et enverra l'email
+    await db.collection('mail').add({
+      to: email,
+      message: {
+        subject: 'StrandPro - Code de réinitialisation du mot de passe',
         html: generateOtpEmailHtml(code)
-      });
-    } catch (emailError) {
-      console.error('Email send error:', emailError);
-      // Supprimer le code OTP si l'email n'a pas pu être envoyé
-      await db.collection('otpResetCodes').doc(email).delete();
-      throw new functions.https.HttpsError(
-        'internal',
-        'Failed to send email. Please try again.'
-      );
-    }
+      }
+    });
 
     // Succès
     return {
