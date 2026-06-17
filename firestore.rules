@@ -29,6 +29,13 @@ service cloud.firestore {
       allow read, write, delete, update: if true;
     }
 
+    // OTP codes for password reset — Cloud Functions seulement pour écrire
+    // Users peuvent lire le leur pour vérifier (public car pas d'auth requise)
+    match /otpResetCodes/{email} {
+      allow create, write, update, delete: if false; // Cloud Functions utilisent les credentails d'admin
+      allow read: if true; // Public read (rate limit + short expiry provides security)
+    }
+
     // OTP attempts tracking — rate limiting pour password reset (public, car utilisateur non authentifié)
     match /otpAttempts/{email} {
       allow read, write, delete, update: if true;

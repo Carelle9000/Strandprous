@@ -1,14 +1,20 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 // Initialiser Firebase Admin SDK
 admin.initializeApp();
 const db = admin.firestore();
 
-// Initialiser Resend avec la clé API depuis les config
-const resendApiKey = process.env.RESEND_API_KEY || '';
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+// Initialiser nodemailer avec Gmail
+// Les variables d'environnement viennent de .env.local en dev ou Firebase Console en prod
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || '',
+    pass: process.env.GMAIL_PASSWORD || ''
+  }
+});
 
 /**
  * Cloud Function: Envoyer code OTP pour réinitialisation de mot de passe
@@ -24,7 +30,7 @@ const resend = resendApiKey ? new Resend(resendApiKey) : null;
  * - Code expire après 5 minutes
  * - Max 5 tentatives avant blocage
  */
-exports.sendPasswordResetOtp = functions.https.onCall(async (data, context) => {
+exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
   const email = data.email?.toLowerCase().trim();
 
   // Validation basique
@@ -74,21 +80,29 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data, context) => {
       verified: false
     });
 
-    // Envoyer l'email via Resend
-    const emailResponse = await resend.emails.send({
-      from: 'noreply@strandpro.com', // Remplacez par votre domaine Resend
-      to: email,
-      subject: 'StrandPro - Code de réinitialisation de mot de passe',
-      html: generateOtpEmailHtml(code)
-    });
+    // Envoyer l'email via nodemailer + Gmail
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+      console.error('Gmail credentials not configured');
+      throw new functions.https.HttpsError(
+        'internal',
+        'Email service not configured'
+      );
+    }
 
-    if (emailResponse.error) {
-      console.error('Resend error:', emailResponse.error);
+    try {
+      await transporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to: email,
+        subject: 'StrandPro - Password Reset Code',
+        html: generateOtpEmailHtml(code)
+      });
+    } catch (emailError) {
+      console.error('Email send error:', emailError);
       // Supprimer le code OTP si l'email n'a pas pu être envoyé
       await db.collection('otpResetCodes').doc(email).delete();
       throw new functions.https.HttpsError(
         'internal',
-        'Erreur lors de l\'envoi de l\'email'
+        'Failed to send email. Please try again.'
       );
     }
 
