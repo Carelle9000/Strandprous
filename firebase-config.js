@@ -1,34 +1,40 @@
-// Firebase Configuration
-// Remplacez ces valeurs par celles de votre projet Firebase Console
+// firebase-config.js - Firebase Configuration
+// Connected to Firebase project: strandprous-b3398
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBaXFVBZym6iaxz8NZ42PMSxHrROBSFWEg",
-  authDomain: "strandprous.firebaseapp.com",
-  databaseURL: "https://strandprous-default-rtdb.firebaseio.com",
-  projectId: "strandprous",
-  storageBucket: "strandprous.firebasestorage.app",
-  messagingSenderId: "684736633913",
-  appId: "1:684736633913:web:92f765b9c58d6a2ed8c1e8",
-  measurementId: "G-1X0D38EK1W"
+  apiKey: "AIzaSyCp15cmyrXpblbvEWvY2Rk6DWxI0_XC1y0",
+  authDomain: "strandprous-b3398.firebaseapp.com",
+  databaseURL: "https://strandprous-b3398-default-rtdb.firebaseio.com",
+  projectId: "strandprous-b3398",
+  storageBucket: "strandprous-b3398.firebasestorage.app",
+  messagingSenderId: "279144298205",
+  appId: "1:279144298205:web:f3a8f05f456402091c8d34",
+  measurementId: "G-15WBZ722MX"
 };
 
-// Importer les modules Firebase nécessaires
+// Import Firebase modules from CDN
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import { getFirestore, initializeFirestore, persistentLocalCache } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
-// Initialiser Firebase
+import {
+  initializeFirestore
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firestore
 const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   ignoreUndefinedProperties: true
 });
 
-// Exporter les instances pour utilisation globale
+// Expose Firestore globally
 window.firebaseDB = db;
 
-// Structure des collections Firestore
+// Firestore collections
 const COLLECTIONS = {
   USERS: 'users',
-  APPOINTMENTS: 'appointments', 
+  APPOINTMENTS: 'appointments',
   CUSTOMERS: 'customers',
   SERVICES: 'services',
   STAFF: 'staff',
@@ -38,5 +44,6 @@ const COLLECTIONS = {
 
 window.firestoreCollections = COLLECTIONS;
 
-console.log('Firebase initialisé avec succès');
+console.log('Firebase initialized successfully:', firebaseConfig.projectId);
+
 export { db, app, firebaseConfig };
