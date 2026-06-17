@@ -3732,7 +3732,7 @@ async function doSignup() {
 
     // Vérifier unicité de l'email dans Firestore (source de vérité — cross-device)
     try {
-      if (window.db) {
+      if (window.db && window.db.collection) {
         const existingOwner = await window.db.collection('salons')
           .where('email', '==', email)
           .limit(1)
@@ -3745,8 +3745,7 @@ async function doSignup() {
       }
     } catch(e) {
       console.warn('Firestore uniqueness check failed:', e);
-      showAuthMsg('signupErr', 'Erreur lors de la vérification. Réessaye.');
-      return;
+      // Continue with local signup if Firestore check fails
     }
 
     // Auto-générer un username interne depuis l'email
