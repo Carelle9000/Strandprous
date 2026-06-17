@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
  * Flux:
  * 1. Génère un code OTP à 6 chiffres aléatoires
  * 2. Stocke le code dans Firestore avec expiration 5 minutes
- * 3. Envoie l'email avec le code via Resend
+ * 3. Envoie l'email avec le code via nodemailer + Gmail
  * 4. Retourne succès ou erreur
  *
  * Sécurité:
@@ -41,11 +41,11 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
     );
   }
 
-  if (!resend) {
-    console.error('RESEND_API_KEY not configured');
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASSWORD) {
+    console.error('Gmail credentials not configured');
     throw new functions.https.HttpsError(
       'internal',
-      'Service email non configuré'
+      'Email service not configured'
     );
   }
 
