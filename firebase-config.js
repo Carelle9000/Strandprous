@@ -12,7 +12,7 @@ const firebaseConfig = {
 // Importer les modules Firebase nécessaires
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getFirestore, initializeFirestore, persistentLocalCache } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { getFunctions, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js';
+import { getFunctions, connectFunctionsEmulator, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js';
 
 // Initialiser Firebase
 const app = initializeApp(firebaseConfig);
@@ -29,7 +29,9 @@ const functions = getFunctions(app);
 
 // Exporter les instances pour utilisation globale
 window.firebaseDB = db;
+window.db = db; // Alias pour compatibilité avec le code existant
 window.firebaseFunctions = functions;
+window.httpsCallable = httpsCallable;
 
 // Structure des collections Firestore
 const COLLECTIONS = {

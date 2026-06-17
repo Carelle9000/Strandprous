@@ -3862,7 +3862,7 @@ async function doRequestReset(){
   try{
     if(btn){btn.disabled=true;btn.textContent='📧 Sending code...';}
 
-    const sendOtp = firebase.functions().httpsCallable('sendPasswordResetOtp');
+    const sendOtp = window.httpsCallable(window.firebaseFunctions, 'sendPasswordResetOtp');
     const response = await sendOtp({ email: emailInput });
 
     if(!response.data.success){
@@ -3975,7 +3975,7 @@ async function verifyOtp(){
 
   try{
     // Récupérer le code OTP stocké dans Firestore
-    const docRef = window.db.collection('otpResetCodes').doc(_otpEmail);
+    const docRef = window.firebaseDB.collection('otpResetCodes').doc(_otpEmail);
     const docSnap = await docRef.get();
 
     if(!docSnap.exists){
@@ -4098,7 +4098,7 @@ async function saveNewPassword(){
 
     // Nettoyer le code OTP
     try{
-      await window.db.collection('otpResetCodes').doc(_otpEmail).delete();
+      await window.firebaseDB.collection('otpResetCodes').doc(_otpEmail).delete();
     }catch(e){console.warn('delete OTP error:', e);}
 
     // Succès!
