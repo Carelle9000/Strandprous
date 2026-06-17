@@ -6,15 +6,21 @@ const nodemailer = require('nodemailer');
 admin.initializeApp();
 const db = admin.firestore();
 
-// Initialiser nodemailer avec Gmail
-// Les variables d'environnement viennent de .env.local en dev ou Firebase Console en prod
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER || '',
-    pass: process.env.GMAIL_PASSWORD || ''
+// Créer le transporter paresseux (lazy initialization) pour éviter les timeouts
+let transporter = null;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER || '',
+        pass: process.env.GMAIL_PASSWORD || ''
+      }
+    });
   }
-});
+  return transporter;
+}
 
 /**
  * Cloud Function: Envoyer code OTP pour réinitialisation de mot de passe
@@ -90,7 +96,7 @@ exports.sendPasswordResetOtp = functions.https.onCall(async (data) => {
     }
 
     try {
-      await transporter.sendMail({
+      await getTransporter().sendMail({
         from: process.env.GMAIL_USER,
         to: email,
         subject: 'StrandPro - Password Reset Code',
