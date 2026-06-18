@@ -38,6 +38,73 @@ if ('serviceWorker' in navigator) {
 <script src="./i18n-translations.js"></script>
 <script src="./firebase-config.js" type="module"></script>
 <script src="./firebase-auth.js"   type="module"></script>
+<script type="module">
+/* Firebase password reset fallback for strandpro.html.
+   Keeps the app working even if firebase-auth.js has not yet been updated. */
+import { app } from './firebase-config.js';
+import {
+  getAuth,
+  sendPasswordResetEmail
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+
+if (!window.fbSendPasswordReset) {
+  window.fbSendPasswordReset = async function(email) {
+    try {
+      const cleanEmail = String(email || '').trim().toLowerCase();
+      if (!cleanEmail) {
+        return {
+          success: false,
+          reason: 'missing-email',
+          message: 'Please enter your email address.'
+        };
+      }
+
+      const auth = getAuth(app);
+
+      await sendPasswordResetEmail(auth, cleanEmail, {
+        url: 'https://strandprous.com/strandpro.html',
+        handleCodeInApp: false
+      });
+
+      return {
+        success: true,
+        message: 'Password reset email sent. Please check your inbox.'
+      };
+    } catch (e) {
+      const code = e?.code || '';
+
+      if (code === 'auth/invalid-email') {
+        return { success: false, reason: 'invalid-email', message: 'Please enter a valid email address.' };
+      }
+
+      if (code === 'auth/user-not-found') {
+        return { success: false, reason: 'user-not-found', message: 'No account was found with this email address.' };
+      }
+
+      if (
+        code === 'auth/configuration-not-found' ||
+        code === 'auth/invalid-api-key' ||
+        code === 'auth/app-not-authorized' ||
+        code === 'auth/operation-not-allowed'
+      ) {
+        return {
+          success: false,
+          reason: 'firebase-auth-not-configured',
+          message: 'Firebase Authentication is not configured. Enable Email/Password in Firebase Console.'
+        };
+      }
+
+      console.warn('fbSendPasswordReset fallback:', code || e?.message);
+
+      return {
+        success: false,
+        reason: 'unknown-error',
+        message: 'Unable to send the reset email. Please try again.'
+      };
+    }
+  };
+}
+</script>
 <script src="./firestore-crud.js"  type="module"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -765,54 +832,23 @@ body.is-owner .owner-only { display:flex; }
       <div class="auth-footer" data-translate="Already have an account? <a onclick="switchAuthTab('login')">Sign in</a>">Already have an account? <a onclick="switchAuthTab('login')">Sign in</a></div>
     </div>
 
-   <!-- RESET — step 1: enter email -->
+   <!-- RESET — secure Firebase email link -->
 <div class="auth-panel" id="panel-reset">
   <div class="auth-panel-title">Reset Password</div>
-  <div class="auth-panel-sub">Enter the email address on your account. We will send a password reset link to that email.</div>
+  <div class="auth-panel-sub">Enter the email address on your account. We will send a secure password reset link to your inbox.</div>
   <div class="auth-msg error" id="resetErr"></div>
   <div class="auth-msg success" id="resetOk"></div>
-  <div class="auth-group"><label>Email Address</label><input type="email" id="resetEmail" placeholder="your@email.com" inputmode="email" onkeydown="if(event.key==='Enter')doRequestReset()"></div>
-  <button class="auth-btn" onclick="doRequestReset()">Send Reset Link →</button>
+  <div class="auth-group"><label>Email Address</label><input type="email" id="resetEmail" placeholder="your@email.com" inputmode="email" autocomplete="email" onkeydown="if(event.key==='Enter')doRequestReset()"></div>
+  <button class="auth-btn" onclick="doRequestReset()">Send Password Reset Email →</button>
   <div class="auth-footer"><a onclick="switchAuthTab('login')">← Back to Sign In</a></div>
 </div>
   </div>
 </div>
 
-<!-- ── OTP VERIFICATION SCREEN ── -->
-<!-- ── OTP VERIFICATION SCREEN ── -->
-<div id="otpScreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3500;align-items:center;justify-content:center">
-  <div style="width:100%;max-width:420px;padding:36px 28px;margin:20px;background:var(--surface);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 64px rgba(0,0,0,.7);animation:fadeIn .35s ease">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--gold-light);margin-bottom:6px">🔐 Enter Verification Code</div>
-    <div style="font-size:.8rem;color:var(--text3);margin-bottom:20px;line-height:1.6">A 6-digit code has been sent to <strong id="otpEmailDisplay"></strong></div>
-    <div class="auth-msg error" id="otpErr" style="display:none"></div>
-
-    <!-- Cases pour entrer les 6 chiffres -->
-    <div style="display:flex;gap:8px;justify-content:center;margin:20px 0">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,0)" onkeydown="otpDigitKey(event,0)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,1)" onkeydown="otpDigitKey(event,1)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,2)" onkeydown="otpDigitKey(event,2)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,3)" onkeydown="otpDigitKey(event,3)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,4)" onkeydown="otpDigitKey(event,4)">
-      <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" oninput="otpDigitInput(this,5)" onkeydown="otpDigitKey(event,5)">
-    </div>
-
-    <div style="text-align:center;font-size:.75rem;color:var(--text3);margin-bottom:16px">Code expires in <strong id="otpCountdown">5:00</strong></div>
-    <button class="auth-btn" style="margin-bottom:10px" onclick="verifyOtp()">Verify Code →</button>
-    <button class="auth-btn" style="background:transparent;border:1px solid var(--border2);color:var(--text2);margin-top:0" onclick="cancelOtp()">← Cancel</button>
-  </div>
-</div>
-
-<!-- ── NEW PASSWORD SCREEN ── -->
-<div id="newPwScreen" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3600;align-items:center;justify-content:center">
-  <div style="width:100%;max-width:420px;padding:36px 28px;margin:20px;background:var(--surface);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 64px rgba(0,0,0,.7);animation:fadeIn .35s ease">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--gold-light);margin-bottom:6px">🔑 Set New Password</div>
-    <div style="font-size:.8rem;color:var(--text3);margin-bottom:20px;line-height:1.6">Create your new password</div>
-    <div class="auth-msg error" id="newPwErr" style="display:none;margin-bottom:12px;padding:9px 12px;border-radius:7px;font-size:.79px;background:var(--danger-dim);border:1px solid var(--danger);color:#e74c3c"></div>
-    <div class="auth-group"><label>New Password</label><input type="password" id="newPwInput" placeholder="At least 6 characters" oninput="checkPwStrength(this.value,'newPwBar')"><div class="pw-bar-wrap"><div class="pw-bar" id="newPwBar"></div></div></div>
-    <div class="auth-group"><label>Confirm Password</label><input type="password" id="newPwInput2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')saveNewPassword()"></div>
-    <button class="auth-btn" onclick="saveNewPassword()">Save Password →</button>
-  </div>
-</div>
+<!-- ── PASSWORD RESET NOTICE ──
+Password reset now uses Firebase's secure email link.
+The previous local OTP/reset-password overlay was removed for security.
+-->
 
 <!-- ── FORCED PASSWORD CHANGE SCREEN ── -->
 <div id="forcedPwScreen">
@@ -3817,216 +3853,83 @@ function fileToBase64(file) {
     });
 }
 
-// ── PASSWORD RESET WITH OTP (Cloud Function + Firestore) ──
-let _otpEmail = null;
-let _otpTimerInterval = null;
-
-/**
- * Étape 1: User demande un code OTP
- * Appelle Cloud Function sendPasswordResetOtp
- */
+// ── SECURE PASSWORD RESET WITH FIREBASE EMAIL LINK ──
+// This replaces the old local OTP reset. No code is displayed in the UI,
+// and the password is changed only through Firebase's secure email link.
 async function doRequestReset(){
-  const emailInput=document.getElementById('resetEmail').value.trim().toLowerCase();
-  if(!emailInput){showAuthMsg('resetErr','Please enter your email address.');return;}
+  const emailInput = document.getElementById('resetEmail')?.value.trim().toLowerCase();
 
-  const btn=document.querySelector('#panel-reset .auth-btn');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Checking account...';}
+  const errEl = document.getElementById('resetErr');
+  const okEl  = document.getElementById('resetOk');
 
-  let matched=null;
+  if (errEl) {
+    errEl.textContent = '';
+    errEl.className = 'auth-msg error';
+  }
+  if (okEl) {
+    okEl.textContent = '';
+    okEl.className = 'auth-msg success';
+  }
 
-  try{
-    // Vérifier si le compte existe localement ou dans Firestore
-    const users=getUsers();
-    matched=Object.values(users).find(u=>u.email&&u.email.toLowerCase()===emailInput);
-
-    if(!matched&&window.SalonRegistryAPI){
-      const salons=await Promise.race([
-        window.SalonRegistryAPI.getAllSalons(),
-        new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),6000))
-      ]);
-      const salon=salons.find(s=>s.email&&s.email.toLowerCase()===emailInput);
-      if(salon){
-        matched={username:salon.username,email:salon.email};
-      }
-    }
-  }catch(e){console.warn('doRequestReset lookup:',e);}
-
-  if(!matched){
-    if(btn){btn.disabled=false;btn.textContent='Send Code →';}
-    showAuthMsg('resetErr','No account found with that email address.');
+  if (!emailInput) {
+    showAuthMsg('resetErr', 'Please enter your email address.');
     return;
   }
 
-  // Appeler la Cloud Function pour générer et envoyer le code OTP
-  try{
-    if(btn){btn.disabled=true;btn.textContent='📧 Sending code...';}
+  const btn = document.querySelector('#panel-reset .auth-btn');
+  const originalText = btn ? btn.textContent : '';
 
-    const sendOtp = window.httpsCallable(window.firebaseFunctions, 'sendPasswordResetOtp');
-    const response = await sendOtp({ email: emailInput });
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sending reset email...';
+  }
 
-    if(!response.data.success){
-      throw new Error(response.data.error || 'Unknown error');
+  try {
+    if (!window.fbSendPasswordReset) {
+      throw new Error('Password reset service is not loaded.');
     }
 
-    // Succès! Afficher l'écran OTP
-    _otpEmail = emailInput;
-    showOtpScreen(emailInput);
+    const result = await window.fbSendPasswordReset(emailInput);
 
-    if(btn){btn.disabled=false;btn.textContent='Send Code →';}
-    document.getElementById('resetEmail').value='';
-    showAuthMsg('resetOk','✓ Code sent! Check your email.');
-    return;
+    if (result && result.success) {
+      showAuthMsg(
+        'resetOk',
+        'Password reset email sent. Please check your inbox and follow the secure link.',
+        'success'
+      );
 
-  }catch(e){
-    console.error('doRequestReset error:', e);
-    if(btn){btn.disabled=false;btn.textContent='Send Code →';}
+      const resetEmailInput = document.getElementById('resetEmail');
+      if (resetEmailInput) resetEmailInput.value = '';
 
-    if(e.code === 'functions/resource-exhausted'){
-      showAuthMsg('resetErr','Please wait before requesting another code.');
-    }else{
-      showAuthMsg('resetErr', 'Error sending code. Please try again.');
-    }
-    return;
-  }
-}
-
-/**
- * Affiche l'écran OTP et lance le compte à rebours
- */
-function showOtpScreen(email){
-  document.getElementById('otpEmailDisplay').textContent = email;
-  document.getElementById('otpScreen').style.display = 'flex';
-  document.querySelectorAll('.otp-digit').forEach(d=>{d.value='';});
-  document.getElementById('otpErr').style.display = 'none';
-  document.getElementById('resetOk').style.display = 'none';
-
-  // Focus sur la première case
-  document.querySelector('.otp-digit')?.focus();
-
-  // Lancer le compte à rebours (5 minutes)
-  startOtpCountdown(Date.now() + 5 * 60 * 1000);
-}
-
-/**
- * Gère le compte à rebours des 5 minutes
- */
-function startOtpCountdown(expiresAt){
-  if(_otpTimerInterval) clearInterval(_otpTimerInterval);
-
-  function tick(){
-    const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-
-    const countdownEl = document.getElementById('otpCountdown');
-    if(countdownEl){
-      countdownEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
-    }
-
-    if(remaining === 0){
-      clearInterval(_otpTimerInterval);
-      cancelOtp();
-      showOtpErr('Code expired. Please request a new one.');
-    }
-  }
-
-  tick();
-  _otpTimerInterval = setInterval(tick, 1000);
-}
-
-/**
- * Gère la saisie des chiffres dans les cases OTP
- * - Accepte seulement les chiffres
- * - Passe au champ suivant automatiquement
- */
-function otpDigitInput(el, idx){
-  el.value = el.value.replace(/\D/g, '').slice(-1);
-  if(el.value && idx < 5){
-    document.querySelectorAll('.otp-digit')[idx + 1]?.focus();
-  }
-}
-
-/**
- * Gère les touches spéciales (Backspace, flèches)
- */
-function otpDigitKey(e, idx){
-  if(e.key === 'Backspace' && !e.target.value && idx > 0){
-    document.querySelectorAll('.otp-digit')[idx - 1]?.focus();
-  }
-}
-
-/**
- * Étape 2: User entre le code et clique "Verify"
- * Vérifie le code contre Firestore
- */
-async function verifyOtp(){
-  const code = [...document.querySelectorAll('.otp-digit')].map(d => d.value).join('');
-
-  if(code.length < 6){
-    showOtpErr('Please enter all 6 digits.');
-    return;
-  }
-
-  if(!_otpEmail){
-    showOtpErr('Session error. Please try again.');
-    return;
-  }
-
-  try{
-    // Récupérer le code OTP stocké dans Firestore
-    const docRef = window.firebaseDB.collection('otpResetCodes').doc(_otpEmail);
-    const docSnap = await docRef.get();
-
-    if(!docSnap.exists){
-      showOtpErr('Code not found. Request a new one.');
       return;
     }
 
-    const data = docSnap.data();
-
-    // Vérifier expiration
-    if(Date.now() > data.expiresAt){
-      await docRef.delete();
-      showOtpErr('Code expired. Request a new one.');
-      return;
+    showAuthMsg(
+      'resetErr',
+      result?.message || 'Unable to send the reset email. Please try again.'
+    );
+  } catch (e) {
+    console.warn('doRequestReset:', e?.code || e?.message || e);
+    showAuthMsg(
+      'resetErr',
+      'Unable to send the reset email. Please confirm Firebase Authentication is enabled and try again.'
+    );
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || 'Send Password Reset Email →';
     }
-
-    // Vérifier le code
-    if(data.code !== code){
-      showOtpErr('Incorrect code. Try again.');
-      return;
-    }
-
-    // ✅ CODE CORRECT!
-    clearInterval(_otpTimerInterval);
-    document.getElementById('otpScreen').style.display = 'none';
-    document.getElementById('newPwScreen').style.display = 'flex';
-    document.getElementById('newPwInput').value = '';
-    document.getElementById('newPwInput2').value = '';
-    document.getElementById('newPwBar').style.width = '0';
-    document.getElementById('newPwErr').style.display = 'none';
-    document.getElementById('newPwInput').focus();
-
-  }catch(e){
-    console.error('verifyOtp error:', e);
-    showOtpErr('Error verifying code. Try again.');
   }
 }
 
-function showOtpErr(msg){
-  const el = document.getElementById('otpErr');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-/**
- * User annule le processus OTP
- */
+// Legacy OTP functions kept as safe no-ops so old hidden markup cannot reset passwords locally.
+function startOtpCountdown(){ /* disabled: Firebase email reset is used instead */ }
+function otpDigitInput(el){ if (el) el.value = String(el.value || '').replace(/\D/g,'').slice(-1); }
+function otpDigitKey(){ /* disabled */ }
+function verifyOtp(){ showAuthMsg('resetErr', 'For security, password reset now uses the email link only.'); }
+function showOtpErr(msg){ showAuthMsg('resetErr', msg || 'Password reset now uses the email link only.'); }
 function cancelOtp(){
-  clearInterval(_otpTimerInterval);
-  _otpEmail = null;
-  document.getElementById('otpScreen').style.display = 'none';
-  document.getElementById('newPwScreen').style.display = 'none';
+  document.getElementById('otpScreen')?.classList.remove('show');
   switchAuthTab('login');
 }
 
@@ -4035,83 +3938,7 @@ function cancelOtp(){
  * Utilise Firebase Auth updatePassword()
  */
 async function saveNewPassword(){
-  const pw = document.getElementById('newPwInput').value;
-  const pw2 = document.getElementById('newPwInput2').value;
-  const errEl = document.getElementById('newPwErr');
-
-  const showErr = msg => {
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-  };
-
-  if(pw.length < 6){
-    showErr('Password must be at least 6 characters.');
-    return;
-  }
-
-  if(pw !== pw2){
-    showErr('Passwords do not match.');
-    return;
-  }
-
-  if(!_otpEmail){
-    showErr('Session error. Please try again.');
-    return;
-  }
-
-  try{
-    const user = firebase.auth().currentUser;
-
-    if(!user){
-      // User pas connecté - on doit le connecter d'abord avec le code OTP
-      // Pour cela on utilise updatePassword en tant que User anonyme
-      // Mais c'est compliqué, donc on va plutôt demander à l'user de se reconnecter
-
-      // Alternative: utiliser un token spécial. Pour maintenant, on va:
-      // 1. Mettre à jour le mot de passe dans Firebase Auth via une Cloud Function
-      // 2. Ou faire une réauthentification avec un code temporaire
-
-      // Mais pour l'instant, on va utiliser une approche simple:
-      // Mettre à jour le document Firestore avec le nouveau mot de passe hashé
-      const hashed = hashPw(pw);
-      const users = getUsers();
-
-      // Trouver l'utilisateur par email
-      const username = Object.keys(users).find(k => users[k].email?.toLowerCase() === _otpEmail);
-
-      if(username){
-        users[username].pw = hashed;
-        setUsers(users);
-
-        // Si c'est un owner, mettre à jour Firestore aussi
-        if(window.SalonRegistryAPI){
-          try{
-            await window.SalonRegistryAPI.updateSalon(username, {pw: hashed});
-          }catch(e){console.warn('updateSalon error:', e);}
-        }
-      }
-    }else{
-      // User connecté - utiliser updatePassword de Firebase Auth
-      await user.updatePassword(pw);
-    }
-
-    // Nettoyer le code OTP
-    try{
-      await window.firebaseDB.collection('otpResetCodes').doc(_otpEmail).delete();
-    }catch(e){console.warn('delete OTP error:', e);}
-
-    // Succès!
-    clearInterval(_otpTimerInterval);
-    _otpEmail = null;
-    document.getElementById('newPwScreen').style.display = 'none';
-    showToast('✓ Password updated! Please sign in.');
-    switchAuthTab('login');
-
-  }catch(e){
-    console.error('saveNewPassword error:', e);
-    errEl.textContent = 'Error updating password: ' + e.message;
-    errEl.style.display = 'block';
-  }
+  showAuthMsg('resetErr', 'For security, create the new password from the Firebase reset email link.');
 }
 
 // ── FORCED PASSWORD CHANGE ──
